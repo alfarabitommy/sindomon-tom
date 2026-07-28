@@ -26,6 +26,7 @@ class DashboardPage extends StatefulWidget {
 class _DashboardPageState extends State<DashboardPage> {
   List<Map<String, dynamic>> provinsi = [];
   bool isLoading = true;
+  String? _roleId;
 
   Future<void> getPoldaApi() async {
     try {
@@ -59,10 +60,18 @@ class _DashboardPageState extends State<DashboardPage> {
     }
   }
 
+  Future<void> _loadRole() async {
+    final prefs = await SharedPreferences.getInstance();
+    final role = prefs.getString("roleid_login");
+    if (!mounted) return;
+    setState(() => _roleId = role);
+  }
+
   @override
   void initState() {
     super.initState();
     getPoldaApi();
+    _loadRole();
   }
 
   Future<void> logout() async {
@@ -153,6 +162,23 @@ class _DashboardPageState extends State<DashboardPage> {
                       child: ListView(
                         padding: const EdgeInsets.symmetric(horizontal: 12),
                         children: [
+                          if (_roleId != null) ..._buildNewMenuByRole(),
+                          const Divider(
+                            color: Colors.amber,
+                            thickness: 1.5,
+                          ),
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 8),
+                            child: Text(
+                              "--- OLD MENU BELOW (DO NOT USE) ---",
+                              style: TextStyle(
+                                color: Colors.amber,
+                                fontSize: 11,
+                                fontStyle: FontStyle.italic,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
                           menu(
                             Icons.dashboard_rounded,
                             "Dashboard",
@@ -467,6 +493,208 @@ class _DashboardPageState extends State<DashboardPage> {
           ),
         ),
       ),
+    );
+  }
+
+  List<Widget> _buildNewMenuByRole() {
+    switch (_roleId) {
+      case "3":
+        return [
+          _buildNewMenuItem(
+            "Command Center Nasional",
+            Icons.monitor_heart_rounded,
+          ),
+        ];
+      case "1":
+        return [
+          _buildExpansionTileGroup(
+            "Manajemen Keamanan & Akun",
+            Icons.admin_panel_settings,
+            [
+              _buildNewMenuItem("Daftar Pengguna", Icons.people_alt_rounded),
+              _buildNewMenuItem(
+                "Binding Perangkat",
+                Icons.phonelink_lock_rounded,
+              ),
+            ],
+          ),
+          _buildExpansionTileGroup(
+            "Master Data Sistem",
+            Icons.storage_rounded,
+            [
+              _buildNewMenuItem("Master Wilayah", Icons.map_rounded),
+              _buildNewMenuItem(
+                "Master SDM & Organisasi",
+                Icons.account_tree_rounded,
+              ),
+              _buildNewMenuItem("Master Logistik", Icons.warehouse_rounded),
+            ],
+          ),
+        ];
+      case "2":
+        return [
+          _buildExpansionTileGroup(
+            "Manajemen SDM",
+            Icons.group_rounded,
+            [
+              _buildNewMenuItem(
+                "Bagan Organisasi (Org-Tree)",
+                Icons.account_tree_rounded,
+              ),
+              _buildNewMenuItem(
+                "Direktori Personel",
+                Icons.badge_rounded,
+              ),
+              _buildNewMenuItem(
+                "Pemantauan Proses Hukum",
+                Icons.gavel_rounded,
+              ),
+            ],
+          ),
+          _buildExpansionTileGroup(
+            "Logistik & Aset",
+            Icons.inventory_rounded,
+            [
+              _buildNewMenuItem(
+                "Inventaris Senjata",
+                Icons.shield_rounded,
+              ),
+              _buildNewMenuItem("Stok Amunisi", Icons.archive_rounded),
+              _buildNewMenuItem(
+                "Sarpras & Altmatsus",
+                Icons.precision_manufacturing_rounded,
+              ),
+              _buildNewMenuItem(
+                "Satwa K9 & Turangga",
+                Icons.pets_rounded,
+              ),
+            ],
+          ),
+          _buildExpansionTileGroup(
+            "Administrasi (DMS)",
+            Icons.description_rounded,
+            [
+              _buildNewMenuItem(
+                "Kotak Masuk (Inbox)",
+                Icons.move_to_inbox_rounded,
+              ),
+              _buildNewMenuItem(
+                "Kotak Keluar (Outbox)",
+                Icons.outbox_rounded,
+              ),
+            ],
+          ),
+          _buildExpansionTileGroup(
+            "Operasional & Kamtibmas",
+            Icons.local_police_rounded,
+            [
+              _buildNewMenuItem(
+                "Log Sitkamtibmas",
+                Icons.article_rounded,
+              ),
+            ],
+          ),
+          _buildExpansionTileGroup(
+            "Komunikasi Taktis",
+            Icons.chat_rounded,
+            [
+              _buildNewMenuItem(
+                "Direktori Panggilan (VoIP)",
+                Icons.call_rounded,
+              ),
+              _buildNewMenuItem(
+                "Ruang Konferensi",
+                Icons.videocam_rounded,
+              ),
+            ],
+          ),
+          _buildExpansionTileGroup(
+            "Hub Informasi Terpadu",
+            Icons.device_hub_rounded,
+            [
+              _buildNewMenuItem(
+                "Perpustakaan Digital",
+                Icons.library_books_rounded,
+              ),
+              _buildNewMenuItem(
+                "Pengaduan Masyarakat",
+                Icons.report_problem_rounded,
+              ),
+            ],
+          ),
+          _buildExpansionTileGroup(
+            "Mobile",
+            Icons.phone_android_rounded,
+            [
+              _buildNewMenuItem(
+                "Status Patroli GPS",
+                Icons.gps_fixed_rounded,
+              ),
+            ],
+          ),
+        ];
+      default:
+        return [];
+    }
+  }
+
+  Widget _buildExpansionTileGroup(
+    String title,
+    IconData icon,
+    List<Widget> children,
+  ) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 2),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          leading: Icon(icon, color: Colors.white70),
+          title: Text(
+            title,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
+            ),
+          ),
+          collapsedIconColor: Colors.white70,
+          iconColor: Colors.amber,
+          childrenPadding: const EdgeInsets.only(left: 24, bottom: 4),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+          collapsedShape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+          backgroundColor: Colors.white.withValues(alpha: 0.04),
+          collapsedBackgroundColor: Colors.transparent,
+          children: children,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNewMenuItem(String title, IconData icon) {
+    return ListTile(
+      leading: Icon(icon, color: Colors.white70, size: 20),
+      title: Text(
+        title,
+        style: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w500,
+          fontSize: 13,
+        ),
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+      ),
+      hoverColor: Colors.white10,
+      onTap: null,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+      visualDensity: VisualDensity.compact,
     );
   }
 
