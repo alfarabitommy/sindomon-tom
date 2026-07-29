@@ -1,17 +1,8 @@
 import 'package:flutter/material.dart';
 import '../widget/background.dart';
-import '../pages/pangaturan.dart';
-import '../pages/user_page.dart';
-import '../pages/report.dart';
-import '../pages/satwa.dart';
-import '../pages/senjata.dart';
-import '../pages/personel.dart';
-import '../pages/inventaris.dart';
-import '../pages/polda.dart';
-import '../pages/polres.dart';
+import '../widget/app_sidebar.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import '../pages/login_page.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -26,7 +17,6 @@ class DashboardPage extends StatefulWidget {
 class _DashboardPageState extends State<DashboardPage> {
   List<Map<String, dynamic>> provinsi = [];
   bool isLoading = true;
-  String? _roleId;
 
   Future<void> getPoldaApi() async {
     try {
@@ -60,37 +50,10 @@ class _DashboardPageState extends State<DashboardPage> {
     }
   }
 
-  Future<void> _loadRole() async {
-    final prefs = await SharedPreferences.getInstance();
-    final role = prefs.getString("roleid_login");
-    if (!mounted) return;
-    setState(() => _roleId = role);
-  }
-
   @override
   void initState() {
     super.initState();
     getPoldaApi();
-    _loadRole();
-  }
-
-  Future<void> logout() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    await prefs.remove("token");
-    await prefs.remove("username_login");
-    await prefs.remove("polda_login");
-    await prefs.remove("roleid_login");
-    await prefs.remove("uuid_login");
-    await prefs.remove("expired_login");
-
-    if (!mounted) return;
-
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (_) => const LoginPage()),
-      (route) => false,
-    );
   }
 
   @override
@@ -101,113 +64,7 @@ class _DashboardPageState extends State<DashboardPage> {
         child: SafeArea(
           child: Row(
             children: [
-              /// ========================
-              /// SIDEBAR
-              /// ========================
-              Container(
-                width: 260,
-                decoration: const BoxDecoration(
-                  color: Color(0xff1E1B4B),
-                  borderRadius: BorderRadius.only(
-                    topRight: Radius.circular(25),
-                    bottomRight: Radius.circular(25),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black26,
-                      blurRadius: 20,
-                      offset: Offset(5, 0),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 35),
-
-                    Image.asset(
-                      "assets/images/polri-logo.png",
-                      height: 65,
-                      fit: BoxFit.contain,
-                    ),
-
-                    const SizedBox(height: 15),
-
-                    const Text(
-                      "SINDOMON",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 26,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.5,
-                      ),
-                    ),
-
-                    const SizedBox(height: 5),
-
-                    Text(
-                      "Management Dashboard",
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.6),
-                        fontSize: 13,
-                      ),
-                    ),
-
-                    const SizedBox(height: 30),
-
-                    Expanded(
-                      child: ListView(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        children: [
-                          if (_roleId != null) ..._buildNewMenuByRole(),
-                          const Divider(color: Colors.amber, thickness: 1.5),
-                          const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 8),
-                            child: Text(
-                              "--- OLD MENU BELOW (DO NOT USE) ---",
-                              style: TextStyle(
-                                color: Colors.amber,
-                                fontSize: 11,
-                                fontStyle: FontStyle.italic,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                          menu(
-                            Icons.dashboard_rounded,
-                            "Dashboard",
-                            selected: true,
-                          ),
-                          menu(Icons.description_rounded, "Laporan"),
-                          menu(Icons.map_rounded, "Wilayah"),
-                          menu(Icons.inventory_2_rounded, "Inventaris"),
-                          menu(Icons.groups_rounded, "Organisasi"),
-                          menu(Icons.pets_rounded, "Satwa"),
-                          menu(Icons.people_alt_rounded, "Polda"),
-                          menu(Icons.people_alt_rounded, "Polres"),
-                          menu(Icons.gavel_rounded, "Senjata"),
-                          menu(Icons.move_to_inbox_rounded, "Kotak Masuk"),
-                          menu(Icons.outbox_rounded, "Kotak Keluar"),
-                          menu(Icons.badge_rounded, "Personel"),
-                          menu(Icons.inventory_rounded, "Stok Amunisi"),
-                          menu(Icons.memory_rounded, "Perangkat"),
-                          menu(Icons.people_alt_rounded, "Pengguna"),
-                        ],
-                      ),
-                    ),
-
-                    const Divider(
-                      color: Colors.white24,
-                      indent: 20,
-                      endIndent: 20,
-                    ),
-
-                    menu(Icons.settings_rounded, "Pengaturan"),
-                    menu(Icons.logout_rounded, "Logout"),
-
-                    const SizedBox(height: 20),
-                  ],
-                ),
-              ),
+              const AppSidebar(currentRoute: "dashboard"),
 
               /// ========================
               /// CONTENT
@@ -489,248 +346,7 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  List<Widget> _buildNewMenuByRole() {
-    switch (_roleId) {
-      case "3":
-        return [
-          _buildNewMenuItem(
-            "Command Center Nasional",
-            Icons.monitor_heart_rounded,
-          ),
-        ];
-      case "1":
-        return [
-          _buildExpansionTileGroup(
-            "Manajemen Keamanan & Akun",
-            Icons.admin_panel_settings,
-            [
-              _buildNewMenuItem("Daftar Pengguna", Icons.people_alt_rounded),
-              _buildNewMenuItem(
-                "Binding Perangkat",
-                Icons.phonelink_lock_rounded,
-              ),
-            ],
-          ),
-          _buildExpansionTileGroup(
-            "Master Data Sistem",
-            Icons.storage_rounded,
-            [
-              _buildNewMenuItem("Master Wilayah", Icons.map_rounded),
-              _buildNewMenuItem(
-                "Master SDM & Organisasi",
-                Icons.account_tree_rounded,
-              ),
-              _buildNewMenuItem("Master Logistik", Icons.warehouse_rounded),
-            ],
-          ),
-        ];
-      case "2":
-        return [
-          _buildExpansionTileGroup("Manajemen SDM", Icons.group_rounded, [
-            _buildNewMenuItem(
-              "Bagan Organisasi (Org-Tree)",
-              Icons.account_tree_rounded,
-            ),
-            _buildNewMenuItem("Direktori Personel", Icons.badge_rounded),
-            _buildNewMenuItem("Pemantauan Proses Hukum", Icons.gavel_rounded),
-          ]),
-          _buildExpansionTileGroup("Logistik & Aset", Icons.inventory_rounded, [
-            _buildNewMenuItem("Inventaris Senjata", Icons.shield_rounded),
-            _buildNewMenuItem("Stok Amunisi", Icons.archive_rounded),
-            _buildNewMenuItem(
-              "Sarpras & Altmatsus",
-              Icons.precision_manufacturing_rounded,
-            ),
-            _buildNewMenuItem("Satwa K9 & Turangga", Icons.pets_rounded),
-          ]),
-          _buildExpansionTileGroup(
-            "Administrasi (DMS)",
-            Icons.description_rounded,
-            [
-              _buildNewMenuItem(
-                "Kotak Masuk (Inbox)",
-                Icons.move_to_inbox_rounded,
-              ),
-              _buildNewMenuItem("Kotak Keluar (Outbox)", Icons.outbox_rounded),
-            ],
-          ),
-          _buildExpansionTileGroup(
-            "Operasional & Kamtibmas",
-            Icons.local_police_rounded,
-            [_buildNewMenuItem("Log Sitkamtibmas", Icons.article_rounded)],
-          ),
-          _buildExpansionTileGroup("Komunikasi Taktis", Icons.chat_rounded, [
-            _buildNewMenuItem("Direktori Panggilan (VoIP)", Icons.call_rounded),
-            _buildNewMenuItem("Ruang Konferensi", Icons.videocam_rounded),
-          ]),
-          _buildExpansionTileGroup(
-            "Hub Informasi Terpadu",
-            Icons.device_hub_rounded,
-            [
-              _buildNewMenuItem(
-                "Perpustakaan Digital",
-                Icons.library_books_rounded,
-              ),
-              _buildNewMenuItem(
-                "Pengaduan Masyarakat",
-                Icons.report_problem_rounded,
-              ),
-            ],
-          ),
-          _buildExpansionTileGroup("Mobile", Icons.phone_android_rounded, [
-            _buildNewMenuItem("Status Patroli GPS", Icons.gps_fixed_rounded),
-          ]),
-        ];
-      default:
-        return [];
-    }
-  }
 
-  Widget _buildExpansionTileGroup(
-    String title,
-    IconData icon,
-    List<Widget> children,
-  ) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 2),
-      decoration: BoxDecoration(borderRadius: BorderRadius.circular(14)),
-      child: Theme(
-        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-        child: ExpansionTile(
-          leading: Icon(icon, color: Colors.white70),
-          title: Text(
-            title,
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w600,
-              fontSize: 14,
-            ),
-          ),
-          collapsedIconColor: Colors.white70,
-          iconColor: Colors.amber,
-          childrenPadding: const EdgeInsets.only(left: 24, bottom: 4),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-          collapsedShape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-          backgroundColor: Colors.white.withValues(alpha: 0.04),
-          collapsedBackgroundColor: Colors.transparent,
-          children: children,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNewMenuItem(String title, IconData icon) {
-    return ListTile(
-      leading: Icon(icon, color: Colors.white70, size: 20),
-      title: Text(
-        title,
-        style: const TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.w500,
-          fontSize: 13,
-        ),
-      ),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-      hoverColor: Colors.white10,
-      onTap: null,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-      visualDensity: VisualDensity.compact,
-    );
-  }
-
-  Widget menu(IconData icon, String title, {bool selected = false}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        decoration: BoxDecoration(
-          color: selected ? Colors.amber : Colors.transparent,
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: ListTile(
-          leading: Icon(icon, color: selected ? Colors.black : Colors.white70),
-          title: Text(
-            title,
-            style: TextStyle(
-              color: selected ? Colors.black : Colors.white,
-              fontWeight: selected ? FontWeight.bold : FontWeight.w500,
-            ),
-          ),
-          trailing:
-              selected
-                  ? const Icon(
-                    Icons.arrow_forward_ios,
-                    size: 14,
-                    color: Colors.black,
-                  )
-                  : null,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-          hoverColor: Colors.white10,
-          onTap: () async {
-            if (title == "Logout") {
-              await logout();
-              return;
-            }
-
-            Widget page;
-
-            switch (title) {
-              case "Dashboard":
-                page = const DashboardPage();
-                break;
-
-              case "Pengaturan":
-                page = const AccountSettingPage();
-                break;
-
-              case "Laporan":
-                page = const ReportPage();
-                break;
-
-              case "Senjata":
-                page = const SenjataPage();
-                break;
-
-              case "Satwa":
-                page = const SatwaPage();
-                break;
-
-              case "Personel":
-                page = const PersonelPage();
-                break;
-
-              case "Inventaris":
-                page = const InventarisPage();
-                break;
-
-              case "Pengguna":
-                page = const UserPage();
-                break;
-
-              case "Polda":
-                page = const PoldaPage();
-                break;
-
-              case "Polres":
-                page = const PolresPage();
-                break;
-
-              default:
-                page = const DashboardPage();
-            }
-
-            Navigator.push(context, MaterialPageRoute(builder: (_) => page));
-          },
-        ),
-      ),
-    );
-  }
 
   Widget _kpiCard(String title, String value) {
     return Container(
