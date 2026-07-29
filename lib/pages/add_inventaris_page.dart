@@ -60,7 +60,8 @@ class _AddInventarisPageState extends State<AddInventarisPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: AppBackground(imagePath: 'assets/images/wp-putih-mabes.png',
+      body: AppBackground(
+        imagePath: 'assets/images/wp-putih-mabes.png',
         child: SafeArea(
           child: Row(
             children: [

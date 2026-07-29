@@ -8,18 +8,13 @@ class LoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: AppBackground(imagePath: 'assets/images/mabes-wp.png',
+      body: AppBackground(
+        imagePath: 'assets/images/mabes-wp.png',
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
               child: Column(
-                children: const [
-
-                  SizedBox(height: 40),
-
-                  LoginCard(),
-
-                ],
+                children: const [SizedBox(height: 40), LoginCard()],
               ),
             ),
           ),

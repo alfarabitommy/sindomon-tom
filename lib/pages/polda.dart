@@ -297,142 +297,156 @@ class _PoldaPageState extends State<PoldaPage> {
 
                       /// TABLE DATA
                       Expanded(
-                        child: SizedBox(
-                          width: double.infinity,
-                          child: Card(
-                            elevation: 3,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(15),
-                            ),
-                            child: Column(
-                              children: [
-                                Expanded(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.05),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            children: [
+                              Expanded(
+                                child: SingleChildScrollView(
                                   child: Padding(
                                     padding: const EdgeInsets.all(20),
                                     child: LayoutBuilder(
                                       builder: (context, constraints) {
                                         return SingleChildScrollView(
-                                          scrollDirection: Axis.vertical,
-                                          child: SingleChildScrollView(
-                                            scrollDirection: Axis.horizontal,
-                                            child: ConstrainedBox(
-                                              constraints: BoxConstraints(
-                                                minWidth: constraints.maxWidth,
+                                          scrollDirection: Axis.horizontal,
+                                          child: ConstrainedBox(
+                                            constraints: BoxConstraints(
+                                              minWidth: constraints.maxWidth,
+                                            ),
+                                            child: DataTable(
+                                              headingRowColor:
+                                                  WidgetStateProperty.all(
+                                                    Colors.grey.shade50,
+                                                  ),
+                                              headingTextStyle: const TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w700,
+                                                color: Color(0xFF6B7280),
                                               ),
-                                              child: DataTable(
-                                                headingRowColor:
-                                                    WidgetStateProperty.all(
-                                                      Colors.grey.shade50,
-                                                    ),
-                                                headingTextStyle:
-                                                    const TextStyle(
-                                                      fontSize: 12,
-                                                      fontWeight:
-                                                          FontWeight.w700,
-                                                    ),
-                                                columns: const [
-                                                  DataColumn(label: Text("ID")),
-                                                  DataColumn(
-                                                    label: Text("NAMA POLDA"),
-                                                  ),
-                                                  DataColumn(
-                                                    label: Text("LATITUDE"),
-                                                  ),
-                                                  DataColumn(
-                                                    label: Text("LONGITUDE"),
-                                                  ),
-                                                  DataColumn(
-                                                    label: Text("CREATED AT"),
-                                                  ),
-                                                  DataColumn(
-                                                    label: Text("AKSI"),
-                                                  ),
-                                                ],
-                                                rows:
-                                                    polda
-                                                        .map(
-                                                          (e) => DataRow(
-                                                            cells: [
-                                                              DataCell(
-                                                                Text(e["id"]),
+                                              dataTextStyle: const TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w400,
+                                                color: Color(0xFF374151),
+                                              ),
+                                              dividerThickness: 0.5,
+                                              border: const TableBorder(
+                                                horizontalInside: BorderSide(
+                                                  color: Color(0xFFE5E7EB),
+                                                  width: 0.5,
+                                                ),
+                                              ),
+                                              dataRowMinHeight: 60,
+                                              dataRowMaxHeight: 70,
+                                              columns: const [
+                                                DataColumn(label: Text("ID")),
+                                                DataColumn(
+                                                  label: Text("NAMA POLDA"),
+                                                ),
+                                                DataColumn(
+                                                  label: Text("LATITUDE"),
+                                                ),
+                                                DataColumn(
+                                                  label: Text("LONGITUDE"),
+                                                ),
+                                                DataColumn(
+                                                  label: Text("CREATED AT"),
+                                                ),
+                                                DataColumn(label: Text("AKSI")),
+                                              ],
+                                              rows:
+                                                  polda
+                                                      .map(
+                                                        (e) => DataRow(
+                                                          cells: [
+                                                            DataCell(
+                                                              Text(e["id"]),
+                                                            ),
+                                                            DataCell(
+                                                              Text(
+                                                                e["nama_polda"],
                                                               ),
-                                                              DataCell(
-                                                                Text(
-                                                                  e["nama_polda"],
-                                                                ),
+                                                            ),
+                                                            DataCell(
+                                                              Text(
+                                                                "${e["latitude"]}",
                                                               ),
-                                                              DataCell(
-                                                                Text(
-                                                                  "${e["latitude"]}",
-                                                                ),
+                                                            ),
+                                                            DataCell(
+                                                              Text(
+                                                                "${e["longitude"]}",
                                                               ),
-                                                              DataCell(
-                                                                Text(
-                                                                  "${e["longitude"]}",
-                                                                ),
+                                                            ),
+                                                            DataCell(
+                                                              Text(
+                                                                "${e["created_at"]}",
                                                               ),
-                                                              DataCell(
-                                                                Text(
-                                                                  "${e["created_at"]}",
-                                                                ),
-                                                              ),
-                                                              DataCell(
-                                                                ActionButtons(
-                                                                  onEdit: () {},
-                                                                  onDelete: () async {
-                                                                    final result = await showDialog(
-                                                                      context:
-                                                                          context,
-                                                                      builder:
-                                                                          (
-                                                                            _,
-                                                                          ) => AlertDialog(
-                                                                            title: const Text(
-                                                                              "Hapus Polda",
-                                                                            ),
-                                                                            content: const Text(
-                                                                              "Apakah Anda yakin ingin menghapus data ini?",
-                                                                            ),
-                                                                            actions: [
-                                                                              TextButton(
-                                                                                onPressed:
-                                                                                    () => Navigator.pop(
-                                                                                      context,
-                                                                                      false,
-                                                                                    ),
-                                                                                child: const Text(
-                                                                                  "Batal",
-                                                                                ),
-                                                                              ),
-                                                                              ElevatedButton(
-                                                                                onPressed:
-                                                                                    () => Navigator.pop(
-                                                                                      context,
-                                                                                      true,
-                                                                                    ),
-                                                                                child: const Text(
-                                                                                  "Hapus",
-                                                                                ),
-                                                                              ),
-                                                                            ],
+                                                            ),
+                                                            DataCell(
+                                                              ActionButtons(
+                                                                onEdit: () {},
+                                                                onDelete: () async {
+                                                                  final result = await showDialog(
+                                                                    context:
+                                                                        context,
+                                                                    builder:
+                                                                        (
+                                                                          _,
+                                                                        ) => AlertDialog(
+                                                                          title: const Text(
+                                                                            "Hapus Polda",
                                                                           ),
-                                                                    );
-                                                                    if (result ==
-                                                                        true) {
-                                                                      deletePolda(
-                                                                        int.parse(
-                                                                          e["id"],
+                                                                          content: const Text(
+                                                                            "Apakah Anda yakin ingin menghapus data ini?",
+                                                                          ),
+                                                                          actions: [
+                                                                            TextButton(
+                                                                              onPressed:
+                                                                                  () => Navigator.pop(
+                                                                                    context,
+                                                                                    false,
+                                                                                  ),
+                                                                              child: const Text(
+                                                                                "Batal",
+                                                                              ),
+                                                                            ),
+                                                                            ElevatedButton(
+                                                                              onPressed:
+                                                                                  () => Navigator.pop(
+                                                                                    context,
+                                                                                    true,
+                                                                                  ),
+                                                                              child: const Text(
+                                                                                "Hapus",
+                                                                              ),
+                                                                            ),
+                                                                          ],
                                                                         ),
-                                                                      );
-                                                                    }
-                                                                  },
-                                                                ),
+                                                                  );
+                                                                  if (result ==
+                                                                      true) {
+                                                                    deletePolda(
+                                                                      int.parse(
+                                                                        e["id"],
+                                                                      ),
+                                                                    );
+                                                                  }
+                                                                },
                                                               ),
-                                                            ],
-                                                          ),
-                                                        )
-                                                        .toList(),
-                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      )
+                                                      .toList(),
                                             ),
                                           ),
                                         );
@@ -440,9 +454,9 @@ class _PoldaPageState extends State<PoldaPage> {
                                     ),
                                   ),
                                 ),
-                                const AppPagination(),
-                              ],
-                            ),
+                              ),
+                              const AppPagination(),
+                            ],
                           ),
                         ),
                       ),

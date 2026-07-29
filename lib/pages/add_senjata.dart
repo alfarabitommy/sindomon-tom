@@ -22,7 +22,6 @@ class AddSenjataPage extends StatefulWidget {
 }
 
 class _AddSenjataPageState extends State<AddSenjataPage> {
-
   String unLogin = "";
 
   Future<void> loadUser() async {
@@ -39,7 +38,7 @@ class _AddSenjataPageState extends State<AddSenjataPage> {
     loadUser();
   }
 
-    Future<void> logout() async {
+  Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
 
     await prefs.remove("token");
@@ -57,10 +56,12 @@ class _AddSenjataPageState extends State<AddSenjataPage> {
       (route) => false,
     );
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: AppBackground(imagePath: 'assets/images/wp-putih-mabes.png',
+      body: AppBackground(
+        imagePath: 'assets/images/wp-putih-mabes.png',
         child: SafeArea(
           child: Row(
             children: [

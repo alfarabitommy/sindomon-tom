@@ -267,94 +267,103 @@ class _UserPageState extends State<UserPage> {
 
                       /// TABLE DATA
                       Expanded(
-                        child: SizedBox(
-                          width: double.infinity,
-                          child: Card(
-                            elevation: 3,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(15),
-                            ),
-                            child: Column(
-                              children: [
-                                Expanded(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.05),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            children: [
+                              Expanded(
+                                child: SingleChildScrollView(
                                   child: Padding(
                                     padding: const EdgeInsets.all(20),
                                     child: LayoutBuilder(
                                       builder: (context, constraints) {
                                         return SingleChildScrollView(
-                                          scrollDirection: Axis.vertical,
-                                          child: SingleChildScrollView(
-                                            scrollDirection: Axis.horizontal,
-                                            child: ConstrainedBox(
-                                              constraints: BoxConstraints(
-                                                minWidth: constraints.maxWidth,
+                                          scrollDirection: Axis.horizontal,
+                                          child: ConstrainedBox(
+                                            constraints: BoxConstraints(
+                                              minWidth: constraints.maxWidth,
+                                            ),
+                                            child: DataTable(
+                                              headingRowColor:
+                                                  WidgetStateProperty.all(
+                                                    Colors.grey.shade50,
+                                                  ),
+                                              headingTextStyle: const TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w700,
+                                                color: Color(0xFF6B7280),
                                               ),
-                                              child: DataTable(
-                                                headingRowColor:
-                                                    WidgetStateProperty.all(
-                                                      Colors.grey.shade50,
-                                                    ),
-                                                headingTextStyle:
-                                                    const TextStyle(
-                                                      fontSize: 12,
-                                                      fontWeight:
-                                                          FontWeight.w700,
-                                                    ),
-                                                columns: const [
-                                                  DataColumn(
-                                                    label: Text("NAMA"),
-                                                  ),
-                                                  DataColumn(
-                                                    label: Text("ROLE"),
-                                                  ),
-                                                  DataColumn(
-                                                    label: Text("POLDA"),
-                                                  ),
-                                                  DataColumn(
-                                                    label: Text("STATUS"),
-                                                  ),
-                                                  DataColumn(
-                                                    label: Text("AKSI"),
-                                                  ),
-                                                ],
-                                                rows:
-                                                    users
-                                                        .map(
-                                                          (e) => DataRow(
-                                                            cells: [
-                                                              DataCell(
-                                                                Text(
-                                                                  e["username"] ??
-                                                                      ' - ',
-                                                                ),
-                                                              ),
-                                                              DataCell(
-                                                                Text(
-                                                                  "${e["roles_id"]}",
-                                                                ),
-                                                              ),
-                                                              DataCell(
-                                                                Text(
-                                                                  "${e["polda"] ?? ' - '}",
-                                                                ),
-                                                              ),
-                                                              DataCell(
-                                                                Text(
-                                                                  "${e["status"] ?? ' - '}",
-                                                                ),
-                                                              ),
-                                                              DataCell(
-                                                                ActionButtons(
-                                                                  onEdit: () {},
-                                                                  onDelete:
-                                                                      () {},
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        )
-                                                        .toList(),
+                                              dataTextStyle: const TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w400,
+                                                color: Color(0xFF374151),
                                               ),
+                                              dividerThickness: 0.5,
+                                              border: const TableBorder(
+                                                horizontalInside: BorderSide(
+                                                  color: Color(0xFFE5E7EB),
+                                                  width: 0.5,
+                                                ),
+                                              ),
+                                              dataRowMinHeight: 60,
+                                              dataRowMaxHeight: 70,
+                                              columns: const [
+                                                DataColumn(label: Text("NAMA")),
+                                                DataColumn(label: Text("ROLE")),
+                                                DataColumn(
+                                                  label: Text("POLDA"),
+                                                ),
+                                                DataColumn(
+                                                  label: Text("STATUS"),
+                                                ),
+                                                DataColumn(label: Text("AKSI")),
+                                              ],
+                                              rows:
+                                                  users
+                                                      .map(
+                                                        (e) => DataRow(
+                                                          cells: [
+                                                            DataCell(
+                                                              Text(
+                                                                e["username"] ??
+                                                                    ' - ',
+                                                              ),
+                                                            ),
+                                                            DataCell(
+                                                              Text(
+                                                                "${e["roles_id"]}",
+                                                              ),
+                                                            ),
+                                                            DataCell(
+                                                              Text(
+                                                                "${e["polda"] ?? ' - '}",
+                                                              ),
+                                                            ),
+                                                            DataCell(
+                                                              Text(
+                                                                "${e["status"] ?? ' - '}",
+                                                              ),
+                                                            ),
+                                                            DataCell(
+                                                              ActionButtons(
+                                                                onEdit: () {},
+                                                                onDelete: () {},
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      )
+                                                      .toList(),
                                             ),
                                           ),
                                         );
@@ -362,9 +371,9 @@ class _UserPageState extends State<UserPage> {
                                     ),
                                   ),
                                 ),
-                                const AppPagination(),
-                              ],
-                            ),
+                              ),
+                              const AppPagination(),
+                            ],
                           ),
                         ),
                       ),

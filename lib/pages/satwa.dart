@@ -274,134 +274,143 @@ class _SatwaPageState extends State<SatwaPage> {
 
                       /// TABLE DATA
                       Expanded(
-                        child: SizedBox(
-                          width: double.infinity,
-                          child: Card(
-                            elevation: 3,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(15),
-                            ),
-                            child: Column(
-                              children: [
-                                Expanded(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.05),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            children: [
+                              Expanded(
+                                child: SingleChildScrollView(
                                   child: Padding(
                                     padding: const EdgeInsets.all(20),
                                     child: LayoutBuilder(
                                       builder: (context, constraints) {
                                         return SingleChildScrollView(
-                                          scrollDirection: Axis.vertical,
-                                          child: SingleChildScrollView(
-                                            scrollDirection: Axis.horizontal,
-                                            child: ConstrainedBox(
-                                              constraints: BoxConstraints(
-                                                minWidth: constraints.maxWidth,
+                                          scrollDirection: Axis.horizontal,
+                                          child: ConstrainedBox(
+                                            constraints: BoxConstraints(
+                                              minWidth: constraints.maxWidth,
+                                            ),
+                                            child: DataTable(
+                                              headingRowColor:
+                                                  WidgetStateProperty.all(
+                                                    Colors.grey.shade50,
+                                                  ),
+                                              headingTextStyle: const TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w700,
+                                                color: Color(0xFF6B7280),
                                               ),
-                                              child: DataTable(
-                                                headingRowColor:
-                                                    WidgetStateProperty.all(
-                                                      Colors.grey.shade50,
-                                                    ),
-                                                headingTextStyle:
-                                                    const TextStyle(
-                                                      fontSize: 12,
-                                                      fontWeight:
-                                                          FontWeight.w700,
-                                                    ),
-                                                columns: const [
-                                                  DataColumn(
-                                                    label: Text("FOTO SATWA"),
-                                                  ),
-                                                  DataColumn(
-                                                    label: Text(
-                                                      "NO REGISTRASI",
-                                                    ),
-                                                  ),
-                                                  DataColumn(
-                                                    label: Text("JENIS"),
-                                                  ),
-                                                  DataColumn(
-                                                    label: Text("NAMA"),
-                                                  ),
-                                                  DataColumn(
-                                                    label: Text("KUALIFIKASI"),
-                                                  ),
-                                                  DataColumn(
-                                                    label: Text(
-                                                      "JADWAL VAKSIN",
-                                                    ),
-                                                  ),
-                                                  DataColumn(
-                                                    label: Text(
-                                                      "STATUS VAKSIN",
-                                                    ),
-                                                  ),
-                                                  DataColumn(
-                                                    label: Text("AKSI"),
-                                                  ),
-                                                ],
-                                                rows:
-                                                    listsatwa
-                                                        .map(
-                                                          (e) => DataRow(
-                                                            cells: [
-                                                              DataCell(
-                                                                Padding(
-                                                                  padding:
-                                                                      const EdgeInsets.all(
-                                                                        8.0,
+                                              dataTextStyle: const TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w400,
+                                                color: Color(0xFF374151),
+                                              ),
+                                              dividerThickness: 0.5,
+                                              border: const TableBorder(
+                                                horizontalInside: BorderSide(
+                                                  color: Color(0xFFE5E7EB),
+                                                  width: 0.5,
+                                                ),
+                                              ),
+                                              dataRowMinHeight: 60,
+                                              dataRowMaxHeight: 70,
+                                              columns: const [
+                                                DataColumn(
+                                                  label: Text("FOTO SATWA"),
+                                                ),
+                                                DataColumn(
+                                                  label: Text("NO REGISTRASI"),
+                                                ),
+                                                DataColumn(
+                                                  label: Text("JENIS"),
+                                                ),
+                                                DataColumn(label: Text("NAMA")),
+                                                DataColumn(
+                                                  label: Text("KUALIFIKASI"),
+                                                ),
+                                                DataColumn(
+                                                  label: Text("JADWAL VAKSIN"),
+                                                ),
+                                                DataColumn(
+                                                  label: Text("STATUS VAKSIN"),
+                                                ),
+                                                DataColumn(label: Text("AKSI")),
+                                              ],
+                                              rows:
+                                                  listsatwa
+                                                      .map(
+                                                        (e) => DataRow(
+                                                          cells: [
+                                                            DataCell(
+                                                              Padding(
+                                                                padding:
+                                                                    const EdgeInsets.all(
+                                                                      8.0,
+                                                                    ),
+                                                                child: ClipRRect(
+                                                                  borderRadius:
+                                                                      BorderRadius.circular(
+                                                                        8,
                                                                       ),
                                                                   child: Image.asset(
                                                                     "assets/images/satwa.jpg",
-                                                                    width: 100,
-                                                                    height: 80,
+                                                                    width: 80,
+                                                                    height: 50,
                                                                     fit:
                                                                         BoxFit
                                                                             .cover,
                                                                   ),
                                                                 ),
                                                               ),
-                                                              DataCell(
-                                                                Text(
-                                                                  e["no_registrasi"],
-                                                                ),
+                                                            ),
+                                                            DataCell(
+                                                              Text(
+                                                                e["no_registrasi"],
                                                               ),
-                                                              DataCell(
-                                                                Text(
-                                                                  e["jenis"],
-                                                                ),
+                                                            ),
+                                                            DataCell(
+                                                              Text(e["jenis"]),
+                                                            ),
+                                                            DataCell(
+                                                              Text(
+                                                                "${e["nama"]}",
                                                               ),
-                                                              DataCell(
-                                                                Text(
-                                                                  "${e["nama"]}",
-                                                                ),
+                                                            ),
+                                                            DataCell(
+                                                              Text(
+                                                                "${e["kualifikasi"]}",
                                                               ),
-                                                              DataCell(
-                                                                Text(
-                                                                  "${e["kualifikasi"]}",
-                                                                ),
+                                                            ),
+                                                            DataCell(
+                                                              Text(
+                                                                "${e["jadwal_vaksin"]}",
                                                               ),
-                                                              DataCell(
-                                                                Text(
-                                                                  "${e["jadwal_vaksin"]}",
-                                                                ),
+                                                            ),
+                                                            DataCell(
+                                                              Text(
+                                                                "${e["status_vaksin"]}",
                                                               ),
-                                                              DataCell(
-                                                                Text(
-                                                                  "${e["status_vaksin"]}",
-                                                                ),
+                                                            ),
+                                                            DataCell(
+                                                              ActionButtons(
+                                                                onEdit: () {},
+                                                                onDelete: () {},
                                                               ),
-                                                              DataCell(
-                                                                ActionButtons(
-                                                                  onEdit: () {},
-                                                                  onDelete:
-                                                                      () {},
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        )
-                                                        .toList(),
-                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      )
+                                                      .toList(),
                                             ),
                                           ),
                                         );
@@ -409,9 +418,9 @@ class _SatwaPageState extends State<SatwaPage> {
                                     ),
                                   ),
                                 ),
-                                const AppPagination(),
-                              ],
-                            ),
+                              ),
+                              const AppPagination(),
+                            ],
                           ),
                         ),
                       ),

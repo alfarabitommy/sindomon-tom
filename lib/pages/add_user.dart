@@ -62,7 +62,8 @@ class _AddUserPageState extends State<AddUserPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: AppBackground(imagePath: 'assets/images/wp-putih-mabes.png',
+      body: AppBackground(
+        imagePath: 'assets/images/wp-putih-mabes.png',
         child: SafeArea(
           child: Row(
             children: [
@@ -142,7 +143,7 @@ class _AddUserPageState extends State<AddUserPage> {
                           menu(Icons.badge_rounded, "Personel"),
                           menu(Icons.inventory_rounded, "Stok Amunisi"),
                           menu(Icons.memory_rounded, "Perangkat"),
-                          menu( 
+                          menu(
                             Icons.people_alt_rounded,
                             "Pengguna",
                             selected: true,

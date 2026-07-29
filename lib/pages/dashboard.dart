@@ -96,7 +96,8 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: AppBackground(imagePath: 'assets/images/wp-putih-mabes.png',
+      body: AppBackground(
+        imagePath: 'assets/images/wp-putih-mabes.png',
         child: SafeArea(
           child: Row(
             children: [
@@ -158,10 +159,7 @@ class _DashboardPageState extends State<DashboardPage> {
                         padding: const EdgeInsets.symmetric(horizontal: 12),
                         children: [
                           if (_roleId != null) ..._buildNewMenuByRole(),
-                          const Divider(
-                            color: Colors.amber,
-                            thickness: 1.5,
-                          ),
+                          const Divider(color: Colors.amber, thickness: 1.5),
                           const Padding(
                             padding: EdgeInsets.symmetric(vertical: 8),
                             child: Text(
@@ -528,43 +526,23 @@ class _DashboardPageState extends State<DashboardPage> {
         ];
       case "2":
         return [
-          _buildExpansionTileGroup(
-            "Manajemen SDM",
-            Icons.group_rounded,
-            [
-              _buildNewMenuItem(
-                "Bagan Organisasi (Org-Tree)",
-                Icons.account_tree_rounded,
-              ),
-              _buildNewMenuItem(
-                "Direktori Personel",
-                Icons.badge_rounded,
-              ),
-              _buildNewMenuItem(
-                "Pemantauan Proses Hukum",
-                Icons.gavel_rounded,
-              ),
-            ],
-          ),
-          _buildExpansionTileGroup(
-            "Logistik & Aset",
-            Icons.inventory_rounded,
-            [
-              _buildNewMenuItem(
-                "Inventaris Senjata",
-                Icons.shield_rounded,
-              ),
-              _buildNewMenuItem("Stok Amunisi", Icons.archive_rounded),
-              _buildNewMenuItem(
-                "Sarpras & Altmatsus",
-                Icons.precision_manufacturing_rounded,
-              ),
-              _buildNewMenuItem(
-                "Satwa K9 & Turangga",
-                Icons.pets_rounded,
-              ),
-            ],
-          ),
+          _buildExpansionTileGroup("Manajemen SDM", Icons.group_rounded, [
+            _buildNewMenuItem(
+              "Bagan Organisasi (Org-Tree)",
+              Icons.account_tree_rounded,
+            ),
+            _buildNewMenuItem("Direktori Personel", Icons.badge_rounded),
+            _buildNewMenuItem("Pemantauan Proses Hukum", Icons.gavel_rounded),
+          ]),
+          _buildExpansionTileGroup("Logistik & Aset", Icons.inventory_rounded, [
+            _buildNewMenuItem("Inventaris Senjata", Icons.shield_rounded),
+            _buildNewMenuItem("Stok Amunisi", Icons.archive_rounded),
+            _buildNewMenuItem(
+              "Sarpras & Altmatsus",
+              Icons.precision_manufacturing_rounded,
+            ),
+            _buildNewMenuItem("Satwa K9 & Turangga", Icons.pets_rounded),
+          ]),
           _buildExpansionTileGroup(
             "Administrasi (DMS)",
             Icons.description_rounded,
@@ -573,36 +551,18 @@ class _DashboardPageState extends State<DashboardPage> {
                 "Kotak Masuk (Inbox)",
                 Icons.move_to_inbox_rounded,
               ),
-              _buildNewMenuItem(
-                "Kotak Keluar (Outbox)",
-                Icons.outbox_rounded,
-              ),
+              _buildNewMenuItem("Kotak Keluar (Outbox)", Icons.outbox_rounded),
             ],
           ),
           _buildExpansionTileGroup(
             "Operasional & Kamtibmas",
             Icons.local_police_rounded,
-            [
-              _buildNewMenuItem(
-                "Log Sitkamtibmas",
-                Icons.article_rounded,
-              ),
-            ],
+            [_buildNewMenuItem("Log Sitkamtibmas", Icons.article_rounded)],
           ),
-          _buildExpansionTileGroup(
-            "Komunikasi Taktis",
-            Icons.chat_rounded,
-            [
-              _buildNewMenuItem(
-                "Direktori Panggilan (VoIP)",
-                Icons.call_rounded,
-              ),
-              _buildNewMenuItem(
-                "Ruang Konferensi",
-                Icons.videocam_rounded,
-              ),
-            ],
-          ),
+          _buildExpansionTileGroup("Komunikasi Taktis", Icons.chat_rounded, [
+            _buildNewMenuItem("Direktori Panggilan (VoIP)", Icons.call_rounded),
+            _buildNewMenuItem("Ruang Konferensi", Icons.videocam_rounded),
+          ]),
           _buildExpansionTileGroup(
             "Hub Informasi Terpadu",
             Icons.device_hub_rounded,
@@ -617,16 +577,9 @@ class _DashboardPageState extends State<DashboardPage> {
               ),
             ],
           ),
-          _buildExpansionTileGroup(
-            "Mobile",
-            Icons.phone_android_rounded,
-            [
-              _buildNewMenuItem(
-                "Status Patroli GPS",
-                Icons.gps_fixed_rounded,
-              ),
-            ],
-          ),
+          _buildExpansionTileGroup("Mobile", Icons.phone_android_rounded, [
+            _buildNewMenuItem("Status Patroli GPS", Icons.gps_fixed_rounded),
+          ]),
         ];
       default:
         return [];
@@ -640,9 +593,7 @@ class _DashboardPageState extends State<DashboardPage> {
   ) {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 2),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
-      ),
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(14)),
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
@@ -683,9 +634,7 @@ class _DashboardPageState extends State<DashboardPage> {
           fontSize: 13,
         ),
       ),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       hoverColor: Colors.white10,
       onTap: null,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16),
