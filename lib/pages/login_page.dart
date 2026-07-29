@@ -8,7 +8,7 @@ class LoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: AppBackground(
+      body: AppBackground(imagePath: 'assets/images/mabes-wp.png',
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(

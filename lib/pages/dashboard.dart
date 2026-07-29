@@ -96,7 +96,7 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: AppBackground(
+      body: AppBackground(imagePath: 'assets/images/wp-putih-mabes.png',
         child: SafeArea(
           child: Row(
             children: [
@@ -123,15 +123,10 @@ class _DashboardPageState extends State<DashboardPage> {
                   children: [
                     const SizedBox(height: 35),
 
-                    /// Logo
-                    CircleAvatar(
-                      radius: 35,
-                      backgroundColor: Colors.white.withValues(alpha: 0.15),
-                      child: const Icon(
-                        Icons.security,
-                        color: Colors.amber,
-                        size: 38,
-                      ),
+                    Image.asset(
+                      "assets/images/polri-logo.png",
+                      height: 65,
+                      fit: BoxFit.contain,
                     ),
 
                     const SizedBox(height: 15),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widget/background.dart';
 import '../widget/form_input_personel.dart';
+import '../widget/app_footer.dart';
 import '../pages/pangaturan.dart';
 import '../pages/dashboard.dart';
 import '../pages/report.dart';
@@ -59,7 +60,7 @@ class _AddPersonelPageState extends State<AddPersonelPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: AppBackground(
+      body: AppBackground(imagePath: 'assets/images/wp-putih-mabes.png',
         child: SafeArea(
           child: Row(
             children: [
@@ -386,40 +387,7 @@ class _AddPersonelPageState extends State<AddPersonelPage> {
 
                       const SizedBox(height: 20),
 
-                      /// ============================
-                      /// FOOTER
-                      /// ============================
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 14,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.08),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.black26),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "© 2026 SINDOMON Management System. All rights reserved.",
-                              style: TextStyle(
-                                color: Colors.black26.withValues(alpha: 0.7),
-                                fontSize: 13,
-                              ),
-                            ),
-                            Text(
-                              "v1.0.0",
-                              style: TextStyle(
-                                color: Colors.amber.withValues(alpha: 0.8),
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                      const AppFooter(),
                     ],
                   ),
                 ),

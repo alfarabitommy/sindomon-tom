@@ -68,6 +68,9 @@ flutter:
 
   assets:
     - assets/images/
+    - assets/images/mabes-wp.png
+    - assets/images/wp-putih-mabes.png
+    - assets/images/polri-logo.png
 
   # To add assets to your application, add an assets section, like this:
   # assets:

@@ -11,10 +11,14 @@ import '../pages/add_polda.dart';
 import '../pages/personel.dart';
 import '../pages/polres.dart';
 import '../pages/login_page.dart';
-import 'dart:ui';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import '../widget/app_header.dart';
+import '../widget/app_footer.dart';
+import '../widget/app_pagination.dart';
+import '../widget/app_search_field.dart';
+import '../widget/action_buttons.dart';
 
 class PoldaPage extends StatefulWidget {
   const PoldaPage({super.key});
@@ -123,6 +127,7 @@ class _PoldaPageState extends State<PoldaPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: AppBackground(
+        imagePath: 'assets/images/wp-putih-mabes.png',
         child: SafeArea(
           child: Row(
             children: [
@@ -234,206 +239,11 @@ class _PoldaPageState extends State<PoldaPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      /// ============================
-                      /// HEADER
-                      /// ============================
-                      Container(
-                        height: 75,
-                        padding: const EdgeInsets.symmetric(horizontal: 25),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(18),
-                          border: Border.all(color: Colors.black26),
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(25),
-                          child: BackdropFilter(
-                            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 24,
-                                vertical: 18,
-                              ),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(25),
-                                color: Colors.white.withValues(alpha: 0.18),
-                                border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.25),
-                                  width: 1.2,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.08),
-                                    blurRadius: 20,
-                                    offset: const Offset(0, 10),
-                                  ),
-                                ],
-                              ),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(10),
-                                    decoration: BoxDecoration(
-                                      color: Colors.amber.withValues(
-                                        alpha: 0.2,
-                                      ),
-                                      borderRadius: BorderRadius.circular(15),
-                                    ),
-                                    child: const Icon(
-                                      Icons.home_rounded,
-                                      color: Colors.amber,
-                                      size: 28,
-                                    ),
-                                  ),
-
-                                  const SizedBox(width: 15),
-
-                                  // Breadcrumb
-                                  const Expanded(
-                                    flex: 3,
-                                    child: Text(
-                                      "Dashboard / Polda",
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        color: Colors.black87,
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-
-                                  const SizedBox(width: 20),
-
-                                  // Search
-                                  SizedBox(
-                                    width: 250,
-                                    height: 45,
-                                    child: TextField(
-                                      decoration: InputDecoration(
-                                        hintText: "Cari Menu...",
-                                        hintStyle: const TextStyle(
-                                          color: Colors.black54,
-                                        ),
-                                        prefixIcon: const Icon(
-                                          Icons.search,
-                                          color: Colors.black54,
-                                        ),
-                                        filled: true,
-                                        fillColor: Colors.white.withValues(
-                                          alpha: 0.15,
-                                        ),
-                                        border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            30,
-                                          ),
-                                          borderSide: BorderSide(
-                                            color: Colors.white.withValues(
-                                              alpha: 0.3,
-                                            ),
-                                          ),
-                                        ),
-                                        enabledBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            30,
-                                          ),
-                                          borderSide: BorderSide(
-                                            color: Colors.white.withValues(
-                                              alpha: 0.3,
-                                            ),
-                                          ),
-                                        ),
-                                        focusedBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            30,
-                                          ),
-                                          borderSide: const BorderSide(
-                                            color: Colors.amber,
-                                          ),
-                                        ),
-                                        contentPadding:
-                                            const EdgeInsets.symmetric(
-                                              vertical: 12,
-                                            ),
-                                      ),
-                                    ),
-                                  ),
-
-                                  const SizedBox(width: 20),
-
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withValues(
-                                        alpha: 0.15,
-                                      ),
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: IconButton(
-                                      onPressed: () {},
-                                      icon: const Icon(
-                                        Icons.notifications_none,
-                                        color: Colors.black87,
-                                      ),
-                                    ),
-                                  ),
-
-                                  const SizedBox(width: 15),
-
-                                  Container(
-                                    padding: const EdgeInsets.all(2),
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      border: Border.all(
-                                        color: Colors.white.withValues(
-                                          alpha: 0.5,
-                                        ),
-                                        width: 2,
-                                      ),
-                                    ),
-                                    child: const CircleAvatar(
-                                      radius: 20,
-                                      backgroundColor: Colors.amber,
-                                      child: Icon(
-                                        Icons.person,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                  ),
-
-                                  const SizedBox(width: 10),
-
-                                  // Jangan pakai Expanded di sini
-                                  Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        unLogin,
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 14,
-                                          height: 1.2,
-                                        ),
-                                      ),
-                                      Text(
-                                        "Super Admin",
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.black54,
-                                          height: 1.2,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
+                      AppHeader(
+                        breadcrumb: "Dashboard / Polda",
+                        username: unLogin,
+                        role: "Super Admin",
                       ),
-
                       const SizedBox(height: 25),
 
                       /// ============================
@@ -481,21 +291,7 @@ class _PoldaPageState extends State<PoldaPage> {
                       const SizedBox(height: 20),
 
                       /// SEARCH
-                      TextField(
-                        decoration: InputDecoration(
-                          hintText: "Cari Polda...",
-                          prefixIcon: const Icon(Icons.search),
-                          filled: true,
-                          fillColor: Colors.white10,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(15),
-                            borderSide: BorderSide(
-                              color: Colors.white,
-                              width: 1.5,
-                            ),
-                          ),
-                        ),
-                      ),
+                      AppSearchField(hintText: "Cari Polda..."),
 
                       const SizedBox(height: 25),
 
@@ -508,182 +304,151 @@ class _PoldaPageState extends State<PoldaPage> {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(15),
                             ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(20),
-                              child: LayoutBuilder(
-                                builder: (context, constraints) {
-                                  return SingleChildScrollView(
-                                    scrollDirection: Axis.vertical,
-                                    child: SingleChildScrollView(
-                                      scrollDirection: Axis.horizontal,
-                                      child: ConstrainedBox(
-                                        constraints: BoxConstraints(
-                                          minWidth: constraints.maxWidth,
-                                        ),
-                                        child: DataTable(
-                                          headingTextStyle: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                          columns: const [
-                                            DataColumn(label: Text("ID")),
-                                            DataColumn(
-                                              label: Text("Nama Polda"),
-                                            ),
-                                            DataColumn(label: Text("Latitude")),
-                                            DataColumn(
-                                              label: Text("Longitude"),
-                                            ),
-                                            DataColumn(
-                                              label: Text("Created At"),
-                                            ),
-                                            DataColumn(label: Text("AKSI")),
-                                          ],
-                                          rows:
-                                              polda
-                                                  .map(
-                                                    (e) => DataRow(
-                                                      cells: [
-                                                        DataCell(Text(e["id"])),
-                                                        DataCell(
-                                                          Text(e["nama_polda"]),
-                                                        ),
-                                                        DataCell(
-                                                          Text(
-                                                            "${e["latitude"]}",
-                                                          ),
-                                                        ),
-                                                        DataCell(
-                                                          Text(
-                                                            "${e["longitude"]}",
-                                                          ),
-                                                        ),
-                                                        DataCell(
-                                                          Text(
-                                                            "${e["created_at"]}",
-                                                          ),
-                                                        ),
-                                                        DataCell(
-                                                          Row(
-                                                            children: [
-                                                              IconButton(
-                                                                icon:
-                                                                    const Icon(
-                                                                      Icons
-                                                                          .edit,
-                                                                    ),
-                                                                onPressed:
-                                                                    () {},
+                            child: Column(
+                              children: [
+                                Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(20),
+                                    child: LayoutBuilder(
+                                      builder: (context, constraints) {
+                                        return SingleChildScrollView(
+                                          scrollDirection: Axis.vertical,
+                                          child: SingleChildScrollView(
+                                            scrollDirection: Axis.horizontal,
+                                            child: ConstrainedBox(
+                                              constraints: BoxConstraints(
+                                                minWidth: constraints.maxWidth,
+                                              ),
+                                              child: DataTable(
+                                                headingRowColor:
+                                                    WidgetStateProperty.all(
+                                                      Colors.grey.shade50,
+                                                    ),
+                                                headingTextStyle:
+                                                    const TextStyle(
+                                                      fontSize: 12,
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                    ),
+                                                columns: const [
+                                                  DataColumn(label: Text("ID")),
+                                                  DataColumn(
+                                                    label: Text("NAMA POLDA"),
+                                                  ),
+                                                  DataColumn(
+                                                    label: Text("LATITUDE"),
+                                                  ),
+                                                  DataColumn(
+                                                    label: Text("LONGITUDE"),
+                                                  ),
+                                                  DataColumn(
+                                                    label: Text("CREATED AT"),
+                                                  ),
+                                                  DataColumn(
+                                                    label: Text("AKSI"),
+                                                  ),
+                                                ],
+                                                rows:
+                                                    polda
+                                                        .map(
+                                                          (e) => DataRow(
+                                                            cells: [
+                                                              DataCell(
+                                                                Text(e["id"]),
                                                               ),
-                                                              IconButton(
-                                                                icon: const Icon(
-                                                                  Icons.delete,
-                                                                  color:
-                                                                      Colors
-                                                                          .red,
+                                                              DataCell(
+                                                                Text(
+                                                                  e["nama_polda"],
                                                                 ),
-                                                                onPressed: () async {
-                                                                  final result = await showDialog(
-                                                                    context:
-                                                                        context,
-                                                                    builder:
-                                                                        (
-                                                                          _,
-                                                                        ) => AlertDialog(
-                                                                          title: const Text(
-                                                                            "Hapus Polda",
-                                                                          ),
-                                                                          content: const Text(
-                                                                            "Apakah Anda yakin ingin menghapus data ini?",
-                                                                          ),
-                                                                          actions: [
-                                                                            TextButton(
-                                                                              onPressed:
-                                                                                  () => Navigator.pop(
-                                                                                    context,
-                                                                                    false,
-                                                                                  ),
-                                                                              child: const Text(
-                                                                                "Batal",
-                                                                              ),
+                                                              ),
+                                                              DataCell(
+                                                                Text(
+                                                                  "${e["latitude"]}",
+                                                                ),
+                                                              ),
+                                                              DataCell(
+                                                                Text(
+                                                                  "${e["longitude"]}",
+                                                                ),
+                                                              ),
+                                                              DataCell(
+                                                                Text(
+                                                                  "${e["created_at"]}",
+                                                                ),
+                                                              ),
+                                                              DataCell(
+                                                                ActionButtons(
+                                                                  onEdit: () {},
+                                                                  onDelete: () async {
+                                                                    final result = await showDialog(
+                                                                      context:
+                                                                          context,
+                                                                      builder:
+                                                                          (
+                                                                            _,
+                                                                          ) => AlertDialog(
+                                                                            title: const Text(
+                                                                              "Hapus Polda",
                                                                             ),
-                                                                            ElevatedButton(
-                                                                              onPressed:
-                                                                                  () => Navigator.pop(
-                                                                                    context,
-                                                                                    true,
-                                                                                  ),
-                                                                              child: const Text(
-                                                                                "Hapus",
-                                                                              ),
+                                                                            content: const Text(
+                                                                              "Apakah Anda yakin ingin menghapus data ini?",
                                                                             ),
-                                                                          ],
-                                                                        ),
-                                                                  );
-
-                                                                  if (result ==
-                                                                      true) {
-                                                                    deletePolda(
-                                                                      int.parse(
-                                                                        e["id"],
-                                                                      ),
+                                                                            actions: [
+                                                                              TextButton(
+                                                                                onPressed:
+                                                                                    () => Navigator.pop(
+                                                                                      context,
+                                                                                      false,
+                                                                                    ),
+                                                                                child: const Text(
+                                                                                  "Batal",
+                                                                                ),
+                                                                              ),
+                                                                              ElevatedButton(
+                                                                                onPressed:
+                                                                                    () => Navigator.pop(
+                                                                                      context,
+                                                                                      true,
+                                                                                    ),
+                                                                                child: const Text(
+                                                                                  "Hapus",
+                                                                                ),
+                                                                              ),
+                                                                            ],
+                                                                          ),
                                                                     );
-                                                                  }
-                                                                },
+                                                                    if (result ==
+                                                                        true) {
+                                                                      deletePolda(
+                                                                        int.parse(
+                                                                          e["id"],
+                                                                        ),
+                                                                      );
+                                                                    }
+                                                                  },
+                                                                ),
                                                               ),
                                                             ],
                                                           ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  )
-                                                  .toList(),
-                                        ),
-                                      ),
+                                                        )
+                                                        .toList(),
+                                              ),
+                                            ),
+                                          ),
+                                        );
+                                      },
                                     ),
-                                  );
-                                },
-                              ),
+                                  ),
+                                ),
+                                const AppPagination(),
+                              ],
                             ),
                           ),
                         ),
                       ),
 
                       const SizedBox(height: 20),
-
-                      /// ============================
-                      /// FOOTER
-                      /// ============================
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 14,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.08),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.black26),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "© 2026 SINDOMON Management System. All rights reserved.",
-                              style: TextStyle(
-                                color: Colors.black26.withValues(alpha: 0.7),
-                                fontSize: 13,
-                              ),
-                            ),
-                            Text(
-                              "v1.0.0",
-                              style: TextStyle(
-                                color: Colors.amber.withValues(alpha: 0.8),
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                      const AppFooter(),
                     ],
                   ),
                 ),

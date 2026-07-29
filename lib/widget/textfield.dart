@@ -21,18 +21,19 @@ class AppTextField extends StatelessWidget {
       child: TextField(
         controller: controller,
         obscureText: obscure,
+        style: const TextStyle(color: Color(0xFF23251D)),
         decoration: InputDecoration(
           hintText: hint,
-          hintStyle: const TextStyle(
+          hintStyle: TextStyle(
             fontSize: 14,
-            color: Colors.grey,
+            color: const Color(0xFF4D4F46).withValues(alpha: 0.6),
           ),
           contentPadding: const EdgeInsets.symmetric(horizontal: 12),
 
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(6),
             borderSide: BorderSide(
-              color: error ? Colors.red : Colors.grey,
+              color: error ? Colors.red : const Color(0xFFBFC1B7),
               width: 1.2,
             ),
           ),
@@ -40,7 +41,7 @@ class AppTextField extends StatelessWidget {
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(6),
             borderSide: BorderSide(
-              color: error ? Colors.red : Colors.blue,
+              color: error ? Colors.red : const Color(0xFF1D4ED8),
               width: 2,
             ),
           ),
@@ -61,7 +62,6 @@ class AppTextField extends StatelessWidget {
             ),
           ),
 
-          errorText: error ? "" : null, // agar border merah muncul tanpa pesan
         ),
       ),
     );

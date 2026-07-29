@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../widget/textfield.dart';
 import '../pages/dashboard.dart';
@@ -19,9 +20,29 @@ class _LoginCardState extends State<LoginCard> {
   bool isLoading = false;
   bool usernameError = false;
   bool passwordError = false;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    usernameController.addListener(_clearErrorOnInput);
+    passwordController.addListener(_clearErrorOnInput);
+  }
+
+  void _clearErrorOnInput() {
+    if (_errorMessage != null || usernameError || passwordError) {
+      setState(() {
+        _errorMessage = null;
+        usernameError = false;
+        passwordError = false;
+      });
+    }
+  }
 
   @override
   void dispose() {
+    usernameController.removeListener(_clearErrorOnInput);
+    passwordController.removeListener(_clearErrorOnInput);
     usernameController.dispose();
     passwordController.dispose();
     super.dispose();
@@ -34,28 +55,28 @@ class _LoginCardState extends State<LoginCard> {
     setState(() {
       usernameError = usernameEmpty;
       passwordError = passwordEmpty;
+      _errorMessage = null;
     });
 
     if (usernameEmpty && passwordEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Kredensial tidak valid. Silahkan periksa kembali."),
-        ),
-      );
+      setState(() {
+        _errorMessage =
+            "Kredensial tidak valid. Silahkan periksa kembali.";
+      });
       return;
     }
 
     if (usernameEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Username wajib diisi")),
-      );
+      setState(() {
+        _errorMessage = "Username wajib diisi";
+      });
       return;
     }
 
     if (passwordEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Password wajib diisi")),
-      );
+      setState(() {
+        _errorMessage = "Password wajib diisi";
+      });
       return;
     }
 
@@ -93,21 +114,37 @@ class _LoginCardState extends State<LoginCard> {
           context,
           MaterialPageRoute(builder: (_) => const DashboardPage()),
         );
-      } else {
+      } else if (response.statusCode == 403) {
         if (!context.mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Kredensial tidak valid. Silahkan periksa kembali."),
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text("Akses Diblokir"),
+            content: const Text(
+              "Perangkat Anda belum terverifikasi. Sesi login diblokir. "
+              "Silahkan hubungi Super Admin Mabes.",
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text("Tutup"),
+              ),
+            ],
           ),
         );
+      } else {
+        if (!context.mounted) return;
+        setState(() {
+          _errorMessage =
+              "Kredensial tidak valid. Silahkan periksa kembali.";
+        });
       }
     } catch (_) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Kredensial tidak valid. Silahkan periksa kembali."),
-        ),
-      );
+      setState(() {
+        _errorMessage =
+            "Kredensial tidak valid. Silahkan periksa kembali.";
+      });
     } finally {
       if (mounted) {
         setState(() {
@@ -119,40 +156,80 @@ class _LoginCardState extends State<LoginCard> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 320,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: Colors.grey.shade300, width: 1.5),
-      ),
-      child: Column(
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(6),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 15.0, sigmaY: 15.0),
+        child: Container(
+          width: 320,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.4), width: 1.0),
+          ),
+          child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Image.asset("assets/images/mascot_login.jpg", width: 80),
+          Image.asset("assets/images/polri-logo.png", height: 85, fit: BoxFit.contain),
 
           const SizedBox(height: 12),
 
           const Text(
             "SINDOMON - Portal Masuk",
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: Color(0xFF23251D)),
           ),
 
           const SizedBox(height: 25),
+
+          AnimatedSize(
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeInOut,
+            child: _errorMessage != null
+                ? Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xfff7d6d3),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.warning_amber_rounded,
+                              color: Color(0xffcd4239), size: 18),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              _errorMessage!,
+                              style: const TextStyle(
+                                color: Color(0xffcd4239),
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                : const SizedBox.shrink(),
+          ),
 
           const Align(
             alignment: Alignment.centerLeft,
             child: Text(
               "Username / NRP",
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Color(0xFF23251D)),
             ),
           ),
 
           const SizedBox(height: 6),
 
           AppTextField(
-            hint: "input_username",
+            hint: "Masukkan NRP atau Username",
             controller: usernameController,
             error: usernameError,
           ),
@@ -163,14 +240,14 @@ class _LoginCardState extends State<LoginCard> {
             alignment: Alignment.centerLeft,
             child: Text(
               "Kata Sandi",
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Color(0xFF23251D)),
             ),
           ),
 
           const SizedBox(height: 6),
 
           AppTextField(
-            hint: "input_password",
+            hint: "••••••••",
             controller: passwordController,
             obscure: true,
             error: passwordError,
@@ -199,6 +276,8 @@ class _LoginCardState extends State<LoginCard> {
             ),
           ),
         ],
+      ),
+      ),
       ),
     );
   }
