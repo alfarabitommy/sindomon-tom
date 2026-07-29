@@ -261,8 +261,8 @@ const role3Menu = [
     LeafMenuItem(
       label: "Command Center Nasional",
       icon: Icons.monitor_heart_rounded,
-      routeName: "command_center",
-      pageBuilder: _cc,
+      routeName: "dashboard",
+      pageBuilder: _db,
     ),
   ],
 ];
@@ -285,5 +285,4 @@ Widget _cf() => _ph("Ruang Konferensi", "conference");
 Widget _dl() => _ph("Perpustakaan Digital", "digital_library");
 Widget _pc() => _ph("Pengaduan Masyarakat", "public_complaint");
 Widget _pg() => _ph("Status Patroli GPS", "patrol_gps");
-Widget _cc() => _ph("Command Center Nasional", "command_center");
 Widget _bd() => _ph("Binding Perangkat", "binding_device");
