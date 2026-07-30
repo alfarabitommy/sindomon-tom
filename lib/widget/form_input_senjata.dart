@@ -136,11 +136,38 @@ class _FormTambahSenjataState extends State<FormTambahSenjata> {
     getKategori();
   }
 
+  static const InputDecoration _inputDecoration = InputDecoration(
+    filled: true,
+    fillColor: Color(0xFFF9FAFB),
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.all(Radius.circular(8)),
+      borderSide: BorderSide(color: Color(0xFFE5E7EB)),
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.all(Radius.circular(8)),
+      borderSide: BorderSide(color: Color(0xFFE5E7EB), width: 1),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.all(Radius.circular(8)),
+      borderSide: BorderSide(color: Color(0xFF1D4ED8), width: 1.5),
+    ),
+    errorBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.all(Radius.circular(8)),
+      borderSide: BorderSide(color: Color(0xFFEF4444), width: 1),
+    ),
+    focusedErrorBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.all(Radius.circular(8)),
+      borderSide: BorderSide(color: Color(0xFFEF4444), width: 1.5),
+    ),
+    isDense: true,
+    contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+  );
+
   Widget formField({required String label, required Widget child}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+        Text(label, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Color(0xFF374151))),
         const SizedBox(height: 8),
         child,
       ],
@@ -155,7 +182,7 @@ class _FormTambahSenjataState extends State<FormTambahSenjata> {
         children: [
           const Text(
             "TAMBAH DATA SENJATA",
-            style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF111827)),
           ),
 
           const SizedBox(height: 25),
@@ -171,10 +198,7 @@ class _FormTambahSenjataState extends State<FormTambahSenjata> {
                       label: "Polda *",
                       child: DropdownButtonFormField<int>(
                         value: selectedPoldaId,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          hintText: "Pilih Polda",
-                        ),
+                        decoration: _inputDecoration.copyWith(hintText: "Pilih Polda"),
                         items:
                             daftarPolda.map((polda) {
                               return DropdownMenuItem<int>(
@@ -196,10 +220,7 @@ class _FormTambahSenjataState extends State<FormTambahSenjata> {
                       label: "No Seri *",
                       child: TextFormField(
                         controller: noSeri,
-                        decoration: const InputDecoration(
-                          hintText: "Masukkan No Seri",
-                          border: OutlineInputBorder(),
-                        ),
+                        decoration: _inputDecoration.copyWith(hintText: "Masukkan No Seri"),
                       ),
                     ),
                   ],
@@ -216,10 +237,7 @@ class _FormTambahSenjataState extends State<FormTambahSenjata> {
                       label: "Kategori Senjata *",
                       child: DropdownButtonFormField<int>(
                         value: selectedKatId,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          hintText: "Pilih Kategori",
-                        ),
+                        decoration: _inputDecoration.copyWith(hintText: "Pilih Kategori"),
                         items:
                             daftarKategori.map((cat) {
                               return DropdownMenuItem<int>(
@@ -242,10 +260,7 @@ class _FormTambahSenjataState extends State<FormTambahSenjata> {
                       child: TextFormField(
                         controller: tahunPengadaan,
                         keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(
-                          hintText: "2024",
-                          border: OutlineInputBorder(),
-                        ),
+                        decoration: _inputDecoration.copyWith(hintText: "2024"),
                       ),
                     ),
                   ],
@@ -294,6 +309,26 @@ class _FormTambahSenjataState extends State<FormTambahSenjata> {
                 ),
               ],
             ),
+          ),
+
+          const SizedBox(height: 30),
+          SizedBox(
+            width: double.infinity,
+            height: 50,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xffF6B300),
+                foregroundColor: const Color(0xFF23251D),
+                shape: const StadiumBorder(),
+              ),
+              onPressed: submitData,
+              child: const Text("Simpan Data", style: TextStyle(fontSize: 18)),
+            ),
+          ),
+          const SizedBox(height: 20),
+          const Text(
+            "Lengkapi semua data bertanda *",
+            style: TextStyle(color: Colors.grey),
           ),
         ],
       ),

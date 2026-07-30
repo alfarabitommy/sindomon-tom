@@ -52,6 +52,33 @@ class _FormTambahSatwaState extends State<FormTambahSatwa> {
     );
   }
 
+  static const InputDecoration _inputDecoration = InputDecoration(
+    filled: true,
+    fillColor: Color(0xFFF9FAFB),
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.all(Radius.circular(8)),
+      borderSide: BorderSide(color: Color(0xFFE5E7EB)),
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.all(Radius.circular(8)),
+      borderSide: BorderSide(color: Color(0xFFE5E7EB), width: 1),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.all(Radius.circular(8)),
+      borderSide: BorderSide(color: Color(0xFF1D4ED8), width: 1.5),
+    ),
+    errorBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.all(Radius.circular(8)),
+      borderSide: BorderSide(color: Color(0xFFEF4444), width: 1),
+    ),
+    focusedErrorBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.all(Radius.circular(8)),
+      borderSide: BorderSide(color: Color(0xFFEF4444), width: 1.5),
+    ),
+    isDense: true,
+    contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+  );
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -60,7 +87,7 @@ class _FormTambahSatwaState extends State<FormTambahSatwa> {
         children: [
           const Text(
             "TAMBAH DATA SATWA",
-            style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF111827)),
           ),
 
           const SizedBox(height: 25),
@@ -68,17 +95,14 @@ class _FormTambahSatwaState extends State<FormTambahSatwa> {
           /// No Seri
           const Text(
             "No Registrasi *",
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Color(0xFF374151)),
           ),
 
           const SizedBox(height: 8),
 
           TextFormField(
             controller: noRegistrasi,
-            decoration: const InputDecoration(
-              hintText: "Masukkan No Registrasi",
-              border: OutlineInputBorder(),
-            ),
+            decoration: _inputDecoration.copyWith(hintText: "Masukkan No Registrasi"),
           ),
 
           const SizedBox(height: 20),
@@ -86,14 +110,14 @@ class _FormTambahSatwaState extends State<FormTambahSatwa> {
           /// Kategori
           const Text(
             "Jenis Satwa *",
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Color(0xFF374151)),
           ),
 
           const SizedBox(height: 8),
 
           DropdownButtonFormField<String>(
             value: Jenis,
-            decoration: const InputDecoration(border: OutlineInputBorder()),
+            decoration: _inputDecoration,
             items: const [
               DropdownMenuItem(value: "K9", child: Text("K9")),
               DropdownMenuItem(value: "K8", child: Text("K8")),
@@ -118,7 +142,7 @@ class _FormTambahSatwaState extends State<FormTambahSatwa> {
           /// Tahun Pengadaan
           const Text(
             "Nama Handler *",
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Color(0xFF374151)),
           ),
 
           const SizedBox(height: 8),
@@ -126,10 +150,7 @@ class _FormTambahSatwaState extends State<FormTambahSatwa> {
           TextFormField(
             controller: namaHandler,
             keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              hintText: "Contoh : Sanut Handler",
-              border: OutlineInputBorder(),
-            ),
+            decoration: _inputDecoration.copyWith(hintText: "Contoh : Sanut Handler"),
           ),
 
           const SizedBox(height: 20),
@@ -137,14 +158,14 @@ class _FormTambahSatwaState extends State<FormTambahSatwa> {
           /// Status Kelayakan
           const Text(
             "Kualifikasi *",
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Color(0xFF374151)),
           ),
 
           const SizedBox(height: 8),
 
           DropdownButtonFormField<String>(
             value: kualifikasi,
-            decoration: const InputDecoration(border: OutlineInputBorder()),
+            decoration: _inputDecoration,
             items: const [
               DropdownMenuItem(value: "Narkotika", child: Text("Narkotika")),
               DropdownMenuItem(
@@ -164,7 +185,7 @@ class _FormTambahSatwaState extends State<FormTambahSatwa> {
           /// Upload Foto
           const Text(
             "Foto Satwa *",
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Color(0xFF374151)),
           ),
 
           const SizedBox(height: 10),
@@ -210,8 +231,9 @@ class _FormTambahSatwaState extends State<FormTambahSatwa> {
             height: 50,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.white,
+                backgroundColor: const Color(0xffF6B300),
+                foregroundColor: const Color(0xFF23251D),
+                shape: const StadiumBorder(),
               ),
               onPressed: () {},
               child: const Text("Submit", style: TextStyle(fontSize: 18)),

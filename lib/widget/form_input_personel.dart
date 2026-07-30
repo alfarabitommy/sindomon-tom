@@ -145,11 +145,38 @@ class _FormTambahPersonelState extends State<FormTambahPersonel> {
     getJabatan();
   }
 
+  static const InputDecoration _inputDecoration = InputDecoration(
+    filled: true,
+    fillColor: Color(0xFFF9FAFB),
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.all(Radius.circular(8)),
+      borderSide: BorderSide(color: Color(0xFFE5E7EB)),
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.all(Radius.circular(8)),
+      borderSide: BorderSide(color: Color(0xFFE5E7EB), width: 1),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.all(Radius.circular(8)),
+      borderSide: BorderSide(color: Color(0xFF1D4ED8), width: 1.5),
+    ),
+    errorBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.all(Radius.circular(8)),
+      borderSide: BorderSide(color: Color(0xFFEF4444), width: 1),
+    ),
+    focusedErrorBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.all(Radius.circular(8)),
+      borderSide: BorderSide(color: Color(0xFFEF4444), width: 1.5),
+    ),
+    isDense: true,
+    contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+  );
+
   Widget formField({required String label, required Widget child}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+        Text(label, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Color(0xFF374151))),
         const SizedBox(height: 8),
         child,
       ],
@@ -171,7 +198,7 @@ class _FormTambahPersonelState extends State<FormTambahPersonel> {
           children: [
             const Text(
               "TAMBAH PERSONEL BARU",
-              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF111827)),
             ),
 
             const SizedBox(height: 25),
@@ -186,9 +213,7 @@ class _FormTambahPersonelState extends State<FormTambahPersonel> {
                     label: "NRP *",
                     child: TextFormField(
                       controller: nrp,
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                      ),
+                      decoration: _inputDecoration,
                     ),
                   ),
                 ),
@@ -199,9 +224,7 @@ class _FormTambahPersonelState extends State<FormTambahPersonel> {
                     label: "Nama Lengkap *",
                     child: TextFormField(
                       controller: namaLengkap,
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                      ),
+                      decoration: _inputDecoration,
                     ),
                   ),
                 ),
@@ -212,9 +235,7 @@ class _FormTambahPersonelState extends State<FormTambahPersonel> {
                     label: "Polda *",
                     child: DropdownButtonFormField<int>(
                       value: selectedPoldaId,
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                      ),
+                      decoration: _inputDecoration,
                       hint: const Text("Pilih Polda"),
                       items:
                           daftarPolda.map((polda) {
@@ -247,9 +268,7 @@ class _FormTambahPersonelState extends State<FormTambahPersonel> {
                     label: "Polres *",
                     child: DropdownButtonFormField<int>(
                       value: selectedPolresId,
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                      ),
+                      decoration: _inputDecoration,
                       hint: const Text("Pilih Polres"),
                       items:
                           daftarPolres.map((polres) {
@@ -273,9 +292,7 @@ class _FormTambahPersonelState extends State<FormTambahPersonel> {
                     label: "Pangkat *",
                     child: DropdownButtonFormField<int>(
                       value: selectedPangkatId,
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                      ),
+                      decoration: _inputDecoration,
                       hint: const Text("Pilih Pangkat"),
                       items:
                           daftarPangkat.map((pkt) {
@@ -299,9 +316,7 @@ class _FormTambahPersonelState extends State<FormTambahPersonel> {
                     label: "Jabatan *",
                     child: DropdownButtonFormField<int>(
                       value: selectedJabatanId,
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                      ),
+                      decoration: _inputDecoration,
                       hint: const Text("Pilih Jabatan"),
                       items:
                           daftarJabatan.map((jbt) {
@@ -329,8 +344,9 @@ class _FormTambahPersonelState extends State<FormTambahPersonel> {
               child: ElevatedButton(
                 onPressed: submitPersonel,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
+                  backgroundColor: const Color(0xffF6B300),
+                  foregroundColor: const Color(0xFF23251D),
+                  shape: const StadiumBorder(),
                 ),
                 child: const Text(
                   "Simpan Data",

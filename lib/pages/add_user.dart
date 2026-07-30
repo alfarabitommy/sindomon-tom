@@ -73,6 +73,7 @@ class _AddUserPageState extends State<AddUserPage> {
                             style: TextStyle(
                               fontSize: 34,
                               fontWeight: FontWeight.bold,
+                              color: Color(0xFF111827),
                             ),
                           ),
 
@@ -104,11 +105,13 @@ class _AddUserPageState extends State<AddUserPage> {
                         child: SingleChildScrollView(
                           child: Center(
                             child: ConstrainedBox(
-                              constraints: const BoxConstraints(maxWidth: 1000),
+                              constraints: const BoxConstraints(maxWidth: 600),
                               child: Card(
-                                elevation: 8,
+                                elevation: 0,
+                                color: Colors.white,
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(15),
+                                  borderRadius: BorderRadius.circular(16),
+                                  side: BorderSide(color: Colors.grey.shade200, width: 1.5),
                                 ),
                                 child: const Padding(
                                   padding: EdgeInsets.all(25),

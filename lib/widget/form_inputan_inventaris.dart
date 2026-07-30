@@ -51,6 +51,33 @@ class _FormTambahInventarisState extends State<FormTambahInventaris> {
     );
   }
 
+  static const InputDecoration _inputDecoration = InputDecoration(
+    filled: true,
+    fillColor: Color(0xFFF9FAFB),
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.all(Radius.circular(8)),
+      borderSide: BorderSide(color: Color(0xFFE5E7EB)),
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.all(Radius.circular(8)),
+      borderSide: BorderSide(color: Color(0xFFE5E7EB), width: 1),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.all(Radius.circular(8)),
+      borderSide: BorderSide(color: Color(0xFF1D4ED8), width: 1.5),
+    ),
+    errorBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.all(Radius.circular(8)),
+      borderSide: BorderSide(color: Color(0xFFEF4444), width: 1),
+    ),
+    focusedErrorBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.all(Radius.circular(8)),
+      borderSide: BorderSide(color: Color(0xFFEF4444), width: 1.5),
+    ),
+    isDense: true,
+    contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+  );
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -59,7 +86,7 @@ class _FormTambahInventarisState extends State<FormTambahInventaris> {
         children: [
           const Text(
             "TAMBAH DATA INVENTARIS",
-            style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF111827)),
           ),
 
           const SizedBox(height: 25),
@@ -67,17 +94,14 @@ class _FormTambahInventarisState extends State<FormTambahInventaris> {
           /// No Seri
           const Text(
             "Nama Asset *",
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Color(0xFF374151)),
           ),
 
           const SizedBox(height: 8),
 
           TextFormField(
             controller: namaassets,
-            decoration: const InputDecoration(
-              hintText: "Masukkan Nama Assets",
-              border: OutlineInputBorder(),
-            ),
+            decoration: _inputDecoration.copyWith(hintText: "Masukkan Nama Assets"),
           ),
 
           const SizedBox(height: 20),
@@ -85,13 +109,14 @@ class _FormTambahInventarisState extends State<FormTambahInventaris> {
           /// Kategori
           const Text(
             "Kategori Assets *",
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Color(0xFF374151)),
           ),
  
           const SizedBox(height: 8),
 
           DropdownButtonFormField<String>(
             value: kategori,
+            decoration: _inputDecoration,
             hint: const Text("Pilih Pangkat"),
             items: const [
               DropdownMenuItem(value: "rantis", child: Text("Rantis")),
@@ -109,7 +134,7 @@ class _FormTambahInventarisState extends State<FormTambahInventaris> {
           /// Tahun Pengadaan
           const Text(
             "Kondisi *",
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Color(0xFF374151)),
           ),
 
           const SizedBox(height: 8),
@@ -117,10 +142,7 @@ class _FormTambahInventarisState extends State<FormTambahInventaris> {
           TextFormField(
             controller: kondisi,
             keyboardType: TextInputType.text,
-            decoration: const InputDecoration(
-              hintText: "Contoh : baik",
-              border: OutlineInputBorder(),
-            ),
+            decoration: _inputDecoration.copyWith(hintText: "Contoh : baik"),
           ),
 
           const SizedBox(height: 20),
@@ -128,7 +150,7 @@ class _FormTambahInventarisState extends State<FormTambahInventaris> {
           /// Upload Foto
           const Text(
             "Foto Satwa *",
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Color(0xFF374151)),
           ),
 
           const SizedBox(height: 10),
@@ -174,8 +196,9 @@ class _FormTambahInventarisState extends State<FormTambahInventaris> {
             height: 50,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.white,
+                backgroundColor: const Color(0xffF6B300),
+                foregroundColor: const Color(0xFF23251D),
+                shape: const StadiumBorder(),
               ),
               onPressed: () {},
               child: const Text("Submit", style: TextStyle(fontSize: 18)),

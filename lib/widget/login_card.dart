@@ -20,7 +20,6 @@ class _LoginCardState extends State<LoginCard> {
   bool isLoading = false;
   bool usernameError = false;
   bool passwordError = false;
-  String? _errorMessage;
 
   @override
   void initState() {
@@ -30,9 +29,8 @@ class _LoginCardState extends State<LoginCard> {
   }
 
   void _clearErrorOnInput() {
-    if (_errorMessage != null || usernameError || passwordError) {
+    if (usernameError || passwordError) {
       setState(() {
-        _errorMessage = null;
         usernameError = false;
         passwordError = false;
       });
@@ -55,28 +53,69 @@ class _LoginCardState extends State<LoginCard> {
     setState(() {
       usernameError = usernameEmpty;
       passwordError = passwordEmpty;
-      _errorMessage = null;
     });
 
     if (usernameEmpty && passwordEmpty) {
-      setState(() {
-        _errorMessage =
-            "Kredensial tidak valid. Silahkan periksa kembali.";
-      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.error_outline, color: Colors.white, size: 20),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Text(
+                  "Kredensial tidak valid. Silahkan periksa kembali.",
+                ),
+              ),
+            ],
+          ),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          backgroundColor: const Color(0xFFEF4444),
+        ),
+      );
       return;
     }
 
     if (usernameEmpty) {
-      setState(() {
-        _errorMessage = "Username wajib diisi";
-      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.error_outline, color: Colors.white, size: 20),
+              const SizedBox(width: 8),
+              const Text("Username wajib diisi"),
+            ],
+          ),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          backgroundColor: const Color(0xFFEF4444),
+        ),
+      );
       return;
     }
 
     if (passwordEmpty) {
-      setState(() {
-        _errorMessage = "Password wajib diisi";
-      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.error_outline, color: Colors.white, size: 20),
+              const SizedBox(width: 8),
+              const Text("Password wajib diisi"),
+            ],
+          ),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          backgroundColor: const Color(0xFFEF4444),
+        ),
+      );
       return;
     }
 
@@ -97,11 +136,11 @@ class _LoginCardState extends State<LoginCard> {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         String token = data["jwt_token"];
-        String usernameLogin = data["data"][0]["username"];
-        String poldaLogin = data["data"][0]["polda_id"];
-        String roleID = data["data"][0]["roles_id"];
-        String uuid = data["data"][0]["uuid"];
-        String expired = data["data"][0]["expired"];
+        String usernameLogin = data["data"]["username"];
+        String poldaLogin = data["data"]["polda_id"];
+        String roleID = data["data"]["roles_id"];
+        String uuid = data["data"]["uuid"];
+        String expired = data["data"]["expired"];
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString("token", token);
         await prefs.setString("username_login", usernameLogin);
@@ -134,17 +173,50 @@ class _LoginCardState extends State<LoginCard> {
         );
       } else {
         if (!context.mounted) return;
-        setState(() {
-          _errorMessage =
-              "Kredensial tidak valid. Silahkan periksa kembali.";
-        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.error_outline, color: Colors.white, size: 20),
+                const SizedBox(width: 8),
+                const Expanded(
+                  child: Text(
+                    "Kredensial tidak valid. Silahkan periksa kembali.",
+                  ),
+                ),
+              ],
+            ),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            backgroundColor: const Color(0xFFEF4444),
+          ),
+        );
       }
-    } catch (_) {
+    } catch (e, st) {
+      debugPrint('Login error: $e\n$st');
       if (!context.mounted) return;
-      setState(() {
-        _errorMessage =
-            "Kredensial tidak valid. Silahkan periksa kembali.";
-      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.error_outline, color: Colors.white, size: 20),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Text(
+                  "Kredensial tidak valid. Silahkan periksa kembali.",
+                ),
+              ),
+            ],
+          ),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          backgroundColor: const Color(0xFFEF4444),
+        ),
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -181,42 +253,6 @@ class _LoginCardState extends State<LoginCard> {
           ),
 
           const SizedBox(height: 25),
-
-          AnimatedSize(
-            duration: const Duration(milliseconds: 250),
-            curve: Curves.easeInOut,
-            child: _errorMessage != null
-                ? Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: const Color(0xfff7d6d3),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.warning_amber_rounded,
-                              color: Color(0xffcd4239), size: 18),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              _errorMessage!,
-                              style: const TextStyle(
-                                color: Color(0xffcd4239),
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  )
-                : const SizedBox.shrink(),
-          ),
 
           const Align(
             alignment: Alignment.centerLeft,
