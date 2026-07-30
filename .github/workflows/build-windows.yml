@@ -1,0 +1,31 @@
+name: Build Windows EXE
+
+on:
+  push:
+    branches: [ "dev" ]
+
+jobs:
+  build:
+    name: Build for Windows
+    runs-on: windows-latest
+
+    steps:
+      - name: Tarik Kodingan
+        uses: actions/checkout@v3
+
+      - name: Siapkan Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Ambil Package (Pub Get)
+        run: flutter pub get
+
+      - name: Build File EXE (Windows)
+        run: flutter build windows
+
+      - name: Simpan Hasil Build
+        uses: actions/upload-artifact@v3
+        with:
+          name: Aplikasi-SINDOMON-Windows
+          path: build\windows\x64\runner\Release
