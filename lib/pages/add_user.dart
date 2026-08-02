@@ -7,7 +7,10 @@ import '../widget/app_footer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AddUserPage extends StatefulWidget {
-  const AddUserPage({super.key});
+  final int? userId; // null = create, non-null = edit
+  final Map<String, dynamic>? userData; // pre-fill data
+
+  const AddUserPage({super.key, this.userId, this.userData});
 
   @override
   State<AddUserPage> createState() => _AddUserPageState();
@@ -55,7 +58,9 @@ class _AddUserPageState extends State<AddUserPage> {
                       /// HEADER
                       /// ============================
                       AppHeader(
-                        breadcrumb: "Dashboard / Tambah User",
+                        breadcrumb: widget.userId != null
+                            ? "Dashboard / Edit User"
+                            : "Dashboard / Tambah User",
                         username: unLogin,
                         role: roleLabel,
                       ),
@@ -113,9 +118,12 @@ class _AddUserPageState extends State<AddUserPage> {
                                   borderRadius: BorderRadius.circular(16),
                                   side: BorderSide(color: Colors.grey.shade200, width: 1.5),
                                 ),
-                                child: const Padding(
+                                child: Padding(
                                   padding: EdgeInsets.all(25),
-                                  child: FormTambahUser(),
+                                  child: FormTambahUser(
+                                    userId: widget.userId,
+                                    initialData: widget.userData,
+                                  ),
                                 ),
                               ),
                             ),

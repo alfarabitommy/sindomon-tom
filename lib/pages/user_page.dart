@@ -36,8 +36,11 @@ class _UserPageState extends State<UserPage> {
 
   Future<void> getUsers() async {
     try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString("token");
       final response = await http.get(
         Uri.parse("$apiBaseUrl/api/v1/user"),
+        headers: {"Authorization": token.toString()},
       );
 
       if (response.statusCode == 200) {
@@ -58,6 +61,52 @@ class _UserPageState extends State<UserPage> {
       });
 
       debugPrint(e.toString());
+    }
+  }
+
+  Future<void> deleteUser(int id) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString("token");
+
+      final response = await http.delete(
+        Uri.parse("$apiBaseUrl/api/v1/user/$id"),
+        headers: {
+          "Authorization": token.toString(),
+        },
+      );
+
+      if (!mounted) return;
+
+      if (response.statusCode == 200) {
+        final result = jsonDecode(response.body);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content:
+                Text(result["message"] ?? "Pengguna berhasil dihapus"),
+            backgroundColor: Colors.green,
+          ),
+        );
+        getUsers(); // refresh list
+      } else {
+        final result = jsonDecode(response.body);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content:
+                Text(result["message"] ?? "Gagal menghapus pengguna"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint(e.toString());
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Terjadi kesalahan jaringan"),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -116,7 +165,11 @@ class _UserPageState extends State<UserPage> {
                                 MaterialPageRoute(
                                   builder: (_) => const AddUserPage(),
                                 ),
-                              );
+                              ).then((result) {
+                                if (result == true) {
+                                  getUsers();
+                                }
+                              });
                             },
                             icon: const Icon(Icons.add),
                             label: const Text("Tambah Pengguna"),
@@ -234,8 +287,86 @@ class _UserPageState extends State<UserPage> {
                                                             ),
                                                             DataCell(
                                                               ActionButtons(
-                                                                onEdit: () {},
-                                                                onDelete: () {},
+                                                                onEdit: () {
+                                                                  final id = int.tryParse(
+                                                                      "${e["id"]}");
+                                                                  if (id == null ||
+                                                                      id <= 0) {
+                                                                    return;
+                                                                  }
+
+                                                                  Navigator.push(
+                                                                    context,
+                                                                    MaterialPageRoute(
+                                                                      builder: (_) =>
+                                                                          AddUserPage(
+                                                                        userId: id,
+                                                                        userData: e,
+                                                                      ),
+                                                                    ),
+                                                                  ).then((result) {
+                                                                    if (result ==
+                                                                        true) {
+                                                                      getUsers();
+                                                                    }
+                                                                  });
+                                                                },
+                                                                onDelete: () async {
+                                                                  final userId = int
+                                                                          .tryParse(
+                                                                              "${e["id"]}") ??
+                                                                      0;
+                                                                  if (userId == 0) {
+                                                                    return;
+                                                                  }
+
+                                                                  final result =
+                                                                      await showDialog<
+                                                                          bool>(
+                                                                    context:
+                                                                        context,
+                                                                    builder: (_) =>
+                                                                        AlertDialog(
+                                                                      title: const Text(
+                                                                          "Hapus Pengguna"),
+                                                                      content: Text(
+                                                                        "Apakah Anda yakin ingin menghapus pengguna \"${e["username"]}\"?",
+                                                                      ),
+                                                                      actions: [
+                                                                        TextButton(
+                                                                          onPressed:
+                                                                              () => Navigator.pop(
+                                                                                context,
+                                                                                false,
+                                                                              ),
+                                                                          child:
+                                                                              const Text("Batal"),
+                                                                        ),
+                                                                        ElevatedButton(
+                                                                          style: ElevatedButton.styleFrom(
+                                                                            backgroundColor:
+                                                                                Colors.red,
+                                                                            foregroundColor:
+                                                                                Colors.white,
+                                                                          ),
+                                                                          onPressed:
+                                                                              () => Navigator.pop(
+                                                                                context,
+                                                                                true,
+                                                                              ),
+                                                                          child:
+                                                                              const Text("Hapus"),
+                                                                        ),
+                                                                      ],
+                                                                    ),
+                                                                  );
+
+                                                                  if (result ==
+                                                                      true) {
+                                                                    deleteUser(
+                                                                        userId);
+                                                                  }
+                                                                },
                                                               ),
                                                             ),
                                                           ],

@@ -137,12 +137,9 @@ class _LoginCardState extends State<LoginCard> {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);  
         // --- JARING PENGAMAN NULL ---
-        // Response menaruh user di dalam array "user" — ambil objek pertama
-        final payload = data["data"];
-        final userArray = payload["user"];
-        final userData = (userArray != null && userArray.isNotEmpty)
-            ? userArray[0]
-            : {};
+        // Response menaruh user sebagai Map<String, dynamic> (JSON Object)
+        final payload = data["data"] as Map<String, dynamic>? ?? {};
+        final userData = payload["user"] as Map<String, dynamic>? ?? {};
 
         String token = payload["jwt_token"]?.toString() ?? "";
         String usernameLogin = userData["username"]?.toString() ?? "";
