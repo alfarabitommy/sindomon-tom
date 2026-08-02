@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../widget/background.dart';
 import '../widget/app_sidebar.dart';
+import '../config/api_config.dart';
+import '../models/polda_model.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'dart:convert';
@@ -15,7 +17,7 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> {
-  List<Map<String, dynamic>> provinsi = [];
+  List<Polda> provinsi = [];
   bool isLoading = true;
   String? _roleId;
 
@@ -38,15 +40,29 @@ class _DashboardPageState extends State<DashboardPage> {
 
       // print("ini token ${token}");
       final response = await http.get(
-        Uri.parse("https://sindomon.yoknusantara.com/api/v1/polda"),
+        Uri.parse("$apiBaseUrl/api/v1/polda"),
         headers: {"authorization": token.toString()},
       );
 
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body);
-        // print("ini json ${json}");
+        final rawList = json["data"] as List;
+        final parsed = rawList
+            .map((e) => Polda.fromJson(e as Map<String, dynamic>))
+            .toList();
+
+        final validCount = parsed.where((p) => p.hasValidCoordinates).length;
+        debugPrint(
+            "Polda fetched: ${parsed.length} total, $validCount with valid coordinates");
+
+        if (validCount == 0 && parsed.isNotEmpty) {
+          debugPrint(
+              "WARNING: All ${parsed.length} Polda have (0,0) coordinates. "
+              "API may not be returning latitude/longitude fields.");
+        }
+
         setState(() {
-          provinsi = List<Map<String, dynamic>>.from(json["data"]);
+          provinsi = parsed;
           isLoading = false;
         });
       } else {
@@ -91,6 +107,33 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Widget _buildCommandCenterContent() {
+    if (isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(color: Colors.cyanAccent),
+      );
+    }
+
+    if (provinsi.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.map, size: 64, color: Colors.white38),
+            const SizedBox(height: 16),
+            const Text(
+              "Tidak ada data Polda untuk ditampilkan",
+              style: TextStyle(color: Colors.white70, fontSize: 16),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              "Periksa koneksi atau hubungi administrator",
+              style: TextStyle(color: Colors.white38, fontSize: 13),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Stack(
       children: [
         /// Background Map
@@ -109,62 +152,48 @@ class _DashboardPageState extends State<DashboardPage> {
               ),
 
               MarkerLayer(
-                markers:
-                    provinsi.map((p) {
+                markers: provinsi
+                    .where((p) => p.hasValidCoordinates)
+                    .map((p) {
                       return Marker(
-                        point: LatLng(
-                          double.tryParse(
-                                p["latitude"].toString(),
-                              ) ??
-                              0.0,
-                          double.tryParse(
-                                p["longitude"].toString(),
-                              ) ??
-                              0.0,
-                        ),
-
+                        point: p.latLng,
                         width: 50,
                         height: 50,
-
                         child: GestureDetector(
                           behavior: HitTestBehavior.opaque,
-
                           onTap: () {
                             showDialog(
                               context: context,
                               builder: (context) {
                                 return AlertDialog(
-                                  backgroundColor: const Color(
-                                    0xff1E1B4B,
-                                  ),
-
+                                  backgroundColor:
+                                      const Color(0xff1E1B4B),
                                   title: Text(
-                                    p["nama_polda"] as String,
+                                    p.namaPolda,
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
-
-                                  content: const Text(
+                                  content: Text(
                                     "DATA WILAYAH\n\n"
+                                    "📍 Lat: ${p.latitude.toStringAsFixed(4)}\n"
+                                    "📍 Lng: ${p.longitude.toStringAsFixed(4)}\n"
                                     "👮 Personel : 2.450\n"
                                     "📦 Inventaris : 1.200\n"
                                     "🔫 Senjata : 500\n"
                                     "🐕 Satwa : 25\n\n"
                                     "STATUS : AKTIF",
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                       color: Colors.white70,
                                       fontSize: 15,
                                     ),
                                   ),
-
                                   actions: [
                                     TextButton(
                                       onPressed: () {
                                         Navigator.pop(context);
                                       },
-
                                       child: const Text(
                                         "Tutup",
                                         style: TextStyle(
@@ -177,10 +206,8 @@ class _DashboardPageState extends State<DashboardPage> {
                               },
                             );
                           },
-
                           child: Tooltip(
-                            message: p["nama_polda"] as String,
-
+                            message: p.namaPolda,
                             child: const Icon(
                               Icons.location_on,
                               color: Colors.red,
