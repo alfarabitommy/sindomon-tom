@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import '../config/api_config.dart';
 
 class FormTambahSenjata extends StatefulWidget {
   const FormTambahSenjata({super.key});
@@ -28,7 +29,7 @@ class _FormTambahSenjataState extends State<FormTambahSenjata> {
 
     try {
       final responses = await http.get(
-        Uri.parse('https://sindomon.yoknusantara.com/api/v1/polda'),
+        Uri.parse('$apiBaseUrl/api/v1/polda'),
         headers: {"Authorization": tokenn.toString()},
       );
 
@@ -52,7 +53,7 @@ class _FormTambahSenjataState extends State<FormTambahSenjata> {
 
     try {
       final rrrr = await http.get(
-        Uri.parse('https://sindomon.yoknusantara.com/api/v1/kategori_senjata'),
+        Uri.parse('$apiBaseUrl/api/v1/kategori_senjata'),
         headers: {"Authorization": tokenize.toString()},
       );
 
@@ -122,7 +123,7 @@ class _FormTambahSenjataState extends State<FormTambahSenjata> {
     final token = prefs.getString("token");
 
     final response = await http.post(
-      Uri.parse("https://sindomon.yoknusantara.com/api/v1/senjata"),
+      Uri.parse("$apiBaseUrl/api/v1/senjata"),
       headers: {"authorization": token.toString()},
       body: jsonEncode(data),
     );

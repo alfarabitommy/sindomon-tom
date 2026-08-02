@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widget/background.dart';
 import '../widget/app_sidebar.dart';
+import '../config/api_config.dart';
 import '../pages/add_polda.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -10,6 +11,7 @@ import '../widget/app_pagination.dart';
 import '../widget/app_header.dart';
 import '../widget/app_search_field.dart';
 import '../widget/action_buttons.dart';
+import '../models/polda_model.dart';
 
 class PoldaPage extends StatefulWidget {
   const PoldaPage({super.key});
@@ -19,7 +21,8 @@ class PoldaPage extends StatefulWidget {
 }
 
 class _PoldaPageState extends State<PoldaPage> {
-  List<Map<String, dynamic>> polda = [];
+  List<Polda> polda = [];
+  String errorMessage = "";
   bool isLoading = true;
   String unLogin = "";
   String roleLabel = "Operator";
@@ -38,29 +41,36 @@ class _PoldaPageState extends State<PoldaPage> {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString("token");
 
-      // print("ini token ${token}");
       final response = await http.get(
-        Uri.parse("https://sindomon.yoknusantara.com/api/v1/polda"),
+        Uri.parse("$apiBaseUrl/api/v1/polda"),
         headers: {"authorization": token.toString()},
       );
 
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body);
-        // print("ini json ${json}");
+        final rawList = json["data"] as List;
+        final parsed = rawList
+            .map((e) => Polda.fromJson(e as Map<String, dynamic>))
+            .toList();
+
+        debugPrint("Polda fetched: ${parsed.length} total for CRUD table");
+
         setState(() {
-          polda = List<Map<String, dynamic>>.from(json["data"]);
+          polda = parsed;
+          errorMessage = "";
           isLoading = false;
         });
       } else {
         setState(() {
+          errorMessage = "Gagal memuat data (HTTP ${response.statusCode})";
           isLoading = false;
         });
       }
     } catch (e) {
       setState(() {
+        errorMessage = "Terjadi kesalahan saat memuat data Polda";
         isLoading = false;
       });
-
       debugPrint(e.toString());
     }
   }
@@ -78,7 +88,7 @@ class _PoldaPageState extends State<PoldaPage> {
       final token = prefs.getString("token");
 
       final response = await http.delete(
-        Uri.parse("https://sindomon.yoknusantara.com/api/v1/polda"),
+        Uri.parse("$apiBaseUrl/api/v1/polda"),
         headers: {
           "Authorization": token.toString(),
           "Content-Type": "application/json",
@@ -121,7 +131,68 @@ class _PoldaPageState extends State<PoldaPage> {
                         username: unLogin,
                         role: roleLabel,
                       ),
-                      const SizedBox(height: 25),
+
+                      /// STATE HANDLING
+                      if (isLoading)
+                        const Expanded(
+                          child: Center(
+                            child: CircularProgressIndicator(color: Colors.amber),
+                          ),
+                        )
+                      else if (errorMessage.isNotEmpty)
+                        Expanded(
+                          child: Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.error_outline,
+                                    size: 64, color: Colors.redAccent),
+                                const SizedBox(height: 12),
+                                Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(horizontal: 24),
+                                  child: Text(
+                                    errorMessage,
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                        fontSize: 15,
+                                        color: Colors.black87),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                ElevatedButton.icon(
+                                  onPressed: getPoldaApi,
+                                  icon: const Icon(Icons.refresh),
+                                  label: const Text("Coba Lagi"),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.amber,
+                                    foregroundColor: Colors.black,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                      else if (polda.isEmpty)
+                        const Expanded(
+                          child: Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.table_rows_outlined,
+                                    size: 64, color: Colors.grey),
+                                SizedBox(height: 12),
+                                Text(
+                                  "Tidak ada data Polda untuk ditampilkan",
+                                  style: TextStyle(
+                                      fontSize: 16, color: Colors.black54),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                      else ...[
+                        const SizedBox(height: 25),
 
                       /// ============================
                       /// TITLE
@@ -243,30 +314,22 @@ class _PoldaPageState extends State<PoldaPage> {
                                               rows:
                                                   polda
                                                       .map(
-                                                        (e) => DataRow(
+                                                        (p) => DataRow(
                                                           cells: [
                                                             DataCell(
-                                                              Text(e["id"]),
+                                                              Text(p.id.toString()),
                                                             ),
                                                             DataCell(
-                                                              Text(
-                                                                e["nama_polda"],
-                                                              ),
+                                                              Text(p.namaPolda),
                                                             ),
                                                             DataCell(
-                                                              Text(
-                                                                "${e["latitude"]}",
-                                                              ),
+                                                              Text(p.latitude.toStringAsFixed(6)),
                                                             ),
                                                             DataCell(
-                                                              Text(
-                                                                "${e["longitude"]}",
-                                                              ),
+                                                              Text(p.longitude.toStringAsFixed(6)),
                                                             ),
                                                             DataCell(
-                                                              Text(
-                                                                "${e["created_at"]}",
-                                                              ),
+                                                              Text(p.createdAt ?? "-"),
                                                             ),
                                                             DataCell(
                                                               ActionButtons(
@@ -311,11 +374,7 @@ class _PoldaPageState extends State<PoldaPage> {
                                                                   );
                                                                   if (result ==
                                                                       true) {
-                                                                    deletePolda(
-                                                                      int.parse(
-                                                                        e["id"],
-                                                                      ),
-                                                                    );
+                                                                    deletePolda(p.id);
                                                                   }
                                                                 },
                                                               ),
@@ -340,6 +399,7 @@ class _PoldaPageState extends State<PoldaPage> {
 
                       const SizedBox(height: 20),
                       const AppFooter(),
+                      ],
                     ],
                   ),
                 ),

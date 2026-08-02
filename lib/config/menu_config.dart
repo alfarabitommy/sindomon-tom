@@ -39,7 +39,9 @@ class MenuGroup {
 Widget _ph(String title, String route) =>
     PlaceholderPage(title: title, routeName: route);
 
-const _commonTopItems = [
+/// Menu dasar yang tersedia untuk semua role (juga dipakai sebagai
+/// fallback untuk role yang belum terdaftar di [roleMenus]).
+const commonTopItems = [
   LeafMenuItem(
     label: "Dashboard",
     icon: Icons.dashboard_rounded,
@@ -65,7 +67,7 @@ Widget _po() => const PoldaPage();
 Widget _pr() => const PolresPage();
 
 const role1Menu = [
-  _commonTopItems,
+  commonTopItems,
   [
     MenuGroup(
       label: "Manajemen Keamanan & Akun",
@@ -119,7 +121,7 @@ const role1Menu = [
 ];
 
 const role2Menu = [
-  _commonTopItems,
+  commonTopItems,
   [
     MenuGroup(
       label: "Manajemen SDM",

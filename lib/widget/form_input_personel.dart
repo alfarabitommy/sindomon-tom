@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import '../config/api_config.dart';
 
 class FormTambahPersonel extends StatefulWidget {
   const FormTambahPersonel({super.key});
@@ -30,7 +31,7 @@ class _FormTambahPersonelState extends State<FormTambahPersonel> {
 
     try {
       final response = await http.get(
-        Uri.parse('https://sindomon.yoknusantara.com/api/v1/polda'),
+        Uri.parse('$apiBaseUrl/api/v1/polda'),
         headers: {"Authorization": token.toString()},
       );
 
@@ -54,7 +55,7 @@ class _FormTambahPersonelState extends State<FormTambahPersonel> {
 
     try {
       final resp = await http.get(
-        Uri.parse('https://sindomon.yoknusantara.com/api/v1/pangkat'),
+        Uri.parse('$apiBaseUrl/api/v1/pangkat'),
         headers: {"Authorization": kkk.toString()},
       );
 
@@ -78,7 +79,7 @@ class _FormTambahPersonelState extends State<FormTambahPersonel> {
 
     try {
       final res = await http.get(
-        Uri.parse('https://sindomon.yoknusantara.com/api/v1/jabatan'),
+        Uri.parse('$apiBaseUrl/api/v1/jabatan'),
         headers: {"Authorization": kkkk.toString()},
       );
 
@@ -101,7 +102,7 @@ class _FormTambahPersonelState extends State<FormTambahPersonel> {
     final token = prefs.getString("token");
 
     final response = await http.post(
-      Uri.parse("https://sindomon.yoknusantara.com/api/v1/personel"),
+      Uri.parse("$apiBaseUrl/api/v1/personel"),
       headers: {"Authorization": token.toString()},
       body: jsonEncode({
         "nrp": nrp.text,

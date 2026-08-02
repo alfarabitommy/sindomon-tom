@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import '../config/api_config.dart';
 
 class FormTambahPolres extends StatefulWidget {
   const FormTambahPolres({super.key});
@@ -23,7 +24,7 @@ class _FormTambahPolresState extends State<FormTambahPolres> {
 
     try {
       final respon = await http.get(
-        Uri.parse('https://sindomon.yoknusantara.com/api/v1/polda'),
+        Uri.parse('$apiBaseUrl/api/v1/polda'),
         headers: {"Authorization": ptoken.toString()},
       );
 
@@ -59,7 +60,7 @@ class _FormTambahPolresState extends State<FormTambahPolres> {
       final token = prefs.getString("token");
 
       final response = await http.post(
-        Uri.parse("https://sindomon.yoknusantara.com/api/v1/polres"),
+        Uri.parse("$apiBaseUrl/api/v1/polres"),
         headers: {"authorization": token.toString()},
 
         body: jsonEncode({

@@ -9,6 +9,8 @@ class AppSidebar extends StatefulWidget {
 
   const AppSidebar({super.key, required this.currentRoute});
 
+  /// Harus sinkron dengan keys [roleMenus] di menu_config.dart.
+  /// Setiap case di sini memerlukan definisi menu yang sesuai.
   static String roleLabelFromId(String? roleId) {
     switch (roleId) {
       case "1": return "Super Admin";
@@ -62,7 +64,13 @@ class _AppSidebarState extends State<AppSidebar> {
   }
 
   List<dynamic> _resolveMenu() {
-    if (_roleId == null || !roleMenus.containsKey(_roleId)) return [];
+    if (_roleId == null) return [];
+    if (!roleMenus.containsKey(_roleId)) {
+      debugPrint(
+        '[AppSidebar] WARNING: Tidak ada menu untuk role "$_roleId", memakai menu default',
+      );
+      return commonTopItems.toList();
+    }
     return roleMenus[_roleId]!.expand((e) => e).toList();
   }
 

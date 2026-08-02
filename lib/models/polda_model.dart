@@ -31,7 +31,7 @@ class Polda {
     );
   }
 
-  bool get hasValidCoordinates => latitude != 0.0 || longitude != 0.0;
+  bool get hasValidCoordinates => latitude != 0.0 && longitude != 0.0;
 
   LatLng get latLng => LatLng(latitude, longitude);
 }

@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../widget/textfield.dart';
 import '../pages/dashboard.dart';
+import '../config/api_config.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -125,7 +126,7 @@ class _LoginCardState extends State<LoginCard> {
 
     try {
       final response = await http.post(
-        Uri.parse("https://sindomon.yoknusantara.com/api/v1/auth/login"),
+        Uri.parse("$apiBaseUrl/api/v1/auth/login"),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({
           "username": usernameController.text,
@@ -134,13 +135,21 @@ class _LoginCardState extends State<LoginCard> {
       );
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        String token = data["jwt_token"];
-        String usernameLogin = data["data"]["username"];
-        String poldaLogin = data["data"]["polda_id"];
-        String roleID = data["data"]["roles_id"];
-        String uuid = data["data"]["uuid"];
-        String expired = data["data"]["expired"];
+        final data = jsonDecode(response.body);  
+        // --- JARING PENGAMAN NULL ---
+        // Response menaruh user di dalam array "user" — ambil objek pertama
+        final payload = data["data"];
+        final userArray = payload["user"];
+        final userData = (userArray != null && userArray.isNotEmpty)
+            ? userArray[0]
+            : {};
+
+        String token = payload["jwt_token"]?.toString() ?? "";
+        String usernameLogin = userData["username"]?.toString() ?? "";
+        String poldaLogin = userData["polda_id"]?.toString() ?? "";
+        String roleID = userData["roles_id"]?.toString() ?? "";
+        String uuid = userData["uuid"]?.toString() ?? "";
+        String expired = userData["expired"]?.toString() ?? "";
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString("token", token);
         await prefs.setString("username_login", usernameLogin);

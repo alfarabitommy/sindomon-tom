@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widget/background.dart';
 import '../widget/app_sidebar.dart';
+import '../config/api_config.dart';
 import '../pages/add_senjata.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -40,7 +41,7 @@ class _SenjataPageState extends State<SenjataPage> {
 
       // print("ini token ${token}");
       final response = await http.get(
-        Uri.parse("https://sindomon.yoknusantara.com/api/v1/senjata"),
+        Uri.parse("$apiBaseUrl/api/v1/senjata"),
         headers: {"authorization": token.toString()},
       );
 
@@ -78,7 +79,7 @@ class _SenjataPageState extends State<SenjataPage> {
       final token = prefs.getString("token");
 
       final response = await http.delete(
-        Uri.parse("https://sindomon.yoknusantara.com/api/v1/senjata"),
+        Uri.parse("$apiBaseUrl/api/v1/senjata"),
         headers: {
           "Authorization": token.toString(),
           "Content-Type": "application/json",

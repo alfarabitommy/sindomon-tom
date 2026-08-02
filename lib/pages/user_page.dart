@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widget/background.dart';
 import '../widget/app_sidebar.dart';
+import '../config/api_config.dart';
 import '../pages/add_user.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -36,7 +37,7 @@ class _UserPageState extends State<UserPage> {
   Future<void> getUsers() async {
     try {
       final response = await http.get(
-        Uri.parse("https://sindomon.yoknusantara.com/api/v1/user"),
+        Uri.parse("$apiBaseUrl/api/v1/user"),
       );
 
       if (response.statusCode == 200) {

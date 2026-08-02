@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import '../config/api_config.dart';
 
 class FormTambahPolda extends StatefulWidget {
   const FormTambahPolda({super.key});
@@ -37,7 +38,7 @@ class _FormTambahPoldaState extends State<FormTambahPolda> {
       final token = prefs.getString("token");
 
       final response = await http.post(
-        Uri.parse("https://sindomon.yoknusantara.com/api/v1/polda"),
+        Uri.parse("$apiBaseUrl/api/v1/polda"),
         headers: {"authorization": token.toString()},
 
         body: jsonEncode({
