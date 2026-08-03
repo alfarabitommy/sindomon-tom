@@ -7,7 +7,10 @@ import '../widget/app_footer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AddPoldaPage extends StatefulWidget {
-  const AddPoldaPage({super.key});
+  final int? poldaId; // null = create, non-null = edit
+  final Map<String, dynamic>? poldaData; // pre-fill data
+
+  const AddPoldaPage({super.key, this.poldaId, this.poldaData});
 
   @override
   State<AddPoldaPage> createState() => _AddPoldaPageState();
@@ -55,7 +58,10 @@ class _AddPoldaPageState extends State<AddPoldaPage> {
                       /// HEADER
                       /// ============================
                       AppHeader(
-                        breadcrumb: "Dashboard / Tambah Polda",
+                        breadcrumb:
+                            widget.poldaId != null
+                                ? "Dashboard / Edit Polda"
+                                : "Dashboard / Tambah Polda",
                         username: unLogin,
                         role: roleLabel,
                       ),
@@ -111,11 +117,17 @@ class _AddPoldaPageState extends State<AddPoldaPage> {
                                 color: Colors.white,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(16),
-                                  side: BorderSide(color: Colors.grey.shade200, width: 1.5),
+                                  side: BorderSide(
+                                    color: Colors.grey.shade200,
+                                    width: 1.5,
+                                  ),
                                 ),
-                                child: const Padding(
-                                  padding: EdgeInsets.all(25),
-                                  child: FormTambahPolda(),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(25),
+                                  child: FormTambahPolda(
+                                    poldaId: widget.poldaId,
+                                    poldaData: widget.poldaData,
+                                  ),
                                 ),
                               ),
                             ),
@@ -136,5 +148,4 @@ class _AddPoldaPageState extends State<AddPoldaPage> {
       ),
     );
   }
-
 }

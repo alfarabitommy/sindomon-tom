@@ -3,8 +3,8 @@ import 'package:latlong2/latlong.dart';
 class Polda {
   final int id;
   final String namaPolda;
-  final double latitude;
-  final double longitude;
+  final String latitude; // raw value from API — preserves exact precision
+  final String longitude; // raw value from API — preserves exact precision
   final String? createdAt;
 
   const Polda({
@@ -17,21 +17,26 @@ class Polda {
 
   factory Polda.fromJson(Map<String, dynamic> json) {
     return Polda(
-      id: json["id"] is int
-          ? json["id"]
-          : int.tryParse(json["id"].toString()) ?? 0,
+      id:
+          json["id"] is int
+              ? json["id"]
+              : int.tryParse(json["id"].toString()) ?? 0,
       namaPolda: json["nama_polda"]?.toString() ?? "Unknown",
-      latitude: double.tryParse(
-              (json["latitude"] ?? json["lat"]).toString()) ??
-          0.0,
-      longitude: double.tryParse(
-              (json["longitude"] ?? json["lng"] ?? json["lon"]).toString()) ??
-          0.0,
+      latitude: (json["latitude"] ?? json["lat"])?.toString() ?? "",
+      longitude:
+          (json["longitude"] ?? json["lng"] ?? json["lon"])?.toString() ?? "",
       createdAt: json["created_at"]?.toString(),
     );
   }
 
-  bool get hasValidCoordinates => latitude != 0.0 && longitude != 0.0;
+  bool get hasValidCoordinates {
+    final lat = double.tryParse(latitude);
+    final lng = double.tryParse(longitude);
+    return lat != null && lng != null && lat != 0.0 && lng != 0.0;
+  }
 
-  LatLng get latLng => LatLng(latitude, longitude);
+  LatLng get latLng => LatLng(
+    double.tryParse(latitude) ?? 0.0,
+    double.tryParse(longitude) ?? 0.0,
+  );
 }

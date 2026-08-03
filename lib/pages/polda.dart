@@ -43,15 +43,16 @@ class _PoldaPageState extends State<PoldaPage> {
 
       final response = await http.get(
         Uri.parse("$apiBaseUrl/api/v1/polda"),
-        headers: {"authorization": token.toString()},
+        headers: {"Authorization": token.toString()},
       );
 
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body);
         final rawList = json["data"] as List;
-        final parsed = rawList
-            .map((e) => Polda.fromJson(e as Map<String, dynamic>))
-            .toList();
+        final parsed =
+            rawList
+                .map((e) => Polda.fromJson(e as Map<String, dynamic>))
+                .toList();
 
         debugPrint("Polda fetched: ${parsed.length} total for CRUD table");
 
@@ -88,22 +89,39 @@ class _PoldaPageState extends State<PoldaPage> {
       final token = prefs.getString("token");
 
       final response = await http.delete(
-        Uri.parse("$apiBaseUrl/api/v1/polda"),
-        headers: {
-          "Authorization": token.toString(),
-          "Content-Type": "application/json",
-        },
-        body: jsonEncode({"polda_id": id}),
+        Uri.parse("$apiBaseUrl/api/v1/master/polda/$id"),
+        headers: {"Authorization": token.toString()},
       );
 
+      if (!mounted) return;
+
       if (response.statusCode == 200) {
-        debugPrint(response.body);
-        getPoldaApi();
+        final result = jsonDecode(response.body);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result["message"] ?? "Polda berhasil dihapus"),
+            backgroundColor: Colors.green,
+          ),
+        );
+        getPoldaApi(); // refresh list
       } else {
-        debugPrint("Error : ${response.body}");
+        final result = jsonDecode(response.body);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result["message"] ?? "Gagal menghapus Polda"),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     } catch (e) {
-      debugPrint(e.toString());
+      debugPrint("Error delete polda: $e");
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Terjadi kesalahan jaringan"),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -136,7 +154,9 @@ class _PoldaPageState extends State<PoldaPage> {
                       if (isLoading)
                         const Expanded(
                           child: Center(
-                            child: CircularProgressIndicator(color: Colors.amber),
+                            child: CircularProgressIndicator(
+                              color: Colors.amber,
+                            ),
                           ),
                         )
                       else if (errorMessage.isNotEmpty)
@@ -145,18 +165,23 @@ class _PoldaPageState extends State<PoldaPage> {
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(Icons.error_outline,
-                                    size: 64, color: Colors.redAccent),
+                                const Icon(
+                                  Icons.error_outline,
+                                  size: 64,
+                                  color: Colors.redAccent,
+                                ),
                                 const SizedBox(height: 12),
                                 Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(horizontal: 24),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 24,
+                                  ),
                                   child: Text(
                                     errorMessage,
                                     textAlign: TextAlign.center,
                                     style: const TextStyle(
-                                        fontSize: 15,
-                                        color: Colors.black87),
+                                      fontSize: 15,
+                                      color: Colors.black87,
+                                    ),
                                   ),
                                 ),
                                 const SizedBox(height: 16),
@@ -179,13 +204,18 @@ class _PoldaPageState extends State<PoldaPage> {
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.table_rows_outlined,
-                                    size: 64, color: Colors.grey),
+                                Icon(
+                                  Icons.table_rows_outlined,
+                                  size: 64,
+                                  color: Colors.grey,
+                                ),
                                 SizedBox(height: 12),
                                 Text(
                                   "Tidak ada data Polda untuk ditampilkan",
                                   style: TextStyle(
-                                      fontSize: 16, color: Colors.black54),
+                                    fontSize: 16,
+                                    color: Colors.black54,
+                                  ),
                                 ),
                               ],
                             ),
@@ -194,211 +224,268 @@ class _PoldaPageState extends State<PoldaPage> {
                       else ...[
                         const SizedBox(height: 25),
 
-                      /// ============================
-                      /// TITLE
-                      /// ============================
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            "Manajemen Polda",
-                            style: TextStyle(
-                              fontSize: 34,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
+                        /// ============================
+                        /// TITLE
+                        /// ============================
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              "Manajemen Polda",
+                              style: TextStyle(
+                                fontSize: 34,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                              ),
                             ),
-                          ),
 
-                          ElevatedButton.icon(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const AddPoldaPage(),
+                            ElevatedButton.icon(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const AddPoldaPage(),
+                                  ),
+                                ).then((result) {
+                                  if (result == true) {
+                                    getPoldaApi();
+                                  }
+                                });
+                              },
+                              icon: const Icon(Icons.add),
+                              label: const Text("Tambah Polda"),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.amber,
+                                foregroundColor: Colors.black,
+                                elevation: 5,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 22,
+                                  vertical: 18,
                                 ),
-                              );
-                            },
-                            icon: const Icon(Icons.add),
-                            label: const Text("Tambah Polda"),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.amber,
-                              foregroundColor: Colors.black,
-                              elevation: 5,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 22,
-                                vertical: 18,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
+                          ],
+                        ),
 
-                      const SizedBox(height: 20),
+                        const SizedBox(height: 20),
 
-                      /// SEARCH
-                      AppSearchField(hintText: "Cari Polda..."),
+                        /// SEARCH
+                        AppSearchField(hintText: "Cari Polda..."),
 
-                      const SizedBox(height: 25),
+                        const SizedBox(height: 25),
 
-                      /// TABLE DATA
-                      Expanded(
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.05),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            children: [
-                              Expanded(
-                                child: SingleChildScrollView(
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(20),
-                                    child: LayoutBuilder(
-                                      builder: (context, constraints) {
-                                        return SingleChildScrollView(
-                                          scrollDirection: Axis.horizontal,
-                                          child: ConstrainedBox(
-                                            constraints: BoxConstraints(
-                                              minWidth: constraints.maxWidth,
-                                            ),
-                                            child: DataTable(
-                                              headingRowColor:
-                                                  WidgetStateProperty.all(
-                                                    Colors.grey.shade50,
+                        /// TABLE DATA
+                        Expanded(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.05),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              children: [
+                                Expanded(
+                                  child: SingleChildScrollView(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(20),
+                                      child: LayoutBuilder(
+                                        builder: (context, constraints) {
+                                          return SingleChildScrollView(
+                                            scrollDirection: Axis.horizontal,
+                                            child: ConstrainedBox(
+                                              constraints: BoxConstraints(
+                                                minWidth: constraints.maxWidth,
+                                              ),
+                                              child: DataTable(
+                                                headingRowColor:
+                                                    WidgetStateProperty.all(
+                                                      Colors.grey.shade50,
+                                                    ),
+                                                headingTextStyle:
+                                                    const TextStyle(
+                                                      fontSize: 12,
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                      color: Color(0xFF6B7280),
+                                                    ),
+                                                dataTextStyle: const TextStyle(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w400,
+                                                  color: Color(0xFF374151),
+                                                ),
+                                                dividerThickness: 0.5,
+                                                border: const TableBorder(
+                                                  horizontalInside: BorderSide(
+                                                    color: Color(0xFFE5E7EB),
+                                                    width: 0.5,
                                                   ),
-                                              headingTextStyle: const TextStyle(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.w700,
-                                                color: Color(0xFF6B7280),
-                                              ),
-                                              dataTextStyle: const TextStyle(
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.w400,
-                                                color: Color(0xFF374151),
-                                              ),
-                                              dividerThickness: 0.5,
-                                              border: const TableBorder(
-                                                horizontalInside: BorderSide(
-                                                  color: Color(0xFFE5E7EB),
-                                                  width: 0.5,
                                                 ),
-                                              ),
-                                              dataRowMinHeight: 60,
-                                              dataRowMaxHeight: 70,
-                                              columns: const [
-                                                DataColumn(label: Text("ID")),
-                                                DataColumn(
-                                                  label: Text("NAMA POLDA"),
-                                                ),
-                                                DataColumn(
-                                                  label: Text("LATITUDE"),
-                                                ),
-                                                DataColumn(
-                                                  label: Text("LONGITUDE"),
-                                                ),
-                                                DataColumn(
-                                                  label: Text("CREATED AT"),
-                                                ),
-                                                DataColumn(label: Text("AKSI")),
-                                              ],
-                                              rows:
-                                                  polda
-                                                      .map(
-                                                        (p) => DataRow(
-                                                          cells: [
-                                                            DataCell(
-                                                              Text(p.id.toString()),
-                                                            ),
-                                                            DataCell(
-                                                              Text(p.namaPolda),
-                                                            ),
-                                                            DataCell(
-                                                              Text(p.latitude.toStringAsFixed(6)),
-                                                            ),
-                                                            DataCell(
-                                                              Text(p.longitude.toStringAsFixed(6)),
-                                                            ),
-                                                            DataCell(
-                                                              Text(p.createdAt ?? "-"),
-                                                            ),
-                                                            DataCell(
-                                                              ActionButtons(
-                                                                onEdit: () {},
-                                                                onDelete: () async {
-                                                                  final result = await showDialog(
-                                                                    context:
-                                                                        context,
-                                                                    builder:
-                                                                        (
-                                                                          _,
-                                                                        ) => AlertDialog(
-                                                                          title: const Text(
-                                                                            "Hapus Polda",
-                                                                          ),
-                                                                          content: const Text(
-                                                                            "Apakah Anda yakin ingin menghapus data ini?",
-                                                                          ),
-                                                                          actions: [
-                                                                            TextButton(
-                                                                              onPressed:
-                                                                                  () => Navigator.pop(
-                                                                                    context,
-                                                                                    false,
-                                                                                  ),
-                                                                              child: const Text(
-                                                                                "Batal",
-                                                                              ),
-                                                                            ),
-                                                                            ElevatedButton(
-                                                                              onPressed:
-                                                                                  () => Navigator.pop(
-                                                                                    context,
-                                                                                    true,
-                                                                                  ),
-                                                                              child: const Text(
-                                                                                "Hapus",
-                                                                              ),
-                                                                            ),
-                                                                          ],
-                                                                        ),
-                                                                  );
-                                                                  if (result ==
-                                                                      true) {
-                                                                    deletePolda(p.id);
-                                                                  }
-                                                                },
+                                                dataRowMinHeight: 60,
+                                                dataRowMaxHeight: 70,
+                                                columns: const [
+                                                  DataColumn(label: Text("ID")),
+                                                  DataColumn(
+                                                    label: Text("NAMA POLDA"),
+                                                  ),
+                                                  DataColumn(
+                                                    label: Text("LATITUDE"),
+                                                  ),
+                                                  DataColumn(
+                                                    label: Text("LONGITUDE"),
+                                                  ),
+                                                  DataColumn(
+                                                    label: Text("CREATED AT"),
+                                                  ),
+                                                  DataColumn(
+                                                    label: Text("AKSI"),
+                                                  ),
+                                                ],
+                                                rows:
+                                                    polda
+                                                        .map(
+                                                          (p) => DataRow(
+                                                            cells: [
+                                                              DataCell(
+                                                                Text(
+                                                                  p.id.toString(),
+                                                                ),
                                                               ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      )
-                                                      .toList(),
+                                                              DataCell(
+                                                                Text(
+                                                                  p.namaPolda,
+                                                                ),
+                                                              ),
+                                                              DataCell(
+                                                                Text(
+                                                                  p.latitude,
+                                                                ),
+                                                              ),
+                                                              DataCell(
+                                                                Text(
+                                                                  p.longitude,
+                                                                ),
+                                                              ),
+                                                              DataCell(
+                                                                Text(
+                                                                  p.createdAt ??
+                                                                      "-",
+                                                                ),
+                                                              ),
+                                                              DataCell(
+                                                                ActionButtons(
+                                                                  onEdit: () {
+                                                                    Navigator.push(
+                                                                      context,
+                                                                      MaterialPageRoute(
+                                                                        builder:
+                                                                            (
+                                                                              _,
+                                                                            ) => AddPoldaPage(
+                                                                              poldaId:
+                                                                                  p.id,
+                                                                              poldaData: {
+                                                                                "nama_polda":
+                                                                                    p.namaPolda,
+                                                                                "latitude":
+                                                                                    p.latitude,
+                                                                                "longitude":
+                                                                                    p.longitude,
+                                                                              },
+                                                                            ),
+                                                                      ),
+                                                                    ).then((
+                                                                      result,
+                                                                    ) {
+                                                                      if (result ==
+                                                                          true) {
+                                                                        getPoldaApi();
+                                                                      }
+                                                                    });
+                                                                  },
+                                                                  onDelete: () async {
+                                                                    final result = await showDialog<
+                                                                      bool
+                                                                    >(
+                                                                      context:
+                                                                          context,
+                                                                      builder:
+                                                                          (
+                                                                            _,
+                                                                          ) => AlertDialog(
+                                                                            title: const Text(
+                                                                              "Hapus Polda",
+                                                                            ),
+                                                                            content: Text(
+                                                                              "Apakah Anda yakin ingin menghapus Polda \"${p.namaPolda}\"?",
+                                                                            ),
+                                                                            actions: [
+                                                                              TextButton(
+                                                                                onPressed:
+                                                                                    () => Navigator.pop(
+                                                                                      context,
+                                                                                      false,
+                                                                                    ),
+                                                                                child: const Text(
+                                                                                  "Batal",
+                                                                                ),
+                                                                              ),
+                                                                              ElevatedButton(
+                                                                                style: ElevatedButton.styleFrom(
+                                                                                  backgroundColor:
+                                                                                      Colors.red,
+                                                                                  foregroundColor:
+                                                                                      Colors.white,
+                                                                                ),
+                                                                                onPressed:
+                                                                                    () => Navigator.pop(
+                                                                                      context,
+                                                                                      true,
+                                                                                    ),
+                                                                                child: const Text(
+                                                                                  "Hapus",
+                                                                                ),
+                                                                              ),
+                                                                            ],
+                                                                          ),
+                                                                    );
+                                                                    if (result ==
+                                                                        true) {
+                                                                      deletePolda(
+                                                                        p.id,
+                                                                      );
+                                                                    }
+                                                                  },
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        )
+                                                        .toList(),
+                                              ),
                                             ),
-                                          ),
-                                        );
-                                      },
+                                          );
+                                        },
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
-                              const AppPagination(),
-                            ],
+                                const AppPagination(),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
 
-                      const SizedBox(height: 20),
-                      const AppFooter(),
+                        const SizedBox(height: 20),
+                        const AppFooter(),
                       ],
                     ],
                   ),
@@ -410,5 +497,4 @@ class _PoldaPageState extends State<PoldaPage> {
       ),
     );
   }
-
 }

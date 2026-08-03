@@ -7,7 +7,10 @@ import '../widget/app_footer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AddPolresPage extends StatefulWidget {
-  const AddPolresPage({super.key});
+  final int? polresId; // null = create, non-null = edit
+  final Map<String, dynamic>? polresData; // pre-fill data
+
+  const AddPolresPage({super.key, this.polresId, this.polresData});
 
   @override
   State<AddPolresPage> createState() => _AddPolresPageState();
@@ -55,7 +58,10 @@ class _AddPolresPageState extends State<AddPolresPage> {
                       /// HEADER
                       /// ============================
                       AppHeader(
-                        breadcrumb: "Dashboard / Tambah Polres",
+                        breadcrumb:
+                            widget.polresId != null
+                                ? "Dashboard / Edit Polres"
+                                : "Dashboard / Tambah Polres",
                         username: unLogin,
                         role: roleLabel,
                       ),
@@ -111,11 +117,17 @@ class _AddPolresPageState extends State<AddPolresPage> {
                                 color: Colors.white,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(16),
-                                  side: BorderSide(color: Colors.grey.shade200, width: 1.5),
+                                  side: BorderSide(
+                                    color: Colors.grey.shade200,
+                                    width: 1.5,
+                                  ),
                                 ),
-                                child: const Padding(
-                                  padding: EdgeInsets.all(25),
-                                  child: FormTambahPolres(),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(25),
+                                  child: FormTambahPolres(
+                                    polresId: widget.polresId,
+                                    polresData: widget.polresData,
+                                  ),
                                 ),
                               ),
                             ),
@@ -136,5 +148,4 @@ class _AddPolresPageState extends State<AddPolresPage> {
       ),
     );
   }
-
 }

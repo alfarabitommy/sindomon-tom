@@ -5,14 +5,17 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../config/api_config.dart';
 
 class FormTambahPolres extends StatefulWidget {
-  const FormTambahPolres({super.key});
+  final int? polresId; // null = create mode, non-null = edit mode
+  final Map<String, dynamic>? polresData; // pre-fill data for edit
+
+  const FormTambahPolres({super.key, this.polresId, this.polresData});
 
   @override
   State<FormTambahPolres> createState() => _FormTambahPolresState();
 }
 
 class _FormTambahPolresState extends State<FormTambahPolres> {
-  // final poldaID = TextEditingController();
+  late bool isEditMode;
   int? selectedPoldaId;
   bool loading = false;
   final namaPolres = TextEditingController();
@@ -30,7 +33,6 @@ class _FormTambahPolresState extends State<FormTambahPolres> {
 
       if (respon.statusCode == 200) {
         final Map<String, dynamic> body = jsonDecode(respon.body);
-        // print(respon.body);
         setState(() {
           daftarPolda = List<Map<String, dynamic>>.from(body['data']);
         });
@@ -44,10 +46,12 @@ class _FormTambahPolresState extends State<FormTambahPolres> {
 
   Future<void> simpanPolres() async {
     if (selectedPoldaId == null || namaPolres.text.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("Semua data wajib diisi")));
-
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Semua data wajib diisi"),
+          backgroundColor: Colors.red,
+        ),
+      );
       return;
     }
 
@@ -59,37 +63,71 @@ class _FormTambahPolresState extends State<FormTambahPolres> {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString("token");
 
-      final response = await http.post(
-        Uri.parse("$apiBaseUrl/api/v1/polres"),
-        headers: {"authorization": token.toString()},
+      final Map<String, dynamic> body = {
+        "polda_id": selectedPoldaId,
+        "nama_polres": namaPolres.text,
+      };
 
-        body: jsonEncode({
-          "polda_id": selectedPoldaId,
-          "nama_polres": namaPolres.text,
-        }),
-      );
+      final http.Response response;
+
+      if (isEditMode) {
+        // PUT /api/v1/master/polres/:id
+        response = await http.put(
+          Uri.parse("$apiBaseUrl/api/v1/master/polres/${widget.polresId}"),
+          headers: {
+            "Authorization": token.toString(),
+            "Content-Type": "application/json",
+          },
+          body: jsonEncode(body),
+        );
+      } else {
+        // POST /api/v1/master/polres — create new
+        response = await http.post(
+          Uri.parse("$apiBaseUrl/api/v1/master/polres"),
+          headers: {
+            "Authorization": token.toString(),
+            "Content-Type": "application/json",
+          },
+          body: jsonEncode(body),
+        );
+      }
 
       if (!mounted) return;
+
+      final result = jsonDecode(response.body);
+
       if (response.statusCode == 200 || response.statusCode == 201) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Data Polres berhasil disimpan")),
+          SnackBar(
+            content: Text(
+              result["message"] ??
+                  (isEditMode
+                      ? "Data Polres berhasil diperbarui"
+                      : "Data Polres berhasil disimpan"),
+            ),
+            backgroundColor: Colors.green,
+          ),
         );
-
-        setState(() {
-          selectedPoldaId = null;
-        });
-        namaPolres.clear();
+        // Pop back to Polres list; list page refreshes via .then() callback
+        Navigator.pop(context, true); // true = data changed, triggers refresh
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Gagal menyimpan: ${response.body}")),
+          SnackBar(
+            content: Text(result["message"] ?? "Gagal menyimpan data"),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } catch (e) {
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Error: $e")));
+      debugPrint("Error simpan polres: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Terjadi kesalahan jaringan"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     } finally {
       if (mounted) {
         setState(() {
@@ -102,7 +140,29 @@ class _FormTambahPolresState extends State<FormTambahPolres> {
   @override
   void initState() {
     super.initState();
-    getPolda();
+    isEditMode = widget.polresId != null && widget.polresData != null;
+
+    if (isEditMode && widget.polresData != null) {
+      final data = widget.polresData!;
+      namaPolres.text = data["nama_polres"]?.toString() ?? "";
+      // Pre-set dropdown value; daftarPolda loads async, dropdown will
+      // resolve correctly once getPolda() completes and setState rebuilds.
+      final poldaIdRaw = data["polda_id"];
+      if (poldaIdRaw != null) {
+        selectedPoldaId =
+            poldaIdRaw is int
+                ? poldaIdRaw
+                : int.tryParse(poldaIdRaw.toString());
+      }
+    }
+
+    getPolda(); // always fetch polda list for the dropdown
+  }
+
+  @override
+  void dispose() {
+    namaPolres.dispose();
+    super.dispose();
   }
 
   static const InputDecoration _inputDecoration = InputDecoration(
@@ -137,16 +197,24 @@ class _FormTambahPolresState extends State<FormTambahPolres> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          "TAMBAH POLRES BARU",
-          style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF111827)),
+        Text(
+          isEditMode ? "EDIT POLRES" : "TAMBAH POLRES BARU",
+          style: const TextStyle(
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF111827),
+          ),
         ),
 
         const SizedBox(height: 25),
 
         const Text(
           "Nama Polda *",
-          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Color(0xFF374151)),
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+            color: Color(0xFF374151),
+          ),
         ),
 
         const SizedBox(height: 8),
@@ -157,7 +225,7 @@ class _FormTambahPolresState extends State<FormTambahPolres> {
           items:
               daftarPolda.map((polda) {
                 return DropdownMenuItem<int>(
-                  value: int.parse(polda["id"]),
+                  value: int.tryParse(polda["id"].toString()) ?? 0,
                   child: Text(polda["nama_polda"]),
                 );
               }).toList(),
@@ -172,15 +240,16 @@ class _FormTambahPolresState extends State<FormTambahPolres> {
 
         const Text(
           "Nama Polres*",
-          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Color(0xFF374151)),
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+            color: Color(0xFF374151),
+          ),
         ),
 
         const SizedBox(height: 8),
 
-        TextFormField(
-          controller: namaPolres,
-          decoration: _inputDecoration,
-        ),
+        TextFormField(controller: namaPolres, decoration: _inputDecoration),
 
         const SizedBox(height: 20),
 
@@ -193,8 +262,21 @@ class _FormTambahPolresState extends State<FormTambahPolres> {
               foregroundColor: const Color(0xFF23251D),
               shape: const StadiumBorder(),
             ),
-            onPressed: () { simpanPolres(); },
-            child: const Text("Simpan Data", style: TextStyle(fontSize: 18)),
+            onPressed: loading ? null : simpanPolres,
+            child:
+                loading
+                    ? const SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Color(0xFF23251D),
+                      ),
+                    )
+                    : Text(
+                      isEditMode ? "Update Polres" : "Simpan Data",
+                      style: const TextStyle(fontSize: 18),
+                    ),
           ),
         ),
 

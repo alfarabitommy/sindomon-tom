@@ -47,18 +47,21 @@ class _DashboardPageState extends State<DashboardPage> {
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body);
         final rawList = json["data"] as List;
-        final parsed = rawList
-            .map((e) => Polda.fromJson(e as Map<String, dynamic>))
-            .toList();
+        final parsed =
+            rawList
+                .map((e) => Polda.fromJson(e as Map<String, dynamic>))
+                .toList();
 
         final validCount = parsed.where((p) => p.hasValidCoordinates).length;
         debugPrint(
-            "Polda fetched: ${parsed.length} total, $validCount with valid coordinates");
+          "Polda fetched: ${parsed.length} total, $validCount with valid coordinates",
+        );
 
         if (validCount == 0 && parsed.isNotEmpty) {
           debugPrint(
-              "WARNING: All ${parsed.length} Polda have (0,0) coordinates. "
-              "API may not be returning latitude/longitude fields.");
+            "WARNING: All ${parsed.length} Polda have (0,0) coordinates. "
+            "API may not be returning latitude/longitude fields.",
+          );
         }
 
         setState(() {
@@ -95,9 +98,10 @@ class _DashboardPageState extends State<DashboardPage> {
             children: [
               const AppSidebar(currentRoute: "dashboard"),
               Expanded(
-                child: _roleId == "3"
-                    ? _buildCommandCenterContent()
-                    : _buildPlaceholder(),
+                child:
+                    _roleId == "3"
+                        ? _buildCommandCenterContent()
+                        : _buildPlaceholder(),
               ),
             ],
           ),
@@ -152,9 +156,8 @@ class _DashboardPageState extends State<DashboardPage> {
               ),
 
               MarkerLayer(
-                markers: provinsi
-                    .where((p) => p.hasValidCoordinates)
-                    .map((p) {
+                markers:
+                    provinsi.where((p) => p.hasValidCoordinates).map((p) {
                       return Marker(
                         point: p.latLng,
                         width: 50,
@@ -166,8 +169,7 @@ class _DashboardPageState extends State<DashboardPage> {
                               context: context,
                               builder: (context) {
                                 return AlertDialog(
-                                  backgroundColor:
-                                      const Color(0xff1E1B4B),
+                                  backgroundColor: const Color(0xff1E1B4B),
                                   title: Text(
                                     p.namaPolda,
                                     style: const TextStyle(
@@ -177,8 +179,8 @@ class _DashboardPageState extends State<DashboardPage> {
                                   ),
                                   content: Text(
                                     "DATA WILAYAH\n\n"
-                                    "📍 Lat: ${p.latitude.toStringAsFixed(4)}\n"
-                                    "📍 Lng: ${p.longitude.toStringAsFixed(4)}\n"
+                                    "📍 Lat: ${p.latitude}\n"
+                                    "📍 Lng: ${p.longitude}\n"
                                     "👮 Personel : 2.450\n"
                                     "📦 Inventaris : 1.200\n"
                                     "🔫 Senjata : 500\n"
@@ -196,9 +198,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                       },
                                       child: const Text(
                                         "Tutup",
-                                        style: TextStyle(
-                                          color: Colors.amber,
-                                        ),
+                                        style: TextStyle(color: Colors.amber),
                                       ),
                                     ),
                                   ],
@@ -226,9 +226,7 @@ class _DashboardPageState extends State<DashboardPage> {
         Positioned.fill(
           child: IgnorePointer(
             ignoring: true,
-            child: Container(
-              color: Colors.black.withValues(alpha: 0.20),
-            ),
+            child: Container(color: Colors.black.withValues(alpha: 0.20)),
           ),
         ),
 
@@ -238,11 +236,7 @@ class _DashboardPageState extends State<DashboardPage> {
           left: 20,
           child: Row(
             children: [
-              const Icon(
-                Icons.shield,
-                color: Colors.amber,
-                size: 40,
-              ),
+              const Icon(Icons.shield, color: Colors.amber, size: 40),
               const SizedBox(width: 10),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -280,10 +274,7 @@ class _DashboardPageState extends State<DashboardPage> {
             child: const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  "Total Personel",
-                  style: TextStyle(color: Colors.white70),
-                ),
+                Text("Total Personel", style: TextStyle(color: Colors.white70)),
 
                 SizedBox(height: 5),
 
@@ -394,15 +385,17 @@ class _DashboardPageState extends State<DashboardPage> {
         margin: const EdgeInsets.all(32),
         elevation: 2,
         color: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 80, horizontal: 40),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.bar_chart_rounded, size: 64, color: Colors.grey.shade400),
+              Icon(
+                Icons.bar_chart_rounded,
+                size: 64,
+                color: Colors.grey.shade400,
+              ),
               const SizedBox(height: 24),
               Text(
                 "Area Grafik & Statistik",
@@ -415,10 +408,7 @@ class _DashboardPageState extends State<DashboardPage> {
               const SizedBox(height: 12),
               Text(
                 "Segera Hadir",
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey.shade500,
-                ),
+                style: TextStyle(fontSize: 16, color: Colors.grey.shade500),
               ),
             ],
           ),
