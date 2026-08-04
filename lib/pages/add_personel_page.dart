@@ -7,7 +7,10 @@ import '../widget/app_footer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AddPersonelPage extends StatefulWidget {
-  const AddPersonelPage({super.key});
+  final String? personilId; // null = create, non-null = edit
+  final Map<String, dynamic>? personilData; // pre-fill data
+
+  const AddPersonelPage({super.key, this.personilId, this.personilData});
 
   @override
   State<AddPersonelPage> createState() => _AddPersonelPageState();
@@ -55,7 +58,10 @@ class _AddPersonelPageState extends State<AddPersonelPage> {
                       /// HEADER
                       /// ============================
                       AppHeader(
-                        breadcrumb: "Dashboard / Tambah Personel",
+                        breadcrumb:
+                            widget.personilId != null
+                                ? "Dashboard / Edit Personel"
+                                : "Dashboard / Tambah Personel",
                         username: unLogin,
                         role: roleLabel,
                       ),
@@ -113,9 +119,12 @@ class _AddPersonelPageState extends State<AddPersonelPage> {
                                   borderRadius: BorderRadius.circular(16),
                                   side: BorderSide(color: Colors.grey.shade200, width: 1.5),
                                 ),
-                                child: const Padding(
-                                  padding: EdgeInsets.all(25),
-                                  child: FormTambahPersonel(),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(25),
+                                  child: FormTambahPersonel(
+                                    personilId: widget.personilId,
+                                    personilData: widget.personilData,
+                                  ),
                                 ),
                               ),
                             ),

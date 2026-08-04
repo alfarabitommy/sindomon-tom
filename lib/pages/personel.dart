@@ -21,6 +21,7 @@ class PersonelPage extends StatefulWidget {
 
 class _PersonelPageState extends State<PersonelPage> {
   List<Map<String, dynamic>> datapersonel = [];
+  String errorMessage = "";
   bool isLoading = true;
   String unLogin = "";
   String roleLabel = "Operator";
@@ -39,55 +40,73 @@ class _PersonelPageState extends State<PersonelPage> {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString("token");
 
-      // print("ini token ${token}");
       final response = await http.get(
-        Uri.parse("$apiBaseUrl/api/v1/personel"),
-        headers: {"authorization": token.toString()},
+        Uri.parse("$apiBaseUrl/api/v1/sdm/personil"),
+        headers: {"Authorization": token.toString()},
       );
 
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body);
-        // print("ini json ${json}");
         setState(() {
           datapersonel = List<Map<String, dynamic>>.from(json["data"]);
+          errorMessage = "";
           isLoading = false;
         });
       } else {
         setState(() {
+          errorMessage = "Gagal memuat data (HTTP ${response.statusCode})";
           isLoading = false;
         });
       }
     } catch (e) {
       setState(() {
+        errorMessage = "Terjadi kesalahan saat memuat data Personel";
         isLoading = false;
       });
-
       debugPrint(e.toString());
     }
   }
 
-  Future<void> deletePersonel(int id) async {
+  // RESTful path-param DELETE with string UUID (polres pattern)
+  Future<void> deletePersonel(String personilId) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString("token");
 
       final response = await http.delete(
-        Uri.parse("$apiBaseUrl/api/v1/personel"),
-        headers: {
-          "Authorization": token.toString(),
-          "Content-Type": "application/json",
-        },
-        body: jsonEncode({"personel_id": id}),
+        Uri.parse("$apiBaseUrl/api/v1/sdm/personil/$personilId"),
+        headers: {"Authorization": token.toString()},
       );
 
+      if (!mounted) return;
+
       if (response.statusCode == 200) {
-        debugPrint(response.body);
-        getPersonelApi();
+        final result = jsonDecode(response.body);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result["message"] ?? "Personel berhasil dihapus"),
+            backgroundColor: Colors.green,
+          ),
+        );
+        getPersonelApi(); // refresh list
       } else {
-        debugPrint("Error : ${response.body}");
+        final result = jsonDecode(response.body);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result["message"] ?? "Gagal menghapus Personel"),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     } catch (e) {
-      debugPrint(e.toString());
+      debugPrint("Error delete personel: $e");
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Terjadi kesalahan jaringan"),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -123,217 +142,399 @@ class _PersonelPageState extends State<PersonelPage> {
                         role: roleLabel,
                       ),
 
-                      const SizedBox(height: 25),
-
-                      /// ============================
-                      /// TITLE
-                      /// ============================
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            "Manajemen Personel",
-                            style: TextStyle(
-                              fontSize: 34,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
+                      /// STATE HANDLING (polres pattern)
+                      if (isLoading)
+                        const Expanded(
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              color: Colors.amber,
                             ),
                           ),
-
-                          ElevatedButton.icon(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const AddPersonelPage(),
+                        )
+                      else if (errorMessage.isNotEmpty)
+                        Expanded(
+                          child: Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.error_outline,
+                                  size: 64,
+                                  color: Colors.redAccent,
                                 ),
-                              );
-                            },
-                            icon: const Icon(Icons.add),
-                            label: const Text("Tambah Personel"),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.amber,
-                              foregroundColor: Colors.black,
-                              elevation: 5,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 22,
-                                vertical: 18,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 20),
-
-                      /// SEARCH
-                      AppSearchField(hintText: "Cari Personel..."),
-
-                      const SizedBox(height: 25),
-
-                      /// TABLE DATA
-                      Expanded(
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.05),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            children: [
-                              Expanded(
-                                child: SingleChildScrollView(
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(20),
-                                    child: LayoutBuilder(
-                                      builder: (context, constraints) {
-                                        return SingleChildScrollView(
-                                          scrollDirection: Axis.horizontal,
-                                          child: ConstrainedBox(
-                                            constraints: BoxConstraints(
-                                              minWidth: constraints.maxWidth,
-                                            ),
-                                            child: DataTable(
-                                              headingRowColor:
-                                                  WidgetStateProperty.all(
-                                                    Colors.grey.shade50,
-                                                  ),
-                                              headingTextStyle: const TextStyle(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.w700,
-                                                color: Color(0xFF6B7280),
-                                              ),
-                                              dataTextStyle: const TextStyle(
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.w400,
-                                                color: Color(0xFF374151),
-                                              ),
-                                              dividerThickness: 0.5,
-                                              border: const TableBorder(
-                                                horizontalInside: BorderSide(
-                                                  color: Color(0xFFE5E7EB),
-                                                  width: 0.5,
-                                                ),
-                                              ),
-                                              dataRowMinHeight: 60,
-                                              dataRowMaxHeight: 70,
-                                              columns: const [
-                                                DataColumn(label: Text("NRP")),
-                                                DataColumn(
-                                                  label: Text("NAMA LENGKAP"),
-                                                ),
-                                                DataColumn(
-                                                  label: Text("POLRES ID"),
-                                                ),
-                                                DataColumn(
-                                                  label: Text("STATUS AKTIF"),
-                                                ),
-                                                DataColumn(label: Text("AKSI")),
-                                              ],
-                                              rows:
-                                                  datapersonel
-                                                      .map(
-                                                        (e) => DataRow(
-                                                          cells: [
-                                                            DataCell(
-                                                              Text(e["nrp"]),
-                                                            ),
-                                                            DataCell(
-                                                              Text(
-                                                                e["nama_lengkap"],
-                                                              ),
-                                                            ),
-                                                            DataCell(
-                                                              Text(
-                                                                "${e["polres_id"]}",
-                                                              ),
-                                                            ),
-                                                            DataCell(
-                                                              Text(
-                                                                "${e["status_aktif"]}",
-                                                              ),
-                                                            ),
-                                                            DataCell(
-                                                              ActionButtons(
-                                                                onEdit: () {},
-                                                                onDelete: () async {
-                                                                  final result = await showDialog(
-                                                                    context:
-                                                                        context,
-                                                                    builder:
-                                                                        (
-                                                                          _,
-                                                                        ) => AlertDialog(
-                                                                          title: const Text(
-                                                                            "Hapus Personel",
-                                                                          ),
-                                                                          content: const Text(
-                                                                            "Apakah Anda yakin ingin menghapus data ini?",
-                                                                          ),
-                                                                          actions: [
-                                                                            TextButton(
-                                                                              onPressed:
-                                                                                  () => Navigator.pop(
-                                                                                    context,
-                                                                                    false,
-                                                                                  ),
-                                                                              child: const Text(
-                                                                                "Batal",
-                                                                              ),
-                                                                            ),
-                                                                            ElevatedButton(
-                                                                              onPressed:
-                                                                                  () => Navigator.pop(
-                                                                                    context,
-                                                                                    true,
-                                                                                  ),
-                                                                              child: const Text(
-                                                                                "Hapus",
-                                                                              ),
-                                                                            ),
-                                                                          ],
-                                                                        ),
-                                                                  );
-                                                                  if (result ==
-                                                                      true) {
-                                                                    deletePersonel(
-                                                                      int.parse(
-                                                                        e["id"],
-                                                                      ),
-                                                                    );
-                                                                  }
-                                                                },
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      )
-                                                      .toList(),
-                                            ),
-                                          ),
-                                        );
-                                      },
+                                const SizedBox(height: 12),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 24,
+                                  ),
+                                  child: Text(
+                                    errorMessage,
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                      fontSize: 15,
+                                      color: Colors.black87,
                                     ),
                                   ),
                                 ),
+                                const SizedBox(height: 16),
+                                ElevatedButton.icon(
+                                  onPressed: getPersonelApi,
+                                  icon: const Icon(Icons.refresh),
+                                  label: const Text("Coba Lagi"),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.amber,
+                                    foregroundColor: Colors.black,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                      else if (datapersonel.isEmpty)
+                        const Expanded(
+                          child: Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.table_rows_outlined,
+                                  size: 64,
+                                  color: Colors.grey,
+                                ),
+                                SizedBox(height: 12),
+                                Text(
+                                  "Tidak ada data Personel untuk ditampilkan",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.black54,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                      else ...[
+                        const SizedBox(height: 25),
+
+                        /// ============================
+                        /// TITLE
+                        /// ============================
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              "Manajemen Personel",
+                              style: TextStyle(
+                                fontSize: 34,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
                               ),
-                              const AppPagination(),
-                            ],
+                            ),
+
+                            ElevatedButton.icon(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const AddPersonelPage(),
+                                  ),
+                                ).then((result) {
+                                  if (result == true) {
+                                    getPersonelApi();
+                                  }
+                                });
+                              },
+                              icon: const Icon(Icons.add),
+                              label: const Text("Tambah Personel"),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.amber,
+                                foregroundColor: Colors.black,
+                                elevation: 5,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 22,
+                                  vertical: 18,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 20),
+
+                        /// SEARCH
+                        AppSearchField(hintText: "Cari Personel..."),
+
+                        const SizedBox(height: 25),
+
+                        /// TABLE DATA
+                        Expanded(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.05),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              children: [
+                                Expanded(
+                                  child: SingleChildScrollView(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(20),
+                                      child: LayoutBuilder(
+                                        builder: (context, constraints) {
+                                          return SingleChildScrollView(
+                                            scrollDirection: Axis.horizontal,
+                                            child: ConstrainedBox(
+                                              constraints: BoxConstraints(
+                                                minWidth: constraints.maxWidth,
+                                              ),
+                                              child: DataTable(
+                                                headingRowColor:
+                                                    WidgetStateProperty.all(
+                                                      Colors.grey.shade50,
+                                                    ),
+                                                headingTextStyle:
+                                                    const TextStyle(
+                                                      fontSize: 12,
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                      color: Color(0xFF6B7280),
+                                                    ),
+                                                dataTextStyle:
+                                                    const TextStyle(
+                                                      fontSize: 14,
+                                                      fontWeight:
+                                                          FontWeight.w400,
+                                                      color: Color(0xFF374151),
+                                                    ),
+                                                dividerThickness: 0.5,
+                                                border: const TableBorder(
+                                                  horizontalInside: BorderSide(
+                                                    color: Color(0xFFE5E7EB),
+                                                    width: 0.5,
+                                                  ),
+                                                ),
+                                                dataRowMinHeight: 60,
+                                                dataRowMaxHeight: 70,
+                                                columns: const [
+                                                  DataColumn(
+                                                    label: Text("NRP"),
+                                                  ),
+                                                  DataColumn(
+                                                    label: Text(
+                                                      "NAMA LENGKAP",
+                                                    ),
+                                                  ),
+                                                  DataColumn(
+                                                    label: Text("PANGKAT"),
+                                                  ),
+                                                  DataColumn(
+                                                    label: Text("JABATAN"),
+                                                  ),
+                                                  DataColumn(
+                                                    label: Text("POLDA"),
+                                                  ),
+                                                  DataColumn(
+                                                    label: Text("POLRES"),
+                                                  ),
+                                                  DataColumn(
+                                                    label: Text(
+                                                      "STATUS AKTIF",
+                                                    ),
+                                                  ),
+                                                  DataColumn(
+                                                    label: Text("AKSI"),
+                                                  ),
+                                                ],
+                                                rows:
+                                                    datapersonel
+                                                        .map(
+                                                          (e) => DataRow(
+                                                            cells: [
+                                                              DataCell(
+                                                                Text(
+                                                                  "${e["nrp"]}",
+                                                                ),
+                                                              ),
+                                                              DataCell(
+                                                                Text(
+                                                                  "${e["nama_lengkap"]}",
+                                                                ),
+                                                              ),
+                                                              DataCell(
+                                                                Text(
+                                                                  e["nama_pangkat"]
+                                                                          ?.toString() ??
+                                                                      e["pangkat_id"]
+                                                                          ?.toString() ??
+                                                                      "-",
+                                                                ),
+                                                              ),
+                                                              DataCell(
+                                                                Text(
+                                                                  e["nama_jabatan"]
+                                                                          ?.toString() ??
+                                                                      e["jabatan_id"]
+                                                                          ?.toString() ??
+                                                                      "-",
+                                                                ),
+                                                              ),
+                                                              // POLDA: prefer the denormalized name returned by /api/v1/sdm/personil;
+                                                              // fall back to the raw FK so the cell never renders blank when the
+                                                              // backend omits nama_polda (defensive — same pattern as Pangkat/Jabatan/Polres).
+                                                              DataCell(
+                                                                Text(
+                                                                  e["nama_polda"]
+                                                                          ?.toString() ??
+                                                                      e["polda_id"]
+                                                                          ?.toString() ??
+                                                                      "-",
+                                                                ),
+                                                              ),
+                                                              DataCell(
+                                                                Text(
+                                                                  e["nama_polres"]
+                                                                          ?.toString() ??
+                                                                      e["polres_id"]
+                                                                          ?.toString() ??
+                                                                      "Tidak Ada / Mako Polda",
+                                                                ),
+                                                              ),
+                                                              DataCell(
+                                                                Text(
+                                                                  e["status_aktif"]
+                                                                          ?.toString() ??
+                                                                      "-",
+                                                                ),
+                                                              ),
+                                                              DataCell(
+                                                                ActionButtons(
+                                                                  onEdit: () {
+                                                                    Navigator.push(
+                                                                      context,
+                                                                      MaterialPageRoute(
+                                                                        builder:
+                                                                            (_) =>
+                                                                                AddPersonelPage(
+                                                                                  personilId: e[
+                                                                                          "personil_id"]
+                                                                                      .toString(),
+                                                                                  personilData: {
+                                                                                    "nrp":
+                                                                                        "${e["nrp"]}",
+                                                                                    "nama_lengkap":
+                                                                                        "${e["nama_lengkap"]}",
+                                                                                    "polda_id":
+                                                                                        e["polda_id"],
+                                                                                    "polres_id":
+                                                                                        e["polres_id"],
+                                                                                    "pangkat_id":
+                                                                                        e["pangkat_id"],
+                                                                                    "jabatan_id":
+                                                                                        e["jabatan_id"],
+                                                                                  },
+                                                                                ),
+                                                                      ),
+                                                                    ).then((
+                                                                      result,
+                                                                    ) {
+                                                                      if (result ==
+                                                                          true) {
+                                                                        getPersonelApi();
+                                                                      }
+                                                                    });
+                                                                  },
+                                                                  onDelete: () async {
+                                                                    final result = await showDialog<
+                                                                        bool>(
+                                                                      context:
+                                                                          context,
+                                                                      builder:
+                                                                          (
+                                                                            _,
+                                                                          ) =>
+                                                                              AlertDialog(
+                                                                                title:
+                                                                                    const Text(
+                                                                                      "Hapus Personel",
+                                                                                    ),
+                                                                                content:
+                                                                                    Text(
+                                                                                      "Apakah Anda yakin ingin menghapus Personel \"${e["nama_lengkap"]}\"?",
+                                                                                    ),
+                                                                                actions: [
+                                                                                  TextButton(
+                                                                                    onPressed:
+                                                                                        () => Navigator.pop(
+                                                                                          context,
+                                                                                          false,
+                                                                                        ),
+                                                                                    child:
+                                                                                        const Text(
+                                                                                          "Batal",
+                                                                                        ),
+                                                                                  ),
+                                                                                  ElevatedButton(
+                                                                                    style:
+                                                                                        ElevatedButton.styleFrom(
+                                                                                          backgroundColor:
+                                                                                              Colors.red,
+                                                                                          foregroundColor:
+                                                                                              Colors.white,
+                                                                                        ),
+                                                                                    onPressed:
+                                                                                        () => Navigator.pop(
+                                                                                          context,
+                                                                                          true,
+                                                                                        ),
+                                                                                    child:
+                                                                                        const Text(
+                                                                                          "Hapus",
+                                                                                        ),
+                                                                                  ),
+                                                                                ],
+                                                                              ),
+                                                                    );
+                                                                    if (result ==
+                                                                        true) {
+                                                                      deletePersonel(
+                                                                        e["personil_id"]
+                                                                            .toString(),
+                                                                      );
+                                                                    }
+                                                                  },
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        )
+                                                        .toList(),
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const AppPagination(),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
 
-                      const SizedBox(height: 20),
-                      const AppFooter(),
+                        const SizedBox(height: 20),
+                        const AppFooter(),
+                      ],
                     ],
                   ),
                 ),
