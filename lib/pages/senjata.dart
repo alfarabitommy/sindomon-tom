@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../widget/background.dart';
 import '../widget/app_sidebar.dart';
@@ -25,6 +27,10 @@ class _SenjataPageState extends State<SenjataPage> {
   String unLogin = "";
   String roleLabel = "Operator";
 
+  String _searchQuery = "";
+  Timer? _debounce;
+  final TextEditingController _searchController = TextEditingController();
+
   Future<void> loadUser() async {
     final prefs = await SharedPreferences.getInstance();
 
@@ -37,19 +43,24 @@ class _SenjataPageState extends State<SenjataPage> {
   Future<void> getSenjataApi() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString("token");
+      final token = prefs.getString("token") ?? "";
 
-      // print("ini token ${token}");
+      final uri = Uri.parse("$apiBaseUrl/api/v1/logistik/senjata").replace(
+        queryParameters: {
+          if (_searchQuery.isNotEmpty) "search": _searchQuery,
+        },
+      );
+
       final response = await http.get(
-        Uri.parse("$apiBaseUrl/api/v1/senjata"),
-        headers: {"authorization": token.toString()},
+        uri,
+        headers: {"Authorization": token},
       );
 
       if (response.statusCode == 200) {
-        final json = jsonDecode(response.body);
-        // print("ini json ${json}");
+        final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+        final List<dynamic> rawData = jsonResponse["data"] ?? [];
         setState(() {
-          senjataapi = List<Map<String, dynamic>>.from(json["data"]);
+          senjataapi = rawData.cast<Map<String, dynamic>>();
           isLoading = false;
         });
       } else {
@@ -73,24 +84,71 @@ class _SenjataPageState extends State<SenjataPage> {
     getSenjataApi();
   }
 
-  Future<void> deleteSenjata(int id) async {
+  void _onSearchChanged(String value) {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 400), () {
+      _searchQuery = value;
+      getSenjataApi();
+    });
+  }
+
+  String _formatKategori(dynamic kategori) {
+    if (kategori is Map<String, dynamic>) {
+      final laras = kategori["tipe_laras"] ?? "";
+      final kaliber = kategori["kaliber"] ?? "";
+      if (laras.isNotEmpty && kaliber.isNotEmpty) return "$laras - $kaliber";
+      if (laras.isNotEmpty) return laras;
+      if (kaliber.isNotEmpty) return kaliber;
+    }
+    return "-";
+  }
+
+  String _fotoUrl(Map<String, dynamic> e) {
+    final raw = e["foto_fisik"] ?? e["foto_url"];
+    final url = raw?.toString() ?? "";
+    if (url.isEmpty) return "";
+    if (url.startsWith("http://") || url.startsWith("https://")) return url;
+    final parsed = url.startsWith("/") ? "$apiBaseUrl$url" : "$apiBaseUrl/$url";
+    debugPrint("DEBUG IMAGE URL: $url");
+    return parsed;
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Future<void> deleteSenjata(String id) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString("token");
 
       final response = await http.delete(
-        Uri.parse("$apiBaseUrl/api/v1/senjata"),
+        Uri.parse("$apiBaseUrl/api/v1/logistik/senjata/$id"),
         headers: {
           "Authorization": token.toString(),
-          "Content-Type": "application/json",
         },
-        body: jsonEncode({"senjata_id": id}),
       );
 
       if (response.statusCode == 200) {
-        debugPrint(response.body);
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Data senjata berhasil dihapus"),
+            backgroundColor: Colors.red,
+          ),
+        );
         getSenjataApi();
       } else {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Gagal menghapus data"),
+            backgroundColor: Colors.orange,
+          ),
+        );
         debugPrint("Error : ${response.body}");
       }
     } catch (e) {
@@ -141,13 +199,16 @@ class _SenjataPageState extends State<SenjataPage> {
                           ),
 
                           ElevatedButton.icon(
-                            onPressed: () {
-                              Navigator.push(
+                            onPressed: () async {
+                              final result = await Navigator.push<bool>(
                                 context,
                                 MaterialPageRoute(
                                   builder: (_) => const AddSenjataPage(),
                                 ),
                               );
+                              if (result == true) {
+                                getSenjataApi();
+                              }
                             },
                             icon: const Icon(Icons.add),
                             label: const Text("Tambah Senjata"),
@@ -170,7 +231,11 @@ class _SenjataPageState extends State<SenjataPage> {
                       const SizedBox(height: 20),
 
                       /// SEARCH
-                      AppSearchField(hintText: "Cari Senjata..."),
+                      AppSearchField(
+                        hintText: "Cari Senjata...",
+                        controller: _searchController,
+                        onChanged: _onSearchChanged,
+                      ),
 
                       const SizedBox(height: 25),
 
@@ -253,33 +318,60 @@ class _SenjataPageState extends State<SenjataPage> {
                                                                       8,
                                                                     ),
                                                                 child: Image.network(
-                                                                  e["foto"],
+                                                                  _fotoUrl(e),
                                                                   width: 80,
                                                                   height: 50,
                                                                   fit:
                                                                       BoxFit
                                                                           .cover,
+                                                                  errorBuilder:
+                                                                      (_, __,
+                                                                              ___) =>
+                                                                          const Icon(
+                                                                    Icons
+                                                                        .image_not_supported,
+                                                                    size: 40,
+                                                                  ),
                                                                 ),
                                                               ),
                                                             ),
                                                             DataCell(
                                                               Text(
-                                                                e["no_seri"],
+                                                                e["nomor_seri"] ??
+                                                                    "",
+                                                                style: const TextStyle(
+                                                                  fontFamily:
+                                                                      "monospace",
+                                                                ),
                                                               ),
                                                             ),
                                                             DataCell(
                                                               Text(
-                                                                e["kategori"],
+                                                                _formatKategori(
+                                                                  e["kategori"],
+                                                                ),
                                                               ),
                                                             ),
                                                             DataCell(
                                                               Text(
-                                                                "${e["tahun"]}",
+                                                                "${e["tahun_pengadaan"] ?? "-"}",
                                                               ),
                                                             ),
                                                             DataCell(
                                                               ActionButtons(
-                                                                onEdit: () {},
+                                                                onEdit: () async {
+                                                                  final result = await Navigator.push<bool>(
+                                                                    context,
+                                                                    MaterialPageRoute(
+                                                                      builder: (_) => AddSenjataPage(
+                                                                        initialData: e,
+                                                                      ),
+                                                                    ),
+                                                                  );
+                                                                  if (result == true) {
+                                                                    getSenjataApi();
+                                                                  }
+                                                                },
                                                                 onDelete: () async {
                                                                   final result = await showDialog(
                                                                     context:
@@ -320,11 +412,16 @@ class _SenjataPageState extends State<SenjataPage> {
                                                                   );
                                                                   if (result ==
                                                                       true) {
-                                                                    deleteSenjata(
-                                                                      int.parse(
-                                                                        e["id"],
-                                                                      ),
-                                                                    );
+                                                                    final senjataId =
+                                                                        e["senjata_id"]
+                                                                                ?.toString() ??
+                                                                            "";
+                                                                    if (senjataId
+                                                                        .isNotEmpty) {
+                                                                      deleteSenjata(
+                                                                        senjataId,
+                                                                      );
+                                                                    }
                                                                   }
                                                                 },
                                                               ),

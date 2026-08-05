@@ -7,7 +7,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../config/api_config.dart';
 
 class FormTambahSenjata extends StatefulWidget {
-  const FormTambahSenjata({super.key});
+  final Map<String, dynamic>? initialData;
+
+  const FormTambahSenjata({super.key, this.initialData});
 
   @override
   State<FormTambahSenjata> createState() => _FormTambahSenjataState();
@@ -17,11 +19,13 @@ class _FormTambahSenjataState extends State<FormTambahSenjata> {
   final noSeri = TextEditingController();
   final tahunPengadaan = TextEditingController();
   final ImagePicker _picker = ImagePicker();
+  final GlobalKey<FormFieldState<int>> _poldaFieldKey = GlobalKey<FormFieldState<int>>();
   Uint8List? _imageBytes;
   int? selectedPoldaId;
   int? selectedKatId;
   List<Map<String, dynamic>> daftarPolda = [];
   List<Map<String, dynamic>> daftarKategori = [];
+  late bool _isEdit;
 
   Future<void> getPolda() async {
     final pref = await SharedPreferences.getInstance();
@@ -36,9 +40,23 @@ class _FormTambahSenjataState extends State<FormTambahSenjata> {
       if (responses.statusCode == 200) {
         final Map<String, dynamic> body = jsonDecode(responses.body);
 
+        final poldaIdStr = pref.getString("polda_login");
+        final poldaId = (poldaIdStr != null && poldaIdStr.isNotEmpty)
+            ? int.tryParse(poldaIdStr)
+            : null;
+
         setState(() {
           daftarPolda = List<Map<String, dynamic>>.from(body['data']);
+          if (!_isEdit &&
+              poldaId != null &&
+              daftarPolda.any((p) => int.tryParse(p["id"].toString()) == poldaId)) {
+            selectedPoldaId = poldaId;
+          }
         });
+
+        if (selectedPoldaId != null) {
+          _poldaFieldKey.currentState?.didChange(selectedPoldaId!);
+        }
       } else {
         debugPrint(responses.body);
       }
@@ -53,7 +71,7 @@ class _FormTambahSenjataState extends State<FormTambahSenjata> {
 
     try {
       final rrrr = await http.get(
-        Uri.parse('$apiBaseUrl/api/v1/kategori_senjata'),
+        Uri.parse('$apiBaseUrl/api/v1/master/kategori-senjata'),
         headers: {"Authorization": tokenize.toString()},
       );
 
@@ -113,26 +131,71 @@ class _FormTambahSenjataState extends State<FormTambahSenjata> {
 
     final data = {
       "polda_id": selectedPoldaId,
-      "no_seri": noSeri.text,
-      "kategori": selectedKatId,
-      "tahun": tahunPengadaan.text,
-      "foto": base64Image,
+      "nomor_seri": noSeri.text,
+      "kategori_id": selectedKatId,
+      "tahun_pengadaan": tahunPengadaan.text,
+      "status_kelayakan": "Baik",
+      "foto_fisik": base64Image,
     };
 
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString("token");
 
-    final response = await http.post(
-      Uri.parse("$apiBaseUrl/api/v1/senjata"),
-      headers: {"authorization": token.toString()},
-      body: jsonEncode(data),
-    );
+    final http.Response response;
+
+    if (_isEdit) {
+      final editData = Map<String, dynamic>.from(data);
+      editData["senjata_id"] = widget.initialData!["senjata_id"];
+      response = await http.put(
+        Uri.parse("$apiBaseUrl/api/v1/logistik/senjata/${widget.initialData!["senjata_id"]}"),
+        headers: {
+          "Authorization": token.toString(),
+          "Content-Type": "application/json",
+        },
+        body: jsonEncode(editData),
+      );
+    } else {
+      response = await http.post(
+        Uri.parse("$apiBaseUrl/api/v1/logistik/senjata"),
+        headers: {
+          "Authorization": token.toString(),
+          "Content-Type": "application/json",
+        },
+        body: jsonEncode(data),
+      );
+    }
+
     debugPrint(response.body);
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _isEdit
+                ? "Data senjata berhasil diperbarui"
+                : "Data senjata berhasil diregistrasi",
+          ),
+          backgroundColor: Colors.green,
+        ),
+      );
+      Navigator.pop(context, true);
+    }
   }
 
   @override
   void initState() {
     super.initState();
+    _isEdit = widget.initialData != null;
+
+    if (_isEdit) {
+      final data = widget.initialData!;
+      noSeri.text = data["nomor_seri"]?.toString() ?? "";
+      tahunPengadaan.text = data["tahun_pengadaan"]?.toString() ?? "";
+      selectedPoldaId = int.tryParse(data["polda_id"]?.toString() ?? "");
+      selectedKatId = int.tryParse(data["kategori_id"]?.toString() ?? "");
+    }
+
     getPolda();
     getKategori();
   }
@@ -181,9 +244,9 @@ class _FormTambahSenjataState extends State<FormTambahSenjata> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            "TAMBAH DATA SENJATA",
-            style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF111827)),
+          Text(
+            _isEdit ? "EDIT DATA SENJATA" : "TAMBAH DATA SENJATA",
+            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF111827)),
           ),
 
           const SizedBox(height: 25),
@@ -198,20 +261,17 @@ class _FormTambahSenjataState extends State<FormTambahSenjata> {
                     formField(
                       label: "Polda *",
                       child: DropdownButtonFormField<int>(
-                        value: selectedPoldaId,
+                        key: _poldaFieldKey,
+                        value: daftarPolda.isEmpty ? null : selectedPoldaId,
                         decoration: _inputDecoration.copyWith(hintText: "Pilih Polda"),
                         items:
                             daftarPolda.map((polda) {
                               return DropdownMenuItem<int>(
-                                value: int.parse(polda["id"]),
+                                value: int.parse(polda["id"].toString()),
                                 child: Text(polda["nama_polda"]),
                               );
                             }).toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            selectedPoldaId = value;
-                          });
-                        },
+                        onChanged: null,
                       ),
                     ),
 
@@ -237,13 +297,13 @@ class _FormTambahSenjataState extends State<FormTambahSenjata> {
                     formField(
                       label: "Kategori Senjata *",
                       child: DropdownButtonFormField<int>(
-                        value: selectedKatId,
+                        value: daftarKategori.isEmpty ? null : selectedKatId,
                         decoration: _inputDecoration.copyWith(hintText: "Pilih Kategori"),
                         items:
                             daftarKategori.map((cat) {
                               return DropdownMenuItem<int>(
-                                value: int.parse(cat["id"]),
-                                child: Text(cat["tipe_laras"]),
+                                value: int.parse(cat["kategori_id"].toString()),
+                                child: Text("${cat["tipe_laras"]} - ${cat["kaliber"]}"),
                               );
                             }).toList(),
                         onChanged: (value) {
@@ -323,7 +383,7 @@ class _FormTambahSenjataState extends State<FormTambahSenjata> {
                 shape: const StadiumBorder(),
               ),
               onPressed: submitData,
-              child: const Text("Simpan Data", style: TextStyle(fontSize: 18)),
+              child: Text(_isEdit ? "Update Data" : "Simpan Data", style: const TextStyle(fontSize: 18)),
             ),
           ),
           const SizedBox(height: 20),

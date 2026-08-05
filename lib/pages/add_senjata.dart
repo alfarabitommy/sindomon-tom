@@ -7,7 +7,9 @@ import '../widget/app_footer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AddSenjataPage extends StatefulWidget {
-  const AddSenjataPage({super.key});
+  final Map<String, dynamic>? initialData;
+
+  const AddSenjataPage({super.key, this.initialData});
 
   @override
   State<AddSenjataPage> createState() => _AddSenjataPageState();
@@ -55,7 +57,9 @@ class _AddSenjataPageState extends State<AddSenjataPage> {
                       /// HEADER
                       /// ============================
                       AppHeader(
-                        breadcrumb: "Dashboard / Tambah Senjata",
+                        breadcrumb: widget.initialData != null
+                            ? "Dashboard / Edit Senjata"
+                            : "Dashboard / Tambah Senjata",
                         username: unLogin,
                         role: roleLabel,
                       ),
@@ -113,10 +117,12 @@ class _AddSenjataPageState extends State<AddSenjataPage> {
                                   borderRadius: BorderRadius.circular(16),
                                   side: BorderSide(color: Colors.grey.shade200, width: 1.5),
                                 ),
-                                child: const Padding(
-                                  padding: EdgeInsets.all(25),
-                                  child: FormTambahSenjata(),
-                                ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(25),
+                                    child: FormTambahSenjata(
+                                      initialData: widget.initialData,
+                                    ),
+                                  ),
                               ),
                             ),
                           ),
