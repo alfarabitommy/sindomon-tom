@@ -5,6 +5,7 @@ import '../pages/personel.dart';
 import '../pages/senjata.dart';
 import '../pages/satwa.dart';
 import '../pages/inventaris.dart';
+import '../pages/amunisi.dart';
 import '../pages/user_page.dart';
 import '../pages/placeholder_page.dart';
 import '../pages/polda.dart';
@@ -278,7 +279,7 @@ const Map<String, List<List<dynamic>>> roleMenus = {
 Widget _ot() => _ph("Bagan Organisasi (Org-Tree)", "org_tree");
 Widget _pl() => _ph("Pemantauan Proses Hukum", "process_law");
 Widget _sp() => _ph("Sarpras & Altmatsus", "sarpras");
-Widget _as() => _ph("Stok Amunisi", "ammo_stock");
+Widget _as() => const AmunisiPage();
 Widget _di() => _ph("Kotak Masuk (Inbox)", "dms_inbox");
 Widget _do() => _ph("Kotak Keluar (Outbox)", "dms_outbox");
 Widget _sk() => _ph("Log Sitkamtibmas", "sitkamtibmas");

@@ -45,11 +45,10 @@ class _SenjataPageState extends State<SenjataPage> {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString("token") ?? "";
 
-      final uri = Uri.parse("$apiBaseUrl/api/v1/logistik/senjata").replace(
-        queryParameters: {
-          if (_searchQuery.isNotEmpty) "search": _searchQuery,
-        },
-      );
+      Uri uri = Uri.parse("$apiBaseUrl/api/v1/logistik/senjata");
+      if (_searchQuery.isNotEmpty) {
+        uri = uri.replace(queryParameters: {"search": _searchQuery});
+      }
 
       final response = await http.get(
         uri,
