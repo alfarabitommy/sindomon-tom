@@ -4,49 +4,50 @@ import 'package:image_picker/image_picker.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import '../config/api_config.dart';
 
-/// Form for Satwa K9 & Turangga (add/edit).
+/// Form for Sarpras & Altmatsus (add/edit).
 ///
 /// Image Architecture:
 /// 1. Camera/Gallery capture via [ImagePicker]
 /// 2. WebP compression via [FlutterImageCompress]
-/// 3. Multipart upload via [http.MultipartRequest] — POST for BOTH modes.
-class FormInputanSatwa extends StatefulWidget {
+/// 3. Multipart upload via [http.MultipartRequest]
+class FormTambahSarpras extends StatefulWidget {
   final Map<String, dynamic>? initialData;
 
-  const FormInputanSatwa({super.key, this.initialData});
+  const FormTambahSarpras({super.key, this.initialData});
 
   @override
-  State<FormInputanSatwa> createState() => _FormInputanSatwaState();
+  State<FormTambahSarpras> createState() => _FormTambahSarprasState();
 }
 
-class _FormInputanSatwaState extends State<FormInputanSatwa> {
+class _FormTambahSarprasState extends State<FormTambahSarpras> {
   // ---------------------------------------------------------------------
   // Field state
   // ---------------------------------------------------------------------
-  final nomorRegistrasi = TextEditingController();
-  final namaSatwa = TextEditingController();
-  final namaHandler = TextEditingController();
+  final kodeBarang = TextEditingController();
+  final namaBarang = TextEditingController();
   final ImagePicker _picker = ImagePicker();
   Uint8List? _imageBytes; // compressed WebP bytes (null on edit = keep existing photo)
   bool _isCompressing = false;
 
-  static const List<String> _jenisItems = ['K9', 'Turangga'];
-
-  static const List<String> _kualifikasiItems = [
-    'Narkotika',
-    'Handak',
-    'Dalmas',
-    'Kriminal Umum',
-    'Patroli',
-    'Pelacak',
+  static const List<String> _kategoriItems = [
+    'Kendaraan',
+    'Perlengkapan Kantor',
+    'Perlengkapan Dalmas',
+    'Alat Komunikasi',
+    'Kendaraan Taktis',
   ];
 
-  String? selectedJenisSatwa;
-  String? selectedKualifikasi;
-  DateTime? _jadwalVaksin;
+  static const List<String> _kondisiItems = [
+    'Baik',
+    'Rusak Ringan',
+    'Rusak Berat',
+  ];
+
+  String? selectedKategori;
+  String? selectedKondisi;
+  DateTime? _tahunPengadaan;
   late bool _isEdit;
 
   // ---------------------------------------------------------------------
@@ -138,95 +139,32 @@ class _FormInputanSatwaState extends State<FormInputanSatwa> {
   }
 
   // ---------------------------------------------------------------------
-  // Jadwal vaksin (DatePicker)
+  // Tahun pengadaan (YearPicker via showDatePicker in year mode)
   // ---------------------------------------------------------------------
-  Future<void> _pickJadwalVaksin() async {
+  Future<void> _pickTahunPengadaan() async {
     final picked = await showDatePicker(
       context: context,
-      initialDate: _jadwalVaksin ?? DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
-      helpText: "Pilih Jadwal Vaksin",
+      initialDate: _tahunPengadaan ?? DateTime.now(),
+      firstDate: DateTime(1990),
+      lastDate: DateTime.now(),
+      initialDatePickerMode: DatePickerMode.year,
+      helpText: "Pilih Tahun Pengadaan",
     );
     if (picked == null) return;
     setState(() {
-      _jadwalVaksin = picked;
+      _tahunPengadaan = picked;
     });
-  }
-
-  String _formatDate(DateTime d) =>
-      "${d.year.toString().padLeft(4, '0')}-"
-      "${d.month.toString().padLeft(2, '0')}-"
-      "${d.day.toString().padLeft(2, '0')}";
-
-  /// Builds the edit-mode photo preview using the same fallback key chain
-  /// as the list page (foto_url → foto_satwa → foto).
-  Widget _buildPhotoPreview() {
-    final rawFoto =
-        widget.initialData!["foto_url"] ??
-        widget.initialData!["foto_satwa"] ??
-        widget.initialData!["foto"];
-    final url = _resolveImageUrl(rawFoto);
-
-    if (url.isEmpty) {
-      return const Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.image, size: 80, color: Colors.grey),
-            SizedBox(height: 8),
-            Text(
-              "Foto lama tetap dipakai jika tidak diganti",
-              style: TextStyle(color: Colors.grey),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(8),
-      child: CachedNetworkImage(
-        imageUrl: url,
-        fit: BoxFit.cover,
-        width: double.infinity,
-        placeholder: (context, url) => Container(
-          color: Colors.grey.shade100,
-          child: const Center(
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
-        ),
-        errorWidget: (context, url, error) => const Center(
-          child: Icon(
-            Icons.image_not_supported_outlined,
-            size: 60,
-            color: Colors.grey,
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ---------------------------------------------------------------------
-  // Safe image URL concatenation for the edit-mode preview
-  // ---------------------------------------------------------------------
-  String _resolveImageUrl(dynamic raw) {
-    final url = raw?.toString() ?? "";
-    if (url.isEmpty) return "";
-    if (url.startsWith("http://") || url.startsWith("https://")) return url;
-    return url.startsWith("/") ? "$apiBaseUrl$url" : "$apiBaseUrl/$url";
   }
 
   // ---------------------------------------------------------------------
   // Multipart upload (add + edit)
   // ---------------------------------------------------------------------
   Future<void> submitData() async {
-    if (nomorRegistrasi.text.trim().isEmpty ||
-        selectedJenisSatwa == null ||
-        namaSatwa.text.trim().isEmpty ||
-        namaHandler.text.trim().isEmpty ||
-        selectedKualifikasi == null ||
-        _jadwalVaksin == null) {
+    if (kodeBarang.text.trim().isEmpty ||
+        namaBarang.text.trim().isEmpty ||
+        selectedKategori == null ||
+        selectedKondisi == null ||
+        _tahunPengadaan == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Lengkapi semua data bertanda *"),
@@ -239,7 +177,7 @@ class _FormInputanSatwaState extends State<FormInputanSatwa> {
     if (!_isEdit && _imageBytes == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("Foto satwa wajib diisi"),
+          content: Text("Foto sarpras wajib diisi"),
           backgroundColor: Colors.orange,
         ),
       );
@@ -249,23 +187,23 @@ class _FormInputanSatwaState extends State<FormInputanSatwa> {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString("token") ?? "";
 
-    // BUG FIX (Rule 4): ID goes in the URL path for edit mode — never in the body.
     final Uri uri = _isEdit
         ? Uri.parse(
-            "$apiBaseUrl/api/v1/logistik/satwa/${widget.initialData!['satwa_id']}")
-        : Uri.parse("$apiBaseUrl/api/v1/logistik/satwa");
+            "$apiBaseUrl/api/v1/logistik/sarpras/${widget.initialData!['sarpras_id']}")
+        : Uri.parse("$apiBaseUrl/api/v1/logistik/sarpras");
 
-    // BUG FIX (Rule 1): PHP cannot parse multipart/form-data on PUT —
-    // ALWAYS send POST, for create AND edit.
+    // PHP cannot parse multipart/form-data on PUT — always send POST.
+    // (CI3 routes.php maps POST /sarpras/(:any) to the update handler,
+    // so no Laravel _method spoofing is needed.)
     final request = http.MultipartRequest("POST", uri);
 
+    // BUG FIX: ID in URL only — never in the body.
     request.headers["Authorization"] = token;
-    request.fields["nomor_registrasi"] = nomorRegistrasi.text.trim();
-    request.fields["jenis_satwa"] = selectedJenisSatwa!;
-    request.fields["nama_satwa"] = namaSatwa.text.trim();
-    request.fields["nama_handler"] = namaHandler.text.trim();
-    request.fields["kualifikasi"] = selectedKualifikasi!;
-    request.fields["jadwal_vaksin"] = _formatDate(_jadwalVaksin!);
+    request.fields["kode_barang"] = kodeBarang.text.trim();
+    request.fields["nama_barang"] = namaBarang.text.trim();
+    request.fields["kategori"] = selectedKategori!;
+    request.fields["kondisi"] = selectedKondisi!;
+    request.fields["tahun_pengadaan"] = _tahunPengadaan!.year.toString();
 
     // Only attach the file when a (new) image was picked.
     if (_imageBytes != null) {
@@ -273,7 +211,8 @@ class _FormInputanSatwaState extends State<FormInputanSatwa> {
         http.MultipartFile.fromBytes(
           "foto",
           _imageBytes!,
-          filename: "satwa_${DateTime.now().millisecondsSinceEpoch}.webp",
+          filename:
+              "sarpras_${DateTime.now().millisecondsSinceEpoch}.webp",
         ),
       );
     }
@@ -290,8 +229,8 @@ class _FormInputanSatwaState extends State<FormInputanSatwa> {
           SnackBar(
             content: Text(
               _isEdit
-                  ? "Data satwa berhasil diperbarui"
-                  : "Data satwa berhasil diregistrasi",
+                  ? "Data sarpras berhasil diperbarui"
+                  : "Data sarpras berhasil diregistrasi",
             ),
             backgroundColor: Colors.green,
           ),
@@ -319,7 +258,7 @@ class _FormInputanSatwaState extends State<FormInputanSatwa> {
   }
 
   // ---------------------------------------------------------------------
-  // initState — BUG FIX (Rule 5): read dropdowns from FLAT top-level JSON keys.
+  // initState — BUG FIX: read dropdowns from FLAT top-level JSON keys.
   // ---------------------------------------------------------------------
   @override
   void initState() {
@@ -328,53 +267,32 @@ class _FormInputanSatwaState extends State<FormInputanSatwa> {
 
     if (_isEdit) {
       final data = widget.initialData!;
-      nomorRegistrasi.text =
-          data["nomor_registrasi"]?.toString() ??
-          data["no_registrasi"]?.toString() ??
-          "";
-      namaSatwa.text =
-          data["nama_satwa"]?.toString() ?? data["nama"]?.toString() ?? "";
-      namaHandler.text = data["nama_handler"]?.toString() ?? "";
+      kodeBarang.text = data["kode_barang"]?.toString() ?? "";
+      namaBarang.text = data["nama_barang"]?.toString() ?? "";
 
       // Flat string key first; guarded Map fallback (no nested crash).
-      final rawJenis = data["jenis_satwa"] ?? data["jenis"];
-      if (rawJenis is String && _jenisItems.contains(rawJenis)) {
-        selectedJenisSatwa = rawJenis;
-      } else if (rawJenis is Map) {
-        final v =
-            (rawJenis["nama_jenis"] ?? rawJenis["jenis_satwa"] ?? rawJenis["jenis"])
+      final rawKategori = data["kategori"];
+      if (rawKategori is String) {
+        selectedKategori = rawKategori;
+      } else if (rawKategori is Map) {
+        selectedKategori =
+            (rawKategori["nama_kategori"] ?? rawKategori["kategori"])
                 ?.toString();
-        if (v != null && _jenisItems.contains(v)) {
-          selectedJenisSatwa = v;
-        }
       }
 
-      final rawKualifikasi = data["kualifikasi"];
-      if (rawKualifikasi is String &&
-          _kualifikasiItems.contains(rawKualifikasi)) {
-        selectedKualifikasi = rawKualifikasi;
-      } else if (rawKualifikasi is Map) {
-        final v =
-            (rawKualifikasi["nama_kualifikasi"] ??
-                    rawKualifikasi["kualifikasi"])
-                ?.toString();
-        if (v != null && _kualifikasiItems.contains(v)) {
-          selectedKualifikasi = v;
-        }
-      }
+      selectedKondisi = data["kondisi"]?.toString();
 
-      final vaksin = data["jadwal_vaksin"]?.toString() ?? "";
-      if (vaksin.isNotEmpty) {
-        _jadwalVaksin = DateTime.tryParse(vaksin);
+      final tahun = int.tryParse(data["tahun_pengadaan"]?.toString() ?? "");
+      if (tahun != null) {
+        _tahunPengadaan = DateTime(tahun);
       }
     }
   }
 
   @override
   void dispose() {
-    nomorRegistrasi.dispose();
-    namaSatwa.dispose();
-    namaHandler.dispose();
+    kodeBarang.dispose();
+    namaBarang.dispose();
     super.dispose();
   }
 
@@ -433,7 +351,7 @@ class _FormInputanSatwaState extends State<FormInputanSatwa> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            _isEdit ? "EDIT DATA SATWA" : "TAMBAH DATA SATWA",
+            _isEdit ? "EDIT DATA SARPRAS" : "TAMBAH DATA SARPRAS",
             style: const TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.bold,
@@ -451,11 +369,11 @@ class _FormInputanSatwaState extends State<FormInputanSatwa> {
                 child: Column(
                   children: [
                     formField(
-                      label: "Nomor Registrasi *",
+                      label: "Kode Barang *",
                       child: TextFormField(
-                        controller: nomorRegistrasi,
+                        controller: kodeBarang,
                         decoration: _inputDecoration.copyWith(
-                          hintText: "Masukkan Nomor Registrasi",
+                          hintText: "Contoh: SPR-001",
                         ),
                       ),
                     ),
@@ -463,15 +381,15 @@ class _FormInputanSatwaState extends State<FormInputanSatwa> {
                     const SizedBox(height: 20),
 
                     formField(
-                      label: "Jenis Satwa *",
+                      label: "Kategori *",
                       child: DropdownButtonFormField<String>(
-                        value: _jenisItems.contains(selectedJenisSatwa)
-                            ? selectedJenisSatwa
+                        value: _kategoriItems.contains(selectedKategori)
+                            ? selectedKategori
                             : null,
                         decoration: _inputDecoration.copyWith(
-                          hintText: "Pilih Jenis Satwa",
+                          hintText: "Pilih Kategori",
                         ),
-                        items: _jenisItems
+                        items: _kategoriItems
                             .map(
                               (item) => DropdownMenuItem<String>(
                                 value: item,
@@ -481,7 +399,7 @@ class _FormInputanSatwaState extends State<FormInputanSatwa> {
                             .toList(),
                         onChanged: (value) {
                           setState(() {
-                            selectedJenisSatwa = value;
+                            selectedKategori = value;
                           });
                         },
                       ),
@@ -490,11 +408,29 @@ class _FormInputanSatwaState extends State<FormInputanSatwa> {
                     const SizedBox(height: 20),
 
                     formField(
-                      label: "Nama Satwa *",
-                      child: TextFormField(
-                        controller: namaSatwa,
-                        decoration: _inputDecoration.copyWith(
-                          hintText: "Contoh : Rex",
+                      label: "Tahun Pengadaan *",
+                      child: InkWell(
+                        onTap: _pickTahunPengadaan,
+                        child: InputDecorator(
+                          decoration: _inputDecoration.copyWith(
+                            hintText: "Pilih Tahun Pengadaan",
+                            suffixIcon: const Icon(
+                              Icons.calendar_today,
+                              size: 18,
+                              color: Color(0xFF6B7280),
+                            ),
+                          ),
+                          child: Text(
+                            _tahunPengadaan == null
+                                ? "Pilih Tahun Pengadaan"
+                                : _tahunPengadaan!.year.toString(),
+                            style: TextStyle(
+                              color: _tahunPengadaan == null
+                                  ? Colors.grey.shade400
+                                  : Colors.black87,
+                              fontSize: 14,
+                            ),
+                          ),
                         ),
                       ),
                     ),
@@ -509,13 +445,11 @@ class _FormInputanSatwaState extends State<FormInputanSatwa> {
                 child: Column(
                   children: [
                     formField(
-                      label: "Nama Handler *",
+                      label: "Nama Barang *",
                       child: TextFormField(
-                        controller: namaHandler,
-                        // BUG FIX: text input — nama handler is a NAME, not a number.
-                        keyboardType: TextInputType.text,
+                        controller: namaBarang,
                         decoration: _inputDecoration.copyWith(
-                          hintText: "Contoh : Bripka Sanut",
+                          hintText: "Masukkan Nama Barang",
                         ),
                       ),
                     ),
@@ -523,15 +457,15 @@ class _FormInputanSatwaState extends State<FormInputanSatwa> {
                     const SizedBox(height: 20),
 
                     formField(
-                      label: "Kualifikasi *",
+                      label: "Kondisi *",
                       child: DropdownButtonFormField<String>(
-                        value: _kualifikasiItems.contains(selectedKualifikasi)
-                            ? selectedKualifikasi
+                        value: _kondisiItems.contains(selectedKondisi)
+                            ? selectedKondisi
                             : null,
                         decoration: _inputDecoration.copyWith(
-                          hintText: "Pilih Kualifikasi",
+                          hintText: "Pilih Kondisi",
                         ),
-                        items: _kualifikasiItems
+                        items: _kondisiItems
                             .map(
                               (item) => DropdownMenuItem<String>(
                                 value: item,
@@ -541,39 +475,9 @@ class _FormInputanSatwaState extends State<FormInputanSatwa> {
                             .toList(),
                         onChanged: (value) {
                           setState(() {
-                            selectedKualifikasi = value;
+                            selectedKondisi = value;
                           });
                         },
-                      ),
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    formField(
-                      label: "Jadwal Vaksin *",
-                      child: InkWell(
-                        onTap: _pickJadwalVaksin,
-                        child: InputDecorator(
-                          decoration: _inputDecoration.copyWith(
-                            hintText: "Pilih Jadwal Vaksin",
-                            suffixIcon: const Icon(
-                              Icons.calendar_today,
-                              size: 18,
-                              color: Color(0xFF6B7280),
-                            ),
-                          ),
-                          child: Text(
-                            _jadwalVaksin == null
-                                ? "Pilih Jadwal Vaksin"
-                                : _formatDate(_jadwalVaksin!),
-                            style: TextStyle(
-                              color: _jadwalVaksin == null
-                                  ? Colors.grey.shade400
-                                  : Colors.black87,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
                       ),
                     ),
                   ],
@@ -585,7 +489,7 @@ class _FormInputanSatwaState extends State<FormInputanSatwa> {
           const SizedBox(height: 20),
 
           formField(
-            label: "Foto Satwa *",
+            label: "Foto Sarpras *",
             child: Column(
               children: [
                 Container(
@@ -605,15 +509,31 @@ class _FormInputanSatwaState extends State<FormInputanSatwa> {
                                 fit: BoxFit.cover,
                               ),
                             )
-                          : _isEdit
-                              ? _buildPhotoPreview()
+                          : (_isEdit
+                              ? const Center(
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.image,
+                                        size: 80,
+                                        color: Colors.grey,
+                                      ),
+                                      SizedBox(height: 8),
+                                      Text(
+                                        "Foto lama tetap dipakai jika tidak diganti",
+                                        style: TextStyle(color: Colors.grey),
+                                      ),
+                                    ],
+                                  ),
+                                )
                               : const Center(
                                   child: Icon(
                                     Icons.image,
                                     size: 80,
                                     color: Colors.grey,
                                   ),
-                                ),
+                                )),
                 ),
 
                 const SizedBox(height: 10),
@@ -622,8 +542,7 @@ class _FormInputanSatwaState extends State<FormInputanSatwa> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     OutlinedButton.icon(
-                      onPressed:
-                          _isCompressing ? null : _showImageSourceSheet,
+                      onPressed: _isCompressing ? null : _showImageSourceSheet,
                       icon: const Icon(Icons.photo_camera),
                       label: const Text("Kamera / Galeri"),
                     ),

@@ -13,6 +13,7 @@ import '../widget/app_pagination.dart';
 import '../widget/app_header.dart';
 import '../widget/app_search_field.dart';
 import '../widget/action_buttons.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class SenjataPage extends StatefulWidget {
   const SenjataPage({super.key});
@@ -102,14 +103,61 @@ class _SenjataPageState extends State<SenjataPage> {
     return "-";
   }
 
-  String _fotoUrl(Map<String, dynamic> e) {
-    final raw = e["foto_fisik"] ?? e["foto_url"];
+  /// Builds the absolute image URL; relative paths get the API base prefix.
+  /// Inserts '/' when the backend returns a relative path WITHOUT a leading
+  /// slash (fixes ClientException/malformed domain from CachedNetworkImage).
+  String _resolveImageUrl(dynamic raw) {
     final url = raw?.toString() ?? "";
     if (url.isEmpty) return "";
     if (url.startsWith("http://") || url.startsWith("https://")) return url;
-    final parsed = url.startsWith("/") ? "$apiBaseUrl$url" : "$apiBaseUrl/$url";
-    debugPrint("DEBUG IMAGE URL: $url");
-    return parsed;
+    return url.startsWith("/") ? "$apiBaseUrl$url" : "$apiBaseUrl/$url";
+  }
+
+  Widget _buildThumbnail(dynamic rawUrl) {
+    final url = _resolveImageUrl(rawUrl);
+
+    if (url.isEmpty) {
+      return Container(
+        width: 80,
+        height: 50,
+        decoration: BoxDecoration(
+          color: Colors.grey.shade100,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: const Icon(
+          Icons.image_not_supported_outlined,
+          color: Colors.grey,
+        ),
+      );
+    }
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: CachedNetworkImage(
+        imageUrl: url,
+        width: 80,
+        height: 50,
+        fit: BoxFit.cover,
+        placeholder: (context, url) => Container(
+          width: 80,
+          height: 50,
+          color: Colors.grey.shade100,
+          child: const Center(
+            child: SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+          ),
+        ),
+        errorWidget: (context, url, error) => Container(
+          width: 80,
+          height: 50,
+          color: Colors.grey.shade100,
+          child: const Icon(Icons.broken_image_outlined, color: Colors.grey),
+        ),
+      ),
+    );
   }
 
   @override
@@ -311,27 +359,9 @@ class _SenjataPageState extends State<SenjataPage> {
                                                         (e) => DataRow(
                                                           cells: [
                                                             DataCell(
-                                                              ClipRRect(
-                                                                borderRadius:
-                                                                    BorderRadius.circular(
-                                                                      8,
-                                                                    ),
-                                                                child: Image.network(
-                                                                  _fotoUrl(e),
-                                                                  width: 80,
-                                                                  height: 50,
-                                                                  fit:
-                                                                      BoxFit
-                                                                          .cover,
-                                                                  errorBuilder:
-                                                                      (_, __,
-                                                                              ___) =>
-                                                                          const Icon(
-                                                                    Icons
-                                                                        .image_not_supported,
-                                                                    size: 40,
-                                                                  ),
-                                                                ),
+                                                              _buildThumbnail(
+                                                                e["foto_fisik"] ??
+                                                                    e["foto_url"],
                                                               ),
                                                             ),
                                                             DataCell(

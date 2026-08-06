@@ -5,7 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../widget/background.dart';
 import '../widget/app_sidebar.dart';
 import '../config/api_config.dart';
-import '../pages/add_satwa.dart';
+import '../pages/add_sarpras.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -15,15 +15,15 @@ import '../widget/app_header.dart';
 import '../widget/app_search_field.dart';
 import '../widget/action_buttons.dart';
 
-class SatwaPage extends StatefulWidget {
-  const SatwaPage({super.key});
+class SarprasPage extends StatefulWidget {
+  const SarprasPage({super.key});
 
   @override
-  State<SatwaPage> createState() => _SatwaPageState();
+  State<SarprasPage> createState() => _SarprasPageState();
 }
 
-class _SatwaPageState extends State<SatwaPage> {
-  List<Map<String, dynamic>> satwaApi = [];
+class _SarprasPageState extends State<SarprasPage> {
+  List<Map<String, dynamic>> sarprasApi = [];
   bool isLoading = true;
   String unLogin = "";
   String roleLabel = "Operator";
@@ -34,7 +34,6 @@ class _SatwaPageState extends State<SatwaPage> {
 
   Future<void> loadUser() async {
     final prefs = await SharedPreferences.getInstance();
-    if (!mounted) return;
 
     setState(() {
       unLogin = prefs.getString("username_login") ?? "";
@@ -42,13 +41,13 @@ class _SatwaPageState extends State<SatwaPage> {
     });
   }
 
-  // BUG FIX (Rule 3): no trailing "?" appended when the search query is empty.
-  Future<void> getSatwaApi() async {
+  // BUG FIX: no trailing "?" appended when the search query is empty.
+  Future<void> getSarprasApi() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString("token") ?? "";
 
-      Uri uri = Uri.parse("$apiBaseUrl/api/v1/logistik/satwa");
+      Uri uri = Uri.parse("$apiBaseUrl/api/v1/logistik/sarpras");
       if (_searchQuery.isNotEmpty) {
         uri = uri.replace(queryParameters: {"search": _searchQuery});
       }
@@ -61,19 +60,16 @@ class _SatwaPageState extends State<SatwaPage> {
       if (response.statusCode == 200) {
         final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
         final List<dynamic> rawData = jsonResponse["data"] ?? [];
-        if (!mounted) return;
         setState(() {
-          satwaApi = rawData.cast<Map<String, dynamic>>();
+          sarprasApi = rawData.cast<Map<String, dynamic>>();
           isLoading = false;
         });
       } else {
-        if (!mounted) return;
         setState(() {
           isLoading = false;
         });
       }
     } catch (e) {
-      if (!mounted) return;
       setState(() {
         isLoading = false;
       });
@@ -86,14 +82,14 @@ class _SatwaPageState extends State<SatwaPage> {
   void initState() {
     super.initState();
     loadUser();
-    getSatwaApi();
+    getSarprasApi();
   }
 
   void _onSearchChanged(String value) {
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 400), () {
       _searchQuery = value;
-      getSatwaApi();
+      getSarprasApi();
     });
   }
 
@@ -104,15 +100,15 @@ class _SatwaPageState extends State<SatwaPage> {
     super.dispose();
   }
 
-  // BUG FIX (Rule 4): ID goes in the URL path, never in the body.
+  // BUG FIX: ID goes in the URL path, never in the body.
   // SnackBar in catch block for network errors.
-  Future<void> deleteSatwa(String id) async {
+  Future<void> deleteSarpras(String id) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString("token");
 
       final response = await http.delete(
-        Uri.parse("$apiBaseUrl/api/v1/logistik/satwa/$id"),
+        Uri.parse("$apiBaseUrl/api/v1/logistik/sarpras/$id"),
         headers: {
           "Authorization": token.toString(),
         },
@@ -122,11 +118,11 @@ class _SatwaPageState extends State<SatwaPage> {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text("Data satwa berhasil dihapus"),
+            content: Text("Data sarpras berhasil dihapus"),
             backgroundColor: Colors.red,
           ),
         );
-        getSatwaApi();
+        getSarprasApi();
       } else {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -149,14 +145,27 @@ class _SatwaPageState extends State<SatwaPage> {
     }
   }
 
-  /// BUG FIX (Rule 2): safely concatenate the image URL — inserts '/'
-  /// when the backend returns a relative path WITHOUT a leading slash
-  /// (fixes ClientException/malformed domain from CachedNetworkImage).
+  /// kategori may be a flat string or a nested object — handle both safely.
+  String _formatKategori(dynamic kategori) {
+    if (kategori == null) return "-";
+    if (kategori is String) return kategori.isEmpty ? "-" : kategori;
+    if (kategori is Map) {
+      final nama = kategori["nama_kategori"] ?? kategori["kategori"] ?? "-";
+      return nama.toString();
+    }
+    return kategori.toString();
+  }
+
+  /// Builds the absolute image URL; relative paths get the API base prefix.
+  /// Uses the proven Senjata pattern — inserts '/' when the backend returns
+  /// a relative path WITHOUT a leading slash (fixes ClientException/malformed
+  /// domain from CachedNetworkImage).
   String _resolveImageUrl(dynamic raw) {
     final url = raw?.toString() ?? "";
     if (url.isEmpty) return "";
     if (url.startsWith("http://") || url.startsWith("https://")) return url;
-    return url.startsWith("/") ? "$apiBaseUrl$url" : "$apiBaseUrl/$url";
+    final parsed = url.startsWith("/") ? "$apiBaseUrl$url" : "$apiBaseUrl/$url";
+    return parsed;
   }
 
   Widget _buildThumbnail(dynamic rawUrl) {
@@ -206,26 +215,6 @@ class _SatwaPageState extends State<SatwaPage> {
     );
   }
 
-  /// True when jadwal_vaksin is less than 30 days from today or already passed.
-  bool _isVaksinUrgent(dynamic raw) {
-    final date = DateTime.tryParse(raw?.toString() ?? "");
-    if (date == null) return false;
-
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final jadwal = DateTime(date.year, date.month, date.day);
-
-    return jadwal.difference(today).inDays < 30;
-  }
-
-  String _cellValue(Map<String, dynamic> e, List<String> keys) {
-    for (final key in keys) {
-      final v = e[key];
-      if (v != null && v.toString().isNotEmpty) return v.toString();
-    }
-    return "-";
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -234,11 +223,8 @@ class _SatwaPageState extends State<SatwaPage> {
         child: SafeArea(
           child: Row(
             children: [
-              const AppSidebar(currentRoute: "satwa"),
+              const AppSidebar(currentRoute: "sarpras"),
 
-              /// ========================
-              /// CONTENT
-              /// ========================
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.all(30),
@@ -246,20 +232,17 @@ class _SatwaPageState extends State<SatwaPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       AppHeader(
-                        breadcrumb: "Dashboard / Logistik / Satwa K9 & Turangga",
+                        breadcrumb: "Dashboard / Logistik / Sarpras & Altmatsus",
                         username: unLogin,
                         role: roleLabel,
                       ),
                       const SizedBox(height: 25),
 
-                      /// ============================
-                      /// TITLE
-                      /// ============================
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Text(
-                            "Manajemen Satwa",
+                            "Manajemen Sarpras & Altmatsus",
                             style: TextStyle(
                               fontSize: 34,
                               fontWeight: FontWeight.bold,
@@ -272,15 +255,15 @@ class _SatwaPageState extends State<SatwaPage> {
                               final result = await Navigator.push<bool>(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) => const AddSatwaPage(),
+                                  builder: (_) => const AddSarprasPage(),
                                 ),
                               );
                               if (result == true) {
-                                getSatwaApi();
+                                getSarprasApi();
                               }
                             },
                             icon: const Icon(Icons.add),
-                            label: const Text("Tambah Satwa"),
+                            label: const Text("Tambah Sarpras"),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.amber,
                               foregroundColor: Colors.black,
@@ -299,16 +282,14 @@ class _SatwaPageState extends State<SatwaPage> {
 
                       const SizedBox(height: 20),
 
-                      /// SEARCH
                       AppSearchField(
-                        hintText: "Cari Satwa...",
+                        hintText: "Cari Sarpras...",
                         controller: _searchController,
                         onChanged: _onSearchChanged,
                       ),
 
                       const SizedBox(height: 25),
 
-                      /// TABLE DATA
                       Expanded(
                         child: Container(
                           decoration: BoxDecoration(
@@ -338,15 +319,19 @@ class _SatwaPageState extends State<SatwaPage> {
                                                 scrollDirection:
                                                     Axis.horizontal,
                                                 child: ConstrainedBox(
-                                                  constraints: BoxConstraints(
-                                                    minWidth:
-                                                        constraints.maxWidth,
-                                                  ),
+                                                  constraints:
+                                                      BoxConstraints(
+                                                        minWidth:
+                                                            constraints
+                                                                .maxWidth,
+                                                      ),
                                                   child: DataTable(
                                                     headingRowColor:
-                                                        WidgetStateProperty.all(
-                                                          Colors.grey.shade50,
-                                                        ),
+                                                        WidgetStateProperty
+                                                            .all(
+                                                              Colors.grey
+                                                                  .shade50,
+                                                            ),
                                                     headingTextStyle:
                                                         const TextStyle(
                                                           fontSize: 12,
@@ -383,56 +368,47 @@ class _SatwaPageState extends State<SatwaPage> {
                                                       ),
                                                       DataColumn(
                                                         label: Text(
-                                                          "NO REGISTRASI",
-                                                        ),
-                                                      ),
-                                                      DataColumn(
-                                                        label: Text("JENIS"),
-                                                      ),
-                                                      DataColumn(
-                                                        label: Text("NAMA SATWA"),
-                                                      ),
-                                                      DataColumn(
-                                                        label: Text(
-                                                          "NAMA HANDLER",
+                                                          "KODE BARANG",
                                                         ),
                                                       ),
                                                       DataColumn(
                                                         label: Text(
-                                                          "KUALIFIKASI",
+                                                          "NAMA BARANG",
                                                         ),
                                                       ),
                                                       DataColumn(
                                                         label: Text(
-                                                          "JADWAL VAKSIN",
+                                                          "KATEGORI",
+                                                        ),
+                                                      ),
+                                                      DataColumn(
+                                                        label: Text(
+                                                          "KONDISI",
                                                         ),
                                                       ),
                                                       DataColumn(
                                                         label: Text("AKSI"),
                                                       ),
                                                     ],
-                                                    rows: satwaApi
+                                                    rows: sarprasApi
                                                         .map(
                                                           (e) => DataRow(
                                                             cells: [
                                                               DataCell(
+                                                                // Fallback for the image key: foto_fisik (Senjata
+                                                                // convention) → foto_url → foto (multipart field).
                                                                 _buildThumbnail(
-                                                                  e[
-                                                                          "foto_url"] ??
-                                                                      e[
-                                                                          "foto_satwa"] ??
+                                                                  e["foto_fisik"] ??
+                                                                      e["foto_url"] ??
                                                                       e["foto"],
                                                                 ),
                                                               ),
                                                               DataCell(
                                                                 Text(
-                                                                  _cellValue(
-                                                                    e,
-                                                                    [
-                                                                      "nomor_registrasi",
-                                                                      "no_registrasi",
-                                                                    ],
-                                                                  ),
+                                                                  e[
+                                                                          "kode_barang"]
+                                                                      ?.toString() ??
+                                                                      "-",
                                                                   style:
                                                                       const TextStyle(
                                                                         fontFamily:
@@ -442,87 +418,25 @@ class _SatwaPageState extends State<SatwaPage> {
                                                               ),
                                                               DataCell(
                                                                 Text(
-                                                                  _cellValue(
-                                                                    e,
-                                                                    [
-                                                                      "jenis_satwa",
-                                                                      "jenis",
-                                                                    ],
+                                                                  e[
+                                                                          "nama_barang"]
+                                                                      ?.toString() ??
+                                                                      "-",
+                                                                ),
+                                                              ),
+                                                              DataCell(
+                                                                Text(
+                                                                  _formatKategori(
+                                                                    e[
+                                                                        "kategori"],
                                                                   ),
                                                                 ),
                                                               ),
                                                               DataCell(
                                                                 Text(
-                                                                  _cellValue(
-                                                                    e,
-                                                                    [
-                                                                      "nama_satwa",
-                                                                      "nama",
-                                                                    ],
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                              DataCell(
-                                                                Text(
-                                                                  _cellValue(
-                                                                    e,
-                                                                    [
-                                                                      "nama_handler",
-                                                                    ],
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                              DataCell(
-                                                                Text(
-                                                                  _cellValue(
-                                                                    e,
-                                                                    [
-                                                                      "kualifikasi",
-                                                                    ],
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                              DataCell(
-                                                                Row(
-                                                                  mainAxisSize:
-                                                                      MainAxisSize
-                                                                          .min,
-                                                                  children: [
-                                                                    Text(
-                                                                      _cellValue(
-                                                                        e,
-                                                                        [
-                                                                          "jadwal_vaksin",
-                                                                        ],
-                                                                      ),
-                                                                    ),
-                                                                    if (_isVaksinUrgent(
-                                                                      e[
-                                                                          "jadwal_vaksin"],
-                                                                    ))
-                                                                      const Padding(
-                                                                        padding:
-                                                                            EdgeInsets.only(
-                                                                              left:
-                                                                                  6,
-                                                                            ),
-                                                                        child:
-                                                                            Tooltip(
-                                                                              message:
-                                                                                  "Vaksinasi kurang dari 30 hari atau sudah lewat",
-                                                                              child:
-                                                                                  Icon(
-                                                                                    Icons
-                                                                                        .vaccines,
-                                                                                    color:
-                                                                                        Colors
-                                                                                            .red,
-                                                                                    size:
-                                                                                        18,
-                                                                                  ),
-                                                                            ),
-                                                                      ),
-                                                                  ],
+                                                                  e["kondisi"]
+                                                                          ?.toString() ??
+                                                                      "-",
                                                                 ),
                                                               ),
                                                               DataCell(
@@ -534,7 +448,7 @@ class _SatwaPageState extends State<SatwaPage> {
                                                                       context,
                                                                       MaterialPageRoute(
                                                                         builder: (_) =>
-                                                                            AddSatwaPage(
+                                                                            AddSarprasPage(
                                                                           initialData:
                                                                               e,
                                                                         ),
@@ -542,7 +456,7 @@ class _SatwaPageState extends State<SatwaPage> {
                                                                     );
                                                                     if (result ==
                                                                         true) {
-                                                                      getSatwaApi();
+                                                                      getSarprasApi();
                                                                     }
                                                                   },
                                                                   onDelete: () async {
@@ -557,7 +471,7 @@ class _SatwaPageState extends State<SatwaPage> {
                                                                           AlertDialog(
                                                                         title:
                                                                             const Text(
-                                                                              "Hapus Satwa",
+                                                                              "Hapus Sarpras",
                                                                             ),
                                                                         content:
                                                                             const Text(
@@ -591,15 +505,15 @@ class _SatwaPageState extends State<SatwaPage> {
                                                                     );
                                                                     if (result ==
                                                                         true) {
-                                                                      final satwaId =
+                                                                      final sarprasId =
                                                                           e[
-                                                                                  "satwa_id"]
+                                                                                  "sarpras_id"]
                                                                               ?.toString() ??
                                                                               "";
-                                                                      if (satwaId
+                                                                      if (sarprasId
                                                                           .isNotEmpty) {
-                                                                        deleteSatwa(
-                                                                          satwaId,
+                                                                        deleteSarpras(
+                                                                          sarprasId,
                                                                         );
                                                                       }
                                                                     }

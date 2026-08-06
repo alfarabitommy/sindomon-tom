@@ -35,6 +35,8 @@ dependencies:
   data_table_2: ^2.6.0
   flutter_svg: ^2.2.0
   image_picker: ^1.2.0
+  flutter_image_compress: ^2.3.0
+  cached_network_image: ^3.4.1
   http: ^1.2.2
   shared_preferences: ^2.5.3
   flutter_map: ^8.2.1

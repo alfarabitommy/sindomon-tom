@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:typed_data';
 import 'package:image_picker/image_picker.dart';
 import 'dart:convert';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/api_config.dart';
@@ -20,7 +21,8 @@ class _FormTambahSenjataState extends State<FormTambahSenjata> {
   final tahunPengadaan = TextEditingController();
   final ImagePicker _picker = ImagePicker();
   final GlobalKey<FormFieldState<int>> _poldaFieldKey = GlobalKey<FormFieldState<int>>();
-  Uint8List? _imageBytes;
+  Uint8List? _imageBytes; // compressed WebP bytes (null on edit = keep existing photo)
+  bool _isCompressing = false;
   int? selectedPoldaId;
   int? selectedKatId;
   List<Map<String, dynamic>> daftarPolda = [];
@@ -89,7 +91,8 @@ class _FormTambahSenjataState extends State<FormTambahSenjata> {
     }
   }
 
-  Future<void> _showPicker() async {
+  /// Image pipeline: pick -> compress to WebP.
+  Future<void> _showImageSourceSheet() async {
     showModalBottomSheet(
       context: context,
       builder: (context) {
@@ -97,22 +100,19 @@ class _FormTambahSenjataState extends State<FormTambahSenjata> {
           child: Wrap(
             children: [
               ListTile(
+                leading: const Icon(Icons.photo_camera),
+                title: const Text("Kamera"),
+                onTap: () async {
+                  Navigator.pop(context);
+                  await _pickImage(ImageSource.camera);
+                },
+              ),
+              ListTile(
                 leading: const Icon(Icons.photo_library),
                 title: const Text("Galeri"),
                 onTap: () async {
                   Navigator.pop(context);
-
-                  final XFile? file = await _picker.pickImage(
-                    source: ImageSource.gallery,
-                  );
-
-                  if (file != null) {
-                    final bytes = await file.readAsBytes();
-
-                    setState(() {
-                      _imageBytes = bytes;
-                    });
-                  }
+                  await _pickImage(ImageSource.gallery);
                 },
               ),
             ],
@@ -122,64 +122,151 @@ class _FormTambahSenjataState extends State<FormTambahSenjata> {
     );
   }
 
-  Future<void> submitData() async {
-    String? base64Image;
-
-    if (_imageBytes != null) {
-      base64Image = base64Encode(_imageBytes!);
-    }
-
-    final data = {
-      "polda_id": selectedPoldaId,
-      "nomor_seri": noSeri.text,
-      "kategori_id": selectedKatId,
-      "tahun_pengadaan": tahunPengadaan.text,
-      "status_kelayakan": "Baik",
-      "foto_fisik": base64Image,
-    };
-
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString("token");
-
-    final http.Response response;
-
-    if (_isEdit) {
-      final editData = Map<String, dynamic>.from(data);
-      editData["senjata_id"] = widget.initialData!["senjata_id"];
-      response = await http.put(
-        Uri.parse("$apiBaseUrl/api/v1/logistik/senjata/${widget.initialData!["senjata_id"]}"),
-        headers: {
-          "Authorization": token.toString(),
-          "Content-Type": "application/json",
-        },
-        body: jsonEncode(editData),
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final XFile? file = await _picker.pickImage(
+        source: source,
+        imageQuality: 85,
       );
-    } else {
-      response = await http.post(
-        Uri.parse("$apiBaseUrl/api/v1/logistik/senjata"),
-        headers: {
-          "Authorization": token.toString(),
-          "Content-Type": "application/json",
-        },
-        body: jsonEncode(data),
-      );
-    }
+      if (file == null) return;
 
-    debugPrint(response.body);
+      final bytes = await file.readAsBytes();
+      final compressed = await _compressToWebP(bytes);
 
-    if (response.statusCode == 200 || response.statusCode == 201) {
+      if (!mounted) return;
+      setState(() {
+        _imageBytes = compressed;
+      });
+    } catch (e) {
+      debugPrint("Gagal mengambil foto: $e");
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            _isEdit
-                ? "Data senjata berhasil diperbarui"
-                : "Data senjata berhasil diregistrasi",
-          ),
-          backgroundColor: Colors.green,
+        const SnackBar(
+          content: Text("Gagal mengambil foto (kamera/galeri tidak tersedia)"),
+          backgroundColor: Colors.orange,
         ),
       );
-      Navigator.pop(context, true);
+    }
+  }
+
+  /// Compress to WebP. Falls back to original bytes when the platform
+  /// does not support flutter_image_compress (e.g. Windows/Linux desktop).
+  Future<Uint8List> _compressToWebP(Uint8List bytes) async {
+    if (!mounted) return bytes;
+    setState(() {
+      _isCompressing = true;
+    });
+    try {
+      final result = await FlutterImageCompress.compressWithList(
+        bytes,
+        minWidth: 1280,
+        minHeight: 1280,
+        quality: 80,
+        format: CompressFormat.webp,
+      );
+      if (result.isNotEmpty) return result;
+    } catch (e) {
+      debugPrint("WebP compression tidak tersedia, memakai gambar asli: $e");
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isCompressing = false;
+        });
+      }
+    }
+    return bytes;
+  }
+
+  Future<void> submitData() async {
+    if (noSeri.text.trim().isEmpty ||
+        tahunPengadaan.text.trim().isEmpty ||
+        selectedPoldaId == null ||
+        selectedKatId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Lengkapi semua data bertanda *"),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    if (!_isEdit && _imageBytes == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Foto senjata wajib diisi"),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString("token") ?? "";
+
+    // BUG FIX: PHP cannot parse multipart/form-data on PUT — always send
+    // POST. ID goes in the URL path for edit mode — never in the body.
+    final Uri uri = _isEdit
+        ? Uri.parse(
+            "$apiBaseUrl/api/v1/logistik/senjata/${widget.initialData!["senjata_id"]}")
+        : Uri.parse("$apiBaseUrl/api/v1/logistik/senjata");
+
+    final request = http.MultipartRequest("POST", uri);
+    request.headers["Authorization"] = token;
+    request.fields["polda_id"] = selectedPoldaId.toString();
+    request.fields["nomor_seri"] = noSeri.text.trim();
+    request.fields["kategori_id"] = selectedKatId.toString();
+    request.fields["tahun_pengadaan"] = tahunPengadaan.text.trim();
+    request.fields["status_kelayakan"] = "Baik";
+
+    // Only attach the file when a (new) image was picked.
+    if (_imageBytes != null) {
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          "foto",
+          _imageBytes!,
+          filename: "senjata_${DateTime.now().millisecondsSinceEpoch}.webp",
+        ),
+      );
+    }
+
+    try {
+      final streamed = await request.send();
+      final response = await http.Response.fromStream(streamed);
+
+      debugPrint(response.body);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _isEdit
+                  ? "Data senjata berhasil diperbarui"
+                  : "Data senjata berhasil diregistrasi",
+            ),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.pop(context, true);
+      } else {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Gagal menyimpan data"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint(e.toString());
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Gagal menyimpan data: jaringan bermasalah"),
+          backgroundColor: Colors.orange,
+        ),
+      );
     }
   }
 
@@ -343,30 +430,49 @@ class _FormTambahSenjataState extends State<FormTambahSenjata> {
                     border: Border.all(color: Colors.grey),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child:
-                      _imageBytes != null
+                  child: _isCompressing
+                      ? const Center(child: CircularProgressIndicator())
+                      : _imageBytes != null
                           ? ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: Image.memory(
-                              _imageBytes!,
-                              fit: BoxFit.cover,
-                            ),
-                          )
-                          : const Center(
-                            child: Icon(
-                              Icons.image,
-                              size: 80,
-                              color: Colors.grey,
-                            ),
-                          ),
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.memory(
+                                _imageBytes!,
+                                fit: BoxFit.cover,
+                              ),
+                            )
+                          : _isEdit
+                              ? const Center(
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.image,
+                                        size: 80,
+                                        color: Colors.grey,
+                                      ),
+                                      SizedBox(height: 8),
+                                      Text(
+                                        "Foto lama tetap dipakai jika tidak diganti",
+                                        style: TextStyle(color: Colors.grey),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              : const Center(
+                                  child: Icon(
+                                    Icons.image,
+                                    size: 80,
+                                    color: Colors.grey,
+                                  ),
+                                ),
                 ),
 
                 const SizedBox(height: 10),
 
                 OutlinedButton.icon(
-                  onPressed: _showPicker,
+                  onPressed: _isCompressing ? null : _showImageSourceSheet,
                   icon: const Icon(Icons.photo_camera),
-                  label: const Text("Pilih Foto"),
+                  label: const Text("Kamera / Galeri"),
                 ),
               ],
             ),
