@@ -5,8 +5,8 @@ import '../pages/personel.dart';
 import '../pages/sarpras.dart';
 import '../pages/senjata.dart';
 import '../pages/satwa.dart';
-import '../pages/inventaris.dart';
 import '../pages/amunisi.dart';
+import '../pages/master_kategori_senjata.dart';
 import '../pages/user_page.dart';
 import '../pages/placeholder_page.dart';
 import '../pages/polda.dart';
@@ -63,7 +63,6 @@ Widget _rp() => const ReportPage();
 Widget _pe() => const PersonelPage();
 Widget _se() => const SenjataPage();
 Widget _sa() => const SatwaPage();
-Widget _in() => const InventarisPage();
 Widget _us() => const UserPage();
 Widget _po() => const PoldaPage();
 Widget _pr() => const PolresPage();
@@ -114,8 +113,8 @@ const role1Menu = [
         LeafMenuItem(
           label: "Master Logistik",
           icon: Icons.warehouse_rounded,
-          routeName: "inventaris",
-          pageBuilder: _in,
+          routeName: "kategori_senjata",
+          pageBuilder: _ks,
         ),
       ],
     ),
@@ -280,6 +279,7 @@ const Map<String, List<List<dynamic>>> roleMenus = {
 Widget _ot() => _ph("Bagan Organisasi (Org-Tree)", "org_tree");
 Widget _pl() => _ph("Pemantauan Proses Hukum", "process_law");
 Widget _sp() => const SarprasPage();
+Widget _ks() => const MasterKategoriSenjataPage();
 Widget _as() => const AmunisiPage();
 Widget _di() => _ph("Kotak Masuk (Inbox)", "dms_inbox");
 Widget _do() => _ph("Kotak Keluar (Outbox)", "dms_outbox");
