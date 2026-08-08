@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../widget/background.dart';
 import '../widget/app_sidebar.dart';
 import '../config/api_config.dart';
+import '../models/dashboard_model.dart';
 import '../models/polda_model.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -21,11 +22,16 @@ class _DashboardPageState extends State<DashboardPage> {
   bool isLoading = true;
   String? _roleId;
 
+  /// Real national dashboard payload from GET /api/v1/dashboard/nasional.
+  DashboardNasional? _nasionalData;
+  bool _isLoadingDashboard = true;
+
   Future<void> _init() async {
     final prefs = await SharedPreferences.getInstance();
     if (!mounted) return;
     setState(() => _roleId = prefs.getString("roleid_login"));
     await getPoldaApi();
+    await getDashboardSummary();
   }
 
   Future<void> getPoldaApi() async {
@@ -82,6 +88,53 @@ class _DashboardPageState extends State<DashboardPage> {
     }
   }
 
+  /// Fetches the national dashboard payload (ringkasan + peta nodes +
+  /// sitkamtibmas terkini) for the Command Center map.
+  Future<void> getDashboardSummary() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString("token");
+      final response = await http.get(
+        Uri.parse("$apiBaseUrl/api/v1/dashboard/nasional"),
+        headers: {"authorization": token.toString()},
+      );
+
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body);
+        if (!mounted) return;
+        setState(() {
+          _nasionalData = DashboardNasional.fromJson(json["data"]);
+          _isLoadingDashboard = false;
+        });
+      } else {
+        if (!mounted) return;
+        setState(() => _isLoadingDashboard = false);
+      }
+    } catch (e) {
+      debugPrint("getDashboardSummary error: $e");
+      if (!mounted) return;
+      setState(() => _isLoadingDashboard = false);
+    }
+  }
+
+  /// Fetches per-polda drill-down aggregates for the marker popup.
+  /// Throws on non-200 so the FutureBuilder surfaces the error state.
+  Future<DashboardDrilldown> _fetchDrilldown(int poldaId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString("token");
+    final response = await http.get(
+      Uri.parse(
+        "$apiBaseUrl/api/v1/dashboard/drilldown?polda_id=$poldaId",
+      ),
+      headers: {"authorization": token.toString()},
+    );
+    if (response.statusCode != 200) {
+      throw Exception("drilldown HTTP ${response.statusCode}");
+    }
+    final json = jsonDecode(response.body);
+    return DashboardDrilldown.fromJson(json["data"]);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -111,13 +164,14 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Widget _buildCommandCenterContent() {
-    if (isLoading) {
+    if (_isLoadingDashboard) {
       return const Center(
         child: CircularProgressIndicator(color: Colors.cyanAccent),
       );
     }
 
-    if (provinsi.isEmpty) {
+    final petaNodes = _nasionalData?.peta ?? const <PetaNode>[];
+    if (petaNodes.isEmpty) {
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -156,58 +210,18 @@ class _DashboardPageState extends State<DashboardPage> {
               ),
 
               MarkerLayer(
-                markers:
-                    provinsi.where((p) => p.hasValidCoordinates).map((p) {
+                markers: petaNodes
+                    .where((n) => n.hasValidCoordinates)
+                    .map((n) {
                       return Marker(
-                        point: p.latLng,
+                        point: n.latLng,
                         width: 50,
                         height: 50,
                         child: GestureDetector(
                           behavior: HitTestBehavior.opaque,
-                          onTap: () {
-                            showDialog(
-                              context: context,
-                              builder: (context) {
-                                return AlertDialog(
-                                  backgroundColor: const Color(0xff1E1B4B),
-                                  title: Text(
-                                    p.namaPolda,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  content: Text(
-                                    "DATA WILAYAH\n\n"
-                                    "📍 Lat: ${p.latitude}\n"
-                                    "📍 Lng: ${p.longitude}\n"
-                                    "👮 Personel : 2.450\n"
-                                    "📦 Inventaris : 1.200\n"
-                                    "🔫 Senjata : 500\n"
-                                    "🐕 Satwa : 25\n\n"
-                                    "STATUS : AKTIF",
-                                    style: const TextStyle(
-                                      color: Colors.white70,
-                                      fontSize: 15,
-                                    ),
-                                  ),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.pop(context);
-                                      },
-                                      child: const Text(
-                                        "Tutup",
-                                        style: TextStyle(color: Colors.amber),
-                                      ),
-                                    ),
-                                  ],
-                                );
-                              },
-                            );
-                          },
+                          onTap: () => _showDrilldownDialog(n),
                           child: Tooltip(
-                            message: p.namaPolda,
+                            message: n.namaPolda,
                             child: const Icon(
                               Icons.location_on,
                               color: Colors.red,
@@ -271,52 +285,59 @@ class _DashboardPageState extends State<DashboardPage> {
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: Colors.cyanAccent),
             ),
-            child: const Column(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("Total Personel", style: TextStyle(color: Colors.white70)),
+                const Text(
+                  "Total Personel",
+                  style: TextStyle(color: Colors.white70),
+                ),
 
-                SizedBox(height: 5),
+                const SizedBox(height: 5),
 
                 Text(
-                  "153,500",
-                  style: TextStyle(
+                  _formatNumber(
+                    _nasionalData?.ringkasan.totalPersonilAktif ?? 0,
+                  ),
+                  style: const TextStyle(
                     color: Colors.cyanAccent,
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
 
-                SizedBox(height: 15),
+                const SizedBox(height: 15),
 
-                Text(
+                const Text(
                   "Defense Equipment",
                   style: TextStyle(color: Colors.white70),
                 ),
 
-                SizedBox(height: 5),
+                const SizedBox(height: 5),
 
                 Text(
-                  "97%",
-                  style: TextStyle(
+                  _defenseEquipmentLabel,
+                  style: const TextStyle(
                     color: Colors.cyanAccent,
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
 
-                SizedBox(height: 15),
+                const SizedBox(height: 15),
 
-                Text(
+                const Text(
                   "Vacant Position",
                   style: TextStyle(color: Colors.white70),
                 ),
 
-                SizedBox(height: 5),
+                const SizedBox(height: 5),
 
                 Text(
-                  "218",
-                  style: TextStyle(
+                  _formatNumber(
+                    _nasionalData?.ringkasan.selisihKekurangan ?? 0,
+                  ),
+                  style: const TextStyle(
                     color: Colors.cyanAccent,
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -339,22 +360,39 @@ class _DashboardPageState extends State<DashboardPage> {
               color: Colors.black.withValues(alpha: 0.20),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: ListView(
-              children: const [
-                Text(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
                   "Sitkamtibmas Reports",
                   style: TextStyle(color: Colors.white),
                 ),
 
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
 
-                Text(
-                  "• Laporan 1\n"
-                  "• Laporan 2\n"
-                  "• Laporan 3\n"
-                  "• Laporan 4\n"
-                  "• Laporan 5",
-                  style: TextStyle(color: Colors.white70),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount:
+                        _nasionalData?.sitkamtibmasTerkini.length ?? 0,
+                    itemBuilder: (context, index) {
+                      final report =
+                          _nasionalData?.sitkamtibmasTerkini[index];
+                      if (report == null) return const SizedBox.shrink();
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 6),
+                        child: Text(
+                          "• ${report.deskripsiKejadian} "
+                          "[${report.levelKritis}]",
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 12,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 ),
               ],
             ),
@@ -371,12 +409,155 @@ class _DashboardPageState extends State<DashboardPage> {
 
               const SizedBox(width: 20),
 
-              _kpiCard("K9 Standby", "140"),
+              _kpiCard(
+                "K9 Standby",
+                _formatNumber(_nasionalData?.ringkasan.totalSatwaK9 ?? 0),
+              ),
             ],
           ),
         ),
       ],
     );
+  }
+
+  /// Drill-down popup for a map node. Fetches `/dashboard/drilldown` on open
+  /// and renders the real per-polda aggregates once the payload arrives.
+  void _showDrilldownDialog(PetaNode node) {
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          backgroundColor: const Color(0xff1E1B4B),
+          title: Text(
+            node.namaPolda,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: FutureBuilder<DashboardDrilldown>(
+            future: _fetchDrilldown(node.poldaId),
+            builder: (context, snapshot) {
+              // While the drill-down request is in flight.
+              if (snapshot.connectionState != ConnectionState.done) {
+                return const SizedBox(
+                  height: 160,
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      color: Colors.cyanAccent,
+                    ),
+                  ),
+                );
+              }
+
+              final drilldown = snapshot.data;
+              if (snapshot.hasError || drilldown == null) {
+                return const SizedBox(
+                  height: 120,
+                  child: Center(
+                    child: Text(
+                      "Gagal memuat data wilayah.\n"
+                      "Periksa koneksi atau hubungi administrator.",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.white70, fontSize: 14),
+                    ),
+                  ),
+                );
+              }
+
+              return SizedBox(
+                width: 260,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _drilldownRow(
+                      "Personel",
+                      _formatNumber(drilldown.personil.totalAktif),
+                    ),
+                    const SizedBox(height: 8),
+                    _drilldownRow(
+                      "Senjata",
+                      _formatNumber(drilldown.logistik.senjata.total),
+                    ),
+                    const SizedBox(height: 8),
+                    _drilldownRow(
+                      "Sarpras",
+                      _formatNumber(drilldown.logistik.sarpras.total),
+                    ),
+                    const SizedBox(height: 8),
+                    _drilldownRow(
+                      "Satwa K9",
+                      _formatNumber(drilldown.logistik.satwaK9.total),
+                    ),
+                    const SizedBox(height: 8),
+                    _drilldownRow(
+                      "Vakansi",
+                      _formatNumber(drilldown.vakansi.selisih),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      "📍 ${drilldown.polda.latitude}, "
+                      "${drilldown.polda.longitude}",
+                      style: const TextStyle(
+                        color: Colors.white38,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text(
+                "Tutup",
+                style: TextStyle(color: Colors.amber),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// One label/value row inside the drill-down dialog.
+  Widget _drilldownRow(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(color: Colors.white70, fontSize: 15),
+        ),
+        Text(
+          value,
+          style: const TextStyle(
+            color: Colors.cyanAccent,
+            fontSize: 15,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Formats an int with thousands separators: 153500 → "153,500".
+  String _formatNumber(int value) {
+    return value.toString().replaceAllMapped(
+      RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
+      (m) => '${m[1]},',
+    );
+  }
+
+  /// Calculated readiness percentage (layak / total senjata). Falls back to
+  /// "0%" when no weapon data is available yet.
+  String get _defenseEquipmentLabel {
+    final total = _nasionalData?.ringkasan.totalSenjata ?? 0;
+    if (total <= 0) return "0%";
+    final layak = _nasionalData?.ringkasan.totalSenjataLayak ?? 0;
+    return "${((layak / total) * 100).toStringAsFixed(0)}%";
   }
 
   Widget _buildPlaceholder() {
