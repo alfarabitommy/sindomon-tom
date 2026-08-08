@@ -31,6 +31,10 @@ class _AmunisiPageState extends State<AmunisiPage> {
   String _searchQuery = "";
   Timer? _debounce;
   final TextEditingController _searchController = TextEditingController();
+  int _currentPage = 1;
+  int _totalPages = 1;
+  int _totalItems = 0;
+  int _perPage = 10;
 
   Future<void> loadUser() async {
     final prefs = await SharedPreferences.getInstance();
@@ -46,10 +50,17 @@ class _AmunisiPageState extends State<AmunisiPage> {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString("token") ?? "";
 
-      Uri uri = Uri.parse("$apiBaseUrl/api/v1/logistik/amunisi");
+      final Map<String, String> params = {
+        "page": _currentPage.toString(),
+        "limit": _perPage.toString(),
+      };
       if (_searchQuery.isNotEmpty) {
-        uri = uri.replace(queryParameters: {"search": _searchQuery});
+        params["search"] = _searchQuery;
       }
+
+      final Uri uri = Uri.parse(
+        "$apiBaseUrl/api/v1/logistik/amunisi",
+      ).replace(queryParameters: params);
 
       final response = await http.get(
         uri,
@@ -58,17 +69,45 @@ class _AmunisiPageState extends State<AmunisiPage> {
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
-        final List<dynamic> rawData = jsonResponse["data"] ?? [];
+        final dynamic data = jsonResponse["data"];
+
+        // New backend shape: { data: { items: [...], pagination: {...} } }.
+        // Tolerates the legacy flat-list shape as a fallback.
+        final List rawList = data is Map
+            ? (data["items"] is List ? data["items"] : [])
+            : (data is List ? data : []);
+        final Map<String, dynamic> pagination = data is Map &&
+                data["pagination"] is Map
+            ? data["pagination"] as Map<String, dynamic>
+            : <String, dynamic>{};
+        final List<Map<String, dynamic>> parsedItems =
+            rawList.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+
+        if (!mounted) return;
         setState(() {
-          amunisiApi = rawData.cast<Map<String, dynamic>>();
+          amunisiApi = parsedItems;
+          _currentPage =
+              (pagination["current_page"] as num?)?.toInt() ?? _currentPage;
+          _totalPages =
+              (pagination["last_page"] as num?)?.toInt() ??
+              (pagination["total_pages"] as num?)?.toInt() ??
+              1;
+          _totalItems =
+              (pagination["total"] as num?)?.toInt() ?? parsedItems.length;
+          _perPage =
+              (pagination["per_page"] as num?)?.toInt() ??
+              (pagination["limit"] as num?)?.toInt() ??
+              _perPage;
           isLoading = false;
         });
       } else {
+        if (!mounted) return;
         setState(() {
           isLoading = false;
         });
       }
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         isLoading = false;
       });
@@ -88,8 +127,15 @@ class _AmunisiPageState extends State<AmunisiPage> {
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 400), () {
       _searchQuery = value;
+      _currentPage = 1;
       getAmunisiApi();
     });
+  }
+
+  void _onPageChanged(int page) {
+    if (page < 1 || page > _totalPages || page == _currentPage) return;
+    _currentPage = page;
+    getAmunisiApi();
   }
 
   String _formatKaliber(dynamic kategori) {
@@ -511,7 +557,13 @@ class _AmunisiPageState extends State<AmunisiPage> {
                                         ),
                                       ),
                               ),
-                              const AppPagination(),
+                              AppPagination(
+                                currentPage: _currentPage,
+                                totalPages: _totalPages,
+                                totalItems: _totalItems,
+                                perPage: _perPage,
+                                onPageChanged: _onPageChanged,
+                              ),
                             ],
                           ),
                         ),

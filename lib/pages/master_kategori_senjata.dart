@@ -41,6 +41,13 @@ class _MasterKategoriSenjataPageState extends State<MasterKategoriSenjataPage> {
   Timer? _debounce;
   final TextEditingController _searchController = TextEditingController();
 
+  /// Pagination metadata — sinkron dengan `{ items: [...], pagination: {...} }`
+  /// dari backend yang sudah direfactor.
+  int _currentPage = 1;
+  int _totalPages = 1;
+  int _totalItems = 0;
+  int _perPage = 10;
+
   Future<void> loadUser() async {
     final prefs = await SharedPreferences.getInstance();
 
@@ -56,20 +63,63 @@ class _MasterKategoriSenjataPageState extends State<MasterKategoriSenjataPage> {
       final token = prefs.getString("token") ?? "";
 
       Uri uri = Uri.parse("$apiBaseUrl/api/v1/master/kategori-senjata");
+      final Map<String, String> params = {
+        "page": _currentPage.toString(),
+        "limit": _perPage.toString(),
+      };
       if (_searchQuery.isNotEmpty) {
-        uri = uri.replace(queryParameters: {"search": _searchQuery});
+        params["search"] = _searchQuery;
       }
+      uri = uri.replace(queryParameters: params);
+
+      // Snapshot permintaan ini; respons yang sudah basi (halaman/query sudah
+      // berubah saat request berjalan) dibuang supaya tidak menimpa data
+      // terbaru — melindungi dari klik cepat antar-halaman / ketikan search.
+      final int requestedPage = _currentPage;
+      final String requestedQuery = _searchQuery;
 
       final response = await http.get(
         uri,
         headers: {"Authorization": token},
       );
 
+      // Respons basi dibuang di semua jalur (200 maupun error) supaya tidak
+      // menimpa UI dengan data/error dari permintaan yang sudah usang.
+      if (!mounted || requestedPage != _currentPage ||
+          requestedQuery != _searchQuery) {
+        return;
+      }
+
       if (response.statusCode == 200) {
         final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
-        final List<dynamic> rawData = jsonResponse["data"] ?? [];
+        final dynamic data = jsonResponse["data"];
+        // New backend shape: { data: { items: [...], pagination: {...} } }.
+        // Tolerates the legacy flat-list shape as a fallback.
+        final List<dynamic> rawList = data is Map
+            ? (data["items"] is List ? data["items"] as List : [])
+            : (data is List ? data as List : []);
+        final Map<String, dynamic> pagination = data is Map &&
+                data["pagination"] is Map
+            ? data["pagination"] as Map<String, dynamic>
+            : <String, dynamic>{};
         setState(() {
-          kategoriList = rawData.cast<Map<String, dynamic>>();
+          // Eager conversion (bukan lazy cast) supaya payload yang tidak valid
+          // tertangkap oleh try/catch di atas, bukan crash di build().
+          kategoriList = rawList
+              .map((e) => Map<String, dynamic>.from(e as Map))
+              .toList();
+          _currentPage =
+              (pagination["current_page"] as num?)?.toInt() ?? _currentPage;
+          _totalPages =
+              (pagination["last_page"] as num?)?.toInt() ??
+              (pagination["total_pages"] as num?)?.toInt() ??
+              1;
+          _totalItems =
+              (pagination["total"] as num?)?.toInt() ?? kategoriList.length;
+          _perPage =
+              (pagination["per_page"] as num?)?.toInt() ??
+              (pagination["limit"] as num?)?.toInt() ??
+              _perPage;
           errorMessage = "";
           isLoading = false;
         });
@@ -106,8 +156,16 @@ class _MasterKategoriSenjataPageState extends State<MasterKategoriSenjataPage> {
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 400), () {
       _searchQuery = value;
+      // Reset ke halaman 1 supaya hasil pencarian mulai dari awal.
+      _currentPage = 1;
       getKategoriApi();
     });
+  }
+
+  void _onPageChanged(int page) {
+    if (page < 1 || page > _totalPages || page == _currentPage) return;
+    _currentPage = page;
+    getKategoriApi();
   }
 
   // =====================================================================
@@ -710,7 +768,13 @@ class _MasterKategoriSenjataPageState extends State<MasterKategoriSenjataPage> {
                                             ),
                                           ),
                               ),
-                              const AppPagination(),
+                              AppPagination(
+                                currentPage: _currentPage,
+                                totalPages: _totalPages,
+                                totalItems: _totalItems,
+                                perPage: _perPage,
+                                onPageChanged: _onPageChanged,
+                              ),
                             ],
                           ),
                         ),

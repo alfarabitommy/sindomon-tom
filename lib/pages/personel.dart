@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../widget/background.dart';
 import '../widget/app_sidebar.dart';
@@ -26,6 +28,17 @@ class _PersonelPageState extends State<PersonelPage> {
   String unLogin = "";
   String roleLabel = "Operator";
 
+  /// ========================
+  /// SEARCH & PAGINATION STATE
+  /// ========================
+  String _searchQuery = "";
+  Timer? _debounce;
+  final TextEditingController _searchController = TextEditingController();
+  int _currentPage = 1;
+  int _totalPages = 1;
+  int _totalItems = 0;
+  int _perPage = 10;
+
   Future<void> loadUser() async {
     final prefs = await SharedPreferences.getInstance();
 
@@ -40,25 +53,67 @@ class _PersonelPageState extends State<PersonelPage> {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString("token");
 
+      Uri uri = Uri.parse("$apiBaseUrl/api/v1/sdm/personil");
+      final Map<String, String> params = {
+        "page": _currentPage.toString(),
+        "limit": _perPage.toString(),
+      };
+      if (_searchQuery.isNotEmpty) {
+        params["search"] = _searchQuery;
+      }
+      uri = uri.replace(queryParameters: params);
+
       final response = await http.get(
-        Uri.parse("$apiBaseUrl/api/v1/sdm/personil"),
+        uri,
         headers: {"Authorization": token.toString()},
       );
 
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body);
+        final data = json["data"];
+        // New backend shape: { data: { items: [...], pagination: {...} } }.
+        // Tolerates the legacy flat-list shape as a fallback.
+        final List rawList = data is Map
+            ? (data["items"] is List ? data["items"] : [])
+            : (data is List ? data : []);
+        final Map<String, dynamic> pagination = data is Map &&
+                data["pagination"] is Map
+            ? data["pagination"] as Map<String, dynamic>
+            : <String, dynamic>{};
+        final parsedItems =
+            rawList.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+
+        debugPrint(
+          "Personel fetched: ${parsedItems.length} items (page $_currentPage)",
+        );
+
+        if (!mounted) return;
         setState(() {
-          datapersonel = List<Map<String, dynamic>>.from(json["data"]);
+          datapersonel = parsedItems;
+          _currentPage =
+              (pagination["current_page"] as num?)?.toInt() ?? _currentPage;
+          _totalPages =
+              (pagination["last_page"] as num?)?.toInt() ??
+              (pagination["total_pages"] as num?)?.toInt() ??
+              1;
+          _totalItems =
+              (pagination["total"] as num?)?.toInt() ?? parsedItems.length;
+          _perPage =
+              (pagination["per_page"] as num?)?.toInt() ??
+              (pagination["limit"] as num?)?.toInt() ??
+              _perPage;
           errorMessage = "";
           isLoading = false;
         });
       } else {
+        if (!mounted) return;
         setState(() {
           errorMessage = "Gagal memuat data (HTTP ${response.statusCode})";
           isLoading = false;
         });
       }
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         errorMessage = "Terjadi kesalahan saat memuat data Personel";
         isLoading = false;
@@ -115,6 +170,30 @@ class _PersonelPageState extends State<PersonelPage> {
     super.initState();
     loadUser();
     getPersonelApi();
+  }
+
+  /// Debounced search: waits 400ms of idle typing before hitting the API,
+  /// and always resets to page 1 so results start from the beginning.
+  void _onSearchChanged(String value) {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 400), () {
+      _searchQuery = value;
+      _currentPage = 1;
+      getPersonelApi();
+    });
+  }
+
+  void _onPageChanged(int page) {
+    if (page < 1 || page > _totalPages || page == _currentPage) return;
+    _currentPage = page;
+    getPersonelApi();
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _searchController.dispose();
+    super.dispose();
   }
 
   @override
@@ -265,7 +344,11 @@ class _PersonelPageState extends State<PersonelPage> {
                         const SizedBox(height: 20),
 
                         /// SEARCH
-                        AppSearchField(hintText: "Cari Personel..."),
+                        AppSearchField(
+                          hintText: "Cari Personel...",
+                          controller: _searchController,
+                          onChanged: _onSearchChanged,
+                        ),
 
                         const SizedBox(height: 25),
 
@@ -526,7 +609,13 @@ class _PersonelPageState extends State<PersonelPage> {
                                     ),
                                   ),
                                 ),
-                                const AppPagination(),
+                                AppPagination(
+                                  currentPage: _currentPage,
+                                  totalPages: _totalPages,
+                                  totalItems: _totalItems,
+                                  perPage: _perPage,
+                                  onPageChanged: _onPageChanged,
+                                ),
                               ],
                             ),
                           ),

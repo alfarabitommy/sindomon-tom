@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../widget/background.dart';
 import '../widget/app_sidebar.dart';
@@ -25,6 +27,17 @@ class _UserPageState extends State<UserPage> {
   String unLogin = "";
   String roleLabel = "Operator";
 
+  /// ========================
+  /// SEARCH & PAGINATION STATE
+  /// ========================
+  String _searchQuery = "";
+  Timer? _debounce;
+  final TextEditingController _searchController = TextEditingController();
+  int _currentPage = 1;
+  int _totalPages = 1;
+  int _totalItems = 0;
+  int _perPage = 10;
+
   Future<void> loadUser() async {
     final prefs = await SharedPreferences.getInstance();
 
@@ -38,16 +51,51 @@ class _UserPageState extends State<UserPage> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString("token");
+
+      Uri uri = Uri.parse("$apiBaseUrl/api/v1/user");
+      final Map<String, String> params = {
+        "page": _currentPage.toString(),
+        "limit": _perPage.toString(),
+      };
+      if (_searchQuery.isNotEmpty) {
+        params["search"] = _searchQuery;
+      }
+      uri = uri.replace(queryParameters: params);
+
       final response = await http.get(
-        Uri.parse("$apiBaseUrl/api/v1/user"),
+        uri,
         headers: {"Authorization": token.toString()},
       );
 
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body);
+        final data = json["data"];
+        // New backend shape: { data: { items: [...], pagination: {...} } }.
+        // Tolerates the legacy flat-list shape as a fallback.
+        final List rawList = data is Map
+            ? (data["items"] is List ? data["items"] as List : [])
+            : (data is List ? data as List : []);
+        final Map<String, dynamic> pagination = data is Map &&
+                data["pagination"] is Map
+            ? data["pagination"] as Map<String, dynamic>
+            : <String, dynamic>{};
+        final List<Map<String, dynamic>> parsed =
+            rawList.map((e) => Map<String, dynamic>.from(e as Map)).toList();
 
         setState(() {
-          users = List<Map<String, dynamic>>.from(json["data"]);
+          users = parsed;
+          _currentPage =
+              (pagination["current_page"] as num?)?.toInt() ?? _currentPage;
+          _totalPages =
+              (pagination["last_page"] as num?)?.toInt() ??
+              (pagination["total_pages"] as num?)?.toInt() ??
+              1;
+          _totalItems =
+              (pagination["total"] as num?)?.toInt() ?? parsed.length;
+          _perPage =
+              (pagination["per_page"] as num?)?.toInt() ??
+              (pagination["limit"] as num?)?.toInt() ??
+              _perPage;
           isLoading = false;
         });
       } else {
@@ -115,6 +163,30 @@ class _UserPageState extends State<UserPage> {
     super.initState();
     loadUser();
     getUsers();
+  }
+
+  /// Debounced search: waits 400ms of idle typing before hitting the API,
+  /// and always resets to page 1 so results start from the beginning.
+  void _onSearchChanged(String value) {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 400), () {
+      _searchQuery = value;
+      _currentPage = 1;
+      getUsers();
+    });
+  }
+
+  void _onPageChanged(int page) {
+    if (page < 1 || page > _totalPages || page == _currentPage) return;
+    _currentPage = page;
+    getUsers();
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _searchController.dispose();
+    super.dispose();
   }
 
   @override
@@ -192,7 +264,11 @@ class _UserPageState extends State<UserPage> {
                       const SizedBox(height: 20),
 
                       /// SEARCH
-                      AppSearchField(hintText: "Cari Pengguna..."),
+                      AppSearchField(
+                        hintText: "Cari Pengguna...",
+                        controller: _searchController,
+                        onChanged: _onSearchChanged,
+                      ),
 
                       const SizedBox(height: 25),
 
@@ -272,17 +348,26 @@ class _UserPageState extends State<UserPage> {
                                                             ),
                                                             DataCell(
                                                               Text(
-                                                                "${e["roles_id"]}",
+                                                                AppSidebar.roleLabelFromId(
+                                                                  e["roles_id"]
+                                                                      ?.toString(),
+                                                                ),
                                                               ),
                                                             ),
                                                             DataCell(
                                                               Text(
-                                                                "${e["polda"] ?? ' - '}",
+                                                                e["nama_polda"]
+                                                                        ?.toString() ??
+                                                                    ' - ',
                                                               ),
                                                             ),
                                                             DataCell(
                                                               Text(
-                                                                "${e["status"] ?? ' - '}",
+                                                                e["is_active"]
+                                                                            ?.toString() ==
+                                                                        "1"
+                                                                    ? "Aktif"
+                                                                    : "Tidak Aktif",
                                                               ),
                                                             ),
                                                             DataCell(
@@ -381,7 +466,13 @@ class _UserPageState extends State<UserPage> {
                                   ),
                                 ),
                               ),
-                              const AppPagination(),
+                              AppPagination(
+                                currentPage: _currentPage,
+                                totalPages: _totalPages,
+                                totalItems: _totalItems,
+                                perPage: _perPage,
+                                onPageChanged: _onPageChanged,
+                              ),
                             ],
                           ),
                         ),
