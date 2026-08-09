@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../pages/dashboard.dart';
-import '../pages/report.dart';
 import '../pages/personel.dart';
 import '../pages/sarpras.dart';
 import '../pages/senjata.dart';
@@ -50,16 +49,9 @@ const commonTopItems = [
     routeName: "dashboard",
     pageBuilder: _db,
   ),
-  LeafMenuItem(
-    label: "Laporan",
-    icon: Icons.description_rounded,
-    routeName: "report",
-    pageBuilder: _rp,
-  ),
 ];
 
 Widget _db() => const DashboardPage();
-Widget _rp() => const ReportPage();
 Widget _pe() => const PersonelPage();
 Widget _se() => const SenjataPage();
 Widget _sa() => const SatwaPage();

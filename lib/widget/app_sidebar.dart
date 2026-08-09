@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/menu_config.dart';
-import '../pages/login_page.dart';
-import '../pages/pangaturan.dart';
 
 class AppSidebar extends StatefulWidget {
   final String currentRoute;
@@ -41,22 +39,6 @@ class _AppSidebarState extends State<AppSidebar> {
       _roleId = prefs.getString("roleid_login");
       _loaded = true;
     });
-  }
-
-  Future<void> _logout() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove("token");
-    await prefs.remove("username_login");
-    await prefs.remove("polda_login");
-    await prefs.remove("roleid_login");
-    await prefs.remove("uuid_login");
-    await prefs.remove("expired_login");
-    if (!mounted) return;
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (_) => const LoginPage()),
-      (route) => false,
-    );
   }
 
   void _navigateTo(Widget page) {
@@ -127,16 +109,6 @@ class _AppSidebarState extends State<AppSidebar> {
                   )
                 : const Center(child: CircularProgressIndicator(color: Colors.amber)),
           ),
-          const Divider(color: Colors.white24, indent: 20, endIndent: 20),
-          _buildLeafItem(
-            LeafMenuItem(
-              label: "Pengaturan",
-              icon: Icons.settings_rounded,
-              routeName: "pengaturan",
-              pageBuilder: _stubSettings,
-            ),
-          ),
-          _buildLogoutItem(),
           const SizedBox(height: 20),
         ],
       ),
@@ -241,22 +213,4 @@ class _AppSidebarState extends State<AppSidebar> {
       visualDensity: VisualDensity.compact,
     );
   }
-
-  Widget _buildLogoutItem() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
-      child: ListTile(
-        leading: const Icon(Icons.logout_rounded, color: Colors.white70),
-        title: const Text(
-          "Logout",
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
-        ),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        hoverColor: Colors.white10,
-        onTap: _logout,
-      ),
-    );
-  }
 }
-
-Widget _stubSettings() => const AccountSettingPage();

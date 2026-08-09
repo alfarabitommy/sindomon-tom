@@ -1,3 +1,63 @@
+# Settings Page Final Polish
+
+**File:** `lib/pages/pangaturan.dart`  
+**Status:** ✅ LAYOUT + DATA SURGERY COMPLETE  
+**Lines:** 299 (was 256)
+
+---
+
+## What Changed
+
+### 1. Imports (3 added)
+```dart
+import 'package:http/http.dart' as http;      // HTTP client for fetchProfile()
+import 'dart:convert';                        // jsonDecode() for response parsing
+import '../config/api_config.dart';            // apiBaseUrl constant
+```
+
+### 2. Data Fetching (`fetchProfile()`)
+- New method `Future<void> fetchProfile()` → `GET $apiBaseUrl/api/v1/profile` with `Authorization: <jwt_token>` header
+- Parses `data.nama_polda` and updates the `polda` state variable via `setState()`
+- Graceful fallback: keeps the SharedPreferences raw-ID value if the API fails
+- Called in `initState()` right after `loadUser()`
+
+### 3. Layout Refactor (Three-Zone Pattern)
+Replaced the single `Expanded → SingleChildScrollView → Column` chain with:
+
+```
+Expanded
+  └─ Padding(30.0)
+       └─ Column
+            ├─ AppHeader                          ← TOP ZONE (fixed)
+            ├─ Title Row ("Profil & Pengaturan" + "Kembali")
+            ├─ Expanded                           ← MIDDLE ZONE (fills remaining space)
+            │    └─ SingleChildScrollView
+            │         └─ Wrap(info cards) + _bindingCard()
+            ├─ SizedBox(20)
+            └─ AppFooter                          ← BOTTOM ZONE (fixed, sibling of Expanded)
+```
+
+- `AppFooter` is now pinned to the bottom of the viewport
+- Only the middle content scrolls
+- Title restyled per spec: `fontSize: 22`, `color: Color(0xFF23251D)`, button `Color(0xFF23251D)` bg, `borderRadius: 20`, `icon size: 16`
+
+---
+
+## Verification
+
+| Check | Result |
+|-------|--------|
+| Bracket balance (strings/comments stripped) | ✅ BALANCED |
+| `fetchProfile` present | ✅ |
+| `http.get` / `jsonDecode` / `apiBaseUrl` / `nama_polda` present | ✅ |
+| `AppHeader` / `AppFooter` / `SingleChildScrollView` / `Expanded` present | ✅ |
+| `flutter analyze` | ⚠️ Not runnable (no Flutter SDK in this environment) |
+
+---
+
+## Final Code — `lib/pages/pangaturan.dart` (complete)
+
+```dart
 import 'package:flutter/material.dart';
 import '../widget/background.dart';
 import '../widget/app_sidebar.dart';
@@ -297,3 +357,12 @@ class _AccountSettingPageState extends State<AccountSettingPage> {
     );
   }
 }
+```
+
+---
+
+## Post-Surgery Notes
+
+1. **`fetchProfile()` is non-blocking** — the page renders instantly from SharedPreferences, then updates the Polda card when the API responds.
+2. **Graceful degradation** — if `/api/v1/profile` doesn't exist yet on the backend (404) or fails, `polda` keeps the raw ID from `polda_login`; the UI already guards with `polda.isEmpty ? "-" : polda`.
+3. **Recommended verification** on a Flutter-capable machine: `flutter analyze` then run the app, log in, open **Pengaturan** from the profile dropdown, and confirm: (a) header at top / footer at bottom, (b) Polda card shows the full name (e.g. "Polda Jawa Barat").

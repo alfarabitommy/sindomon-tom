@@ -1,14 +1,20 @@
 import 'package:flutter/material.dart';
+import 'dart:ui';
 import '../widget/background.dart';
 import '../widget/app_sidebar.dart';
 import '../config/api_config.dart';
 import '../models/dashboard_model.dart';
 import '../models/polda_model.dart';
+import '../pages/pangaturan.dart';
+import '../utils/session_util.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+
+/// Actions available from the executive floating profile avatar.
+enum _ExecAction { pengaturan, logout }
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -273,9 +279,73 @@ class _DashboardPageState extends State<DashboardPage> {
           ),
         ),
 
-        /// KPI Kanan Atas
+        /// Floating Profile Avatar (Executive)
         Positioned(
           top: 20,
+          right: 20,
+          child: PopupMenuButton<_ExecAction>(
+            offset: const Offset(0, 52),
+            tooltip: 'Menu Profil',
+            color: const Color(0xff1E1B4B),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+            onSelected: (action) {
+              switch (action) {
+                case _ExecAction.pengaturan:
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const AccountSettingPage(),
+                    ),
+                  );
+                  break;
+                case _ExecAction.logout:
+                  clearSessionAndLogout(context);
+                  break;
+              }
+            },
+            itemBuilder: (context) => const [
+              PopupMenuItem(
+                value: _ExecAction.pengaturan,
+                child: _ExecMenuItem(
+                  icon: Icons.settings_rounded,
+                  label: 'Pengaturan',
+                ),
+              ),
+              PopupMenuDivider(),
+              PopupMenuItem(
+                value: _ExecAction.logout,
+                child: _ExecMenuItem(
+                  icon: Icons.logout_rounded,
+                  label: 'Logout',
+                ),
+              ),
+            ],
+            child: ClipOval(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                child: Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.35),
+                    border: Border.all(color: Colors.cyanAccent, width: 1.5),
+                  ),
+                  child: const Icon(
+                    Icons.person_rounded,
+                    color: Colors.white,
+                    size: 26,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+
+        /// KPI Kanan Atas
+        Positioned(
+          top: 80,
           right: 20,
           child: Container(
             width: 240,
@@ -624,6 +694,28 @@ class _DashboardPageState extends State<DashboardPage> {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Dropdown row for the executive floating avatar menu (dark themed).
+class _ExecMenuItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const _ExecMenuItem({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, size: 20, color: Colors.amber),
+        const SizedBox(width: 12),
+        Text(
+          label,
+          style: const TextStyle(color: Colors.white, fontSize: 14),
+        ),
+      ],
     );
   }
 }
