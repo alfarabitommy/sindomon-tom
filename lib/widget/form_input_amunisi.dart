@@ -238,16 +238,17 @@ class _FormTambahAmunisiState extends State<FormTambahAmunisi> {
     getKategori();
   }
 
-  static const InputDecoration _inputDecoration = InputDecoration(
+  static InputDecoration _inputDecoration(ColorScheme scheme) =>
+      InputDecoration(
     filled: true,
-    fillColor: Color(0xFFF9FAFB),
+    fillColor: scheme.surfaceContainerHighest,
     border: OutlineInputBorder(
       borderRadius: BorderRadius.all(Radius.circular(8)),
-      borderSide: BorderSide(color: Color(0xFFE5E7EB)),
+      borderSide: BorderSide(color: scheme.outlineVariant),
     ),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.all(Radius.circular(8)),
-      borderSide: BorderSide(color: Color(0xFFE5E7EB), width: 1),
+      borderSide: BorderSide(color: scheme.outlineVariant, width: 1),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.all(Radius.circular(8)),
@@ -266,10 +267,12 @@ class _FormTambahAmunisiState extends State<FormTambahAmunisi> {
   );
 
   Widget formField({required String label, required Widget child}) {
+    final scheme = Theme.of(context).colorScheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Color(0xFF374151))),
+        Text(label, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: scheme.onSurface)),
         const SizedBox(height: 8),
         child,
       ],
@@ -282,23 +285,25 @@ class _FormTambahAmunisiState extends State<FormTambahAmunisi> {
     required DateTime? value,
     required VoidCallback onTap,
   }) {
+    final scheme = Theme.of(context).colorScheme;
+
     return formField(
       label: label,
       child: InkWell(
         onTap: onTap,
         child: InputDecorator(
-          decoration: _inputDecoration.copyWith(
+          decoration: _inputDecoration(scheme).copyWith(
             hintText: hint,
-            suffixIcon: const Icon(
+            suffixIcon: Icon(
               Icons.calendar_today,
               size: 18,
-              color: Color(0xFF6B7280),
+              color: scheme.onSurfaceVariant,
             ),
           ),
           child: Text(
             value == null ? hint : _fmt(value),
             style: TextStyle(
-              color: value == null ? Colors.grey.shade400 : Colors.black87,
+              color: value == null ? scheme.onSurfaceVariant : scheme.onSurface,
               fontSize: 14,
             ),
           ),
@@ -309,13 +314,15 @@ class _FormTambahAmunisiState extends State<FormTambahAmunisi> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             _isEdit ? "EDIT DATA AMUNISI" : "TAMBAH DATA AMUNISI",
-            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF111827)),
+            style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: scheme.onSurface),
           ),
 
           const SizedBox(height: 25),
@@ -332,7 +339,7 @@ class _FormTambahAmunisiState extends State<FormTambahAmunisi> {
                       child: DropdownButtonFormField<int>(
                         key: _poldaFieldKey,
                         value: daftarPolda.isEmpty ? null : selectedPoldaId,
-                        decoration: _inputDecoration.copyWith(hintText: "Pilih Polda"),
+                        decoration: _inputDecoration(scheme).copyWith(hintText: "Pilih Polda"),
                         items:
                             daftarPolda.map((polda) {
                               return DropdownMenuItem<int>(
@@ -350,7 +357,7 @@ class _FormTambahAmunisiState extends State<FormTambahAmunisi> {
                       label: "Kode Batch *",
                       child: TextFormField(
                         controller: kodeBatch,
-                        decoration: _inputDecoration.copyWith(hintText: "Contoh: PROD-001/2026"),
+                        decoration: _inputDecoration(scheme).copyWith(hintText: "Contoh: PROD-001/2026"),
                       ),
                     ),
 
@@ -361,7 +368,7 @@ class _FormTambahAmunisiState extends State<FormTambahAmunisi> {
                       child: TextFormField(
                         controller: jumlahButir,
                         keyboardType: TextInputType.number,
-                        decoration: _inputDecoration.copyWith(hintText: "Masukkan Jumlah"),
+                        decoration: _inputDecoration(scheme).copyWith(hintText: "Masukkan Jumlah"),
                       ),
                     ),
                   ],
@@ -378,7 +385,7 @@ class _FormTambahAmunisiState extends State<FormTambahAmunisi> {
                       label: "Kategori Senjata *",
                       child: DropdownButtonFormField<int>(
                         value: daftarKategori.isEmpty ? null : selectedKatId,
-                        decoration: _inputDecoration.copyWith(hintText: "Pilih Kategori"),
+                        decoration: _inputDecoration(scheme).copyWith(hintText: "Pilih Kategori"),
                         items:
                             daftarKategori.map((cat) {
                               return DropdownMenuItem<int>(
@@ -428,13 +435,13 @@ class _FormTambahAmunisiState extends State<FormTambahAmunisi> {
                 shape: const StadiumBorder(),
               ),
               onPressed: submitData,
-              child: Text(_isEdit ? "Update Data" : "Simpan Data", style: const TextStyle(fontSize: 18)),
+              child: Text(_isEdit ? "Update Data" : "Simpan Data", style: TextStyle(fontSize: 18)),
             ),
           ),
           const SizedBox(height: 20),
-          const Text(
+          Text(
             "Lengkapi semua data bertanda *",
-            style: TextStyle(color: Colors.grey),
+            style: TextStyle(color: scheme.onSurfaceVariant),
           ),
         ],
       ),

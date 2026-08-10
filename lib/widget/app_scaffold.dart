@@ -4,6 +4,7 @@ import 'background.dart';
 import 'app_sidebar.dart';
 import 'app_header.dart';
 import 'app_footer.dart';
+import '../theme/theme_scope.dart';
 import '../utils/session_util.dart';
 
 /// Shared authenticated-page scaffold: full-bleed background, push-content
@@ -17,7 +18,6 @@ import '../utils/session_util.dart';
 class AppScaffold extends StatefulWidget {
   final String currentRoute;
   final Widget child;
-  final String imagePath;
 
   /// Breadcrumb shown in the [AppHeader], e.g. "Dashboard / Personel".
   final String? breadcrumb;
@@ -31,7 +31,6 @@ class AppScaffold extends StatefulWidget {
     super.key,
     required this.currentRoute,
     required this.child,
-    this.imagePath = 'assets/images/wp-putih-mabes.png',
     this.breadcrumb,
     this.showHeaderFooter = true,
   });
@@ -65,12 +64,14 @@ class _AppScaffoldState extends State<AppScaffold> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: AppBackground(
-        imagePath: widget.imagePath,
         child: SafeArea(
           child: Row(
             children: [
               // ── Left: collapsible push sidebar ──
-              AppSidebar(currentRoute: widget.currentRoute),
+              AppSidebar(
+                currentRoute: widget.currentRoute,
+                themeController: ThemeScope.of(context),
+              ),
 
               // ── Right: content fills the remaining space ──
               Expanded(

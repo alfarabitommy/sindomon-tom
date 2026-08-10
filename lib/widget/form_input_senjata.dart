@@ -103,7 +103,7 @@ class _FormTambahSenjataState extends State<FormTambahSenjata> {
             children: [
               ListTile(
                 leading: const Icon(Icons.photo_camera),
-                title: const Text("Kamera"),
+                title: Text("Kamera"),
                 onTap: () async {
                   Navigator.pop(context);
                   await _pickImage(ImageSource.camera);
@@ -111,7 +111,7 @@ class _FormTambahSenjataState extends State<FormTambahSenjata> {
               ),
               ListTile(
                 leading: const Icon(Icons.photo_library),
-                title: const Text("Galeri"),
+                title: Text("Galeri"),
                 onTap: () async {
                   Navigator.pop(context);
                   await _pickImage(ImageSource.gallery);
@@ -294,16 +294,17 @@ class _FormTambahSenjataState extends State<FormTambahSenjata> {
     getKategori();
   }
 
-  static const InputDecoration _inputDecoration = InputDecoration(
+  static InputDecoration _inputDecoration(ColorScheme scheme) =>
+      InputDecoration(
     filled: true,
-    fillColor: Color(0xFFF9FAFB),
+    fillColor: scheme.surfaceContainerHighest,
     border: OutlineInputBorder(
       borderRadius: BorderRadius.all(Radius.circular(8)),
-      borderSide: BorderSide(color: Color(0xFFE5E7EB)),
+      borderSide: BorderSide(color: scheme.outlineVariant),
     ),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.all(Radius.circular(8)),
-      borderSide: BorderSide(color: Color(0xFFE5E7EB), width: 1),
+      borderSide: BorderSide(color: scheme.outlineVariant, width: 1),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.all(Radius.circular(8)),
@@ -322,10 +323,12 @@ class _FormTambahSenjataState extends State<FormTambahSenjata> {
   );
 
   Widget formField({required String label, required Widget child}) {
+    final scheme = Theme.of(context).colorScheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Color(0xFF374151))),
+        Text(label, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: scheme.onSurface)),
         const SizedBox(height: 8),
         child,
       ],
@@ -334,13 +337,15 @@ class _FormTambahSenjataState extends State<FormTambahSenjata> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             _isEdit ? "EDIT DATA SENJATA" : "TAMBAH DATA SENJATA",
-            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF111827)),
+            style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: scheme.onSurface),
           ),
 
           const SizedBox(height: 25),
@@ -357,7 +362,7 @@ class _FormTambahSenjataState extends State<FormTambahSenjata> {
                       child: DropdownButtonFormField<int>(
                         key: _poldaFieldKey,
                         value: daftarPolda.isEmpty ? null : selectedPoldaId,
-                        decoration: _inputDecoration.copyWith(hintText: "Pilih Polda"),
+                        decoration: _inputDecoration(scheme).copyWith(hintText: "Pilih Polda"),
                         items:
                             daftarPolda.map((polda) {
                               return DropdownMenuItem<int>(
@@ -375,7 +380,7 @@ class _FormTambahSenjataState extends State<FormTambahSenjata> {
                       label: "No Seri *",
                       child: TextFormField(
                         controller: noSeri,
-                        decoration: _inputDecoration.copyWith(hintText: "Masukkan No Seri"),
+                        decoration: _inputDecoration(scheme).copyWith(hintText: "Masukkan No Seri"),
                       ),
                     ),
                   ],
@@ -392,7 +397,7 @@ class _FormTambahSenjataState extends State<FormTambahSenjata> {
                       label: "Kategori Senjata *",
                       child: DropdownButtonFormField<int>(
                         value: daftarKategori.isEmpty ? null : selectedKatId,
-                        decoration: _inputDecoration.copyWith(hintText: "Pilih Kategori"),
+                        decoration: _inputDecoration(scheme).copyWith(hintText: "Pilih Kategori"),
                         items:
                             daftarKategori.map((cat) {
                               return DropdownMenuItem<int>(
@@ -415,7 +420,7 @@ class _FormTambahSenjataState extends State<FormTambahSenjata> {
                       child: TextFormField(
                         controller: tahunPengadaan,
                         keyboardType: TextInputType.number,
-                        decoration: _inputDecoration.copyWith(hintText: "2024"),
+                        decoration: _inputDecoration(scheme).copyWith(hintText: "2024"),
                       ),
                     ),
                   ],
@@ -434,11 +439,11 @@ class _FormTambahSenjataState extends State<FormTambahSenjata> {
                   width: double.infinity,
                   height: 180,
                   decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey),
+                    border: Border.all(color: scheme.outlineVariant),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: _isCompressing
-                      ? const Center(child: HudLoadingSpinner(size: 30))
+                      ? Center(child: HudLoadingSpinner(size: 30))
                       : _imageBytes != null
                           ? ClipRRect(
                               borderRadius: BorderRadius.circular(8),
@@ -448,28 +453,28 @@ class _FormTambahSenjataState extends State<FormTambahSenjata> {
                               ),
                             )
                           : _isEdit
-                              ? const Center(
+                              ? Center(
                                   child: Column(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       Icon(
                                         Icons.image,
                                         size: 80,
-                                        color: Colors.grey,
+                                        color: scheme.onSurfaceVariant,
                                       ),
                                       SizedBox(height: 8),
                                       Text(
                                         "Foto lama tetap dipakai jika tidak diganti",
-                                        style: TextStyle(color: Colors.grey),
+                                        style: TextStyle(color: scheme.onSurfaceVariant),
                                       ),
                                     ],
                                   ),
                                 )
-                              : const Center(
+                              : Center(
                                   child: Icon(
                                     Icons.image,
                                     size: 80,
-                                    color: Colors.grey,
+                                    color: scheme.onSurfaceVariant,
                                   ),
                                 ),
                 ),
@@ -479,7 +484,7 @@ class _FormTambahSenjataState extends State<FormTambahSenjata> {
                 OutlinedButton.icon(
                   onPressed: _isCompressing ? null : _showImageSourceSheet,
                   icon: const Icon(Icons.photo_camera),
-                  label: const Text("Kamera / Galeri"),
+                  label: Text("Kamera / Galeri"),
                 ),
               ],
             ),
@@ -496,13 +501,13 @@ class _FormTambahSenjataState extends State<FormTambahSenjata> {
                 shape: const StadiumBorder(),
               ),
               onPressed: submitData,
-              child: Text(_isEdit ? "Update Data" : "Simpan Data", style: const TextStyle(fontSize: 18)),
+              child: Text(_isEdit ? "Update Data" : "Simpan Data", style: TextStyle(fontSize: 18)),
             ),
           ),
           const SizedBox(height: 20),
-          const Text(
+          Text(
             "Lengkapi semua data bertanda *",
-            style: TextStyle(color: Colors.grey),
+            style: TextStyle(color: scheme.onSurfaceVariant),
           ),
         ],
       ),

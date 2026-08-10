@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../config/api_config.dart';
 import '../widget/app_scaffold.dart';
+import '../widget/glass_surface.dart';
 import '../utils/session_util.dart';
 
 class AccountSettingPage extends StatefulWidget {
@@ -68,20 +69,12 @@ class _AccountSettingPageState extends State<AccountSettingPage> {
     required String label,
     required String value,
   }) {
-    return Container(
+    final scheme = Theme.of(context).colorScheme;
+
+    return GlassSurface(
       width: 280,
+      borderRadius: BorderRadius.circular(15),
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -98,7 +91,10 @@ class _AccountSettingPageState extends State<AccountSettingPage> {
               const SizedBox(width: 10),
               Text(
                 label,
-                style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                style: TextStyle(
+                  fontSize: 13,
+                  color: scheme.onSurfaceVariant,
+                ),
               ),
             ],
           ),
@@ -107,10 +103,10 @@ class _AccountSettingPageState extends State<AccountSettingPage> {
             value,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Colors.black87,
+              color: scheme.onSurface,
             ),
           ),
         ],
@@ -120,20 +116,12 @@ class _AccountSettingPageState extends State<AccountSettingPage> {
 
   /// Full-width device binding status card (placeholder state).
   Widget _bindingCard() {
-    return Container(
+    final scheme = Theme.of(context).colorScheme;
+
+    return GlassSurface(
       width: double.infinity,
+      borderRadius: BorderRadius.circular(15),
       padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
       child: Row(
         children: [
           Container(
@@ -149,7 +137,7 @@ class _AccountSettingPageState extends State<AccountSettingPage> {
             ),
           ),
           const SizedBox(width: 16),
-          const Column(
+          Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
@@ -157,10 +145,10 @@ class _AccountSettingPageState extends State<AccountSettingPage> {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: Colors.black87,
+                  color: scheme.onSurface,
                 ),
               ),
-              SizedBox(height: 4),
+              const SizedBox(height: 4),
               Text(
                 "Perangkat Terverifikasi",
                 style: TextStyle(fontSize: 13, color: Colors.green),
@@ -174,6 +162,8 @@ class _AccountSettingPageState extends State<AccountSettingPage> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
     return AppScaffold(
       currentRoute: 'pengaturan',
       breadcrumb: 'Dashboard / Profil Saya',
@@ -189,12 +179,12 @@ class _AccountSettingPageState extends State<AccountSettingPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 "Profil & Pengaturan",
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF23251D),
+                  color: scheme.onSurface,
                 ),
               ),
 

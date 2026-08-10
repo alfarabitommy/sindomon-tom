@@ -11,6 +11,7 @@ import '../widget/app_pagination.dart';
 import '../widget/app_search_field.dart';
 import '../widget/action_buttons.dart';
 import '../widget/app_scaffold.dart';
+import '../widget/glass_surface.dart';
 import '../widget/hud_loading_spinner.dart';
 import '../utils/hud_loading.dart';
 
@@ -255,6 +256,9 @@ class _SarprasPageState extends State<SarprasPage> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return AppScaffold(
   currentRoute: "sarpras",
   breadcrumb: "Dashboard / Logistik / Sarpras & Altmatsus",
@@ -266,12 +270,12 @@ class _SarprasPageState extends State<SarprasPage> {
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text(
+          Text(
             "Manajemen Sarpras & Altmatsus",
             style: TextStyle(
               fontSize: 34,
               fontWeight: FontWeight.bold,
-              color: Colors.black,
+              color: scheme.onSurface,
             ),
           ),
 
@@ -316,18 +320,8 @@ class _SarprasPageState extends State<SarprasPage> {
       const SizedBox(height: 25),
 
       Expanded(
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
+        child: GlassSurface(
+          borderRadius: BorderRadius.circular(12),
           child: Column(
             children: [
               Expanded(
@@ -352,38 +346,30 @@ class _SarprasPageState extends State<SarprasPage> {
                                       ),
                                   child: DataTable(
                                     headingRowColor:
-                                        WidgetStateProperty
-                                            .all(
-                                              Colors.grey
-                                                  .shade50,
-                                            ),
-                                    headingTextStyle:
-                                        const TextStyle(
-                                          fontSize: 12,
-                                          fontWeight:
-                                              FontWeight.w700,
-                                          color: Color(
-                                            0xFF6B7280,
-                                          ),
+                                        WidgetStateProperty.all(
+                                          isDark
+                                              ? scheme
+                                                  .surfaceContainerHighest
+                                              : const Color(
+                                                  0xFFF9FAFB,
+                                                ),
                                         ),
-                                    dataTextStyle:
-                                        const TextStyle(
-                                          fontSize: 14,
-                                          fontWeight:
-                                              FontWeight.w400,
-                                          color: Color(
-                                            0xFF374151,
-                                          ),
-                                        ),
+                                    headingTextStyle: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                      color: scheme.onSurfaceVariant,
+                                    ),
+                                    dataTextStyle: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w400,
+                                      color: scheme.onSurface,
+                                    ),
                                     dividerThickness: 0.5,
-                                    border: const TableBorder(
-                                      horizontalInside:
-                                          BorderSide(
-                                            color: Color(
-                                              0xFFE5E7EB,
-                                            ),
-                                            width: 0.5,
-                                          ),
+                                    border: TableBorder(
+                                      horizontalInside: BorderSide(
+                                        color: scheme.outlineVariant,
+                                        width: 0.5,
+                                      ),
                                     ),
                                     dataRowMinHeight: 60,
                                     dataRowMaxHeight: 70,

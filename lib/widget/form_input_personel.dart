@@ -330,16 +330,17 @@ class _FormTambahPersonelState extends State<FormTambahPersonel> {
     super.dispose();
   }
 
-  static const InputDecoration _inputDecoration = InputDecoration(
+  static InputDecoration _inputDecoration(ColorScheme scheme) =>
+      InputDecoration(
     filled: true,
-    fillColor: Color(0xFFF9FAFB),
+    fillColor: scheme.surfaceContainerHighest,
     border: OutlineInputBorder(
       borderRadius: BorderRadius.all(Radius.circular(8)),
-      borderSide: BorderSide(color: Color(0xFFE5E7EB)),
+      borderSide: BorderSide(color: scheme.outlineVariant),
     ),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.all(Radius.circular(8)),
-      borderSide: BorderSide(color: Color(0xFFE5E7EB), width: 1),
+      borderSide: BorderSide(color: scheme.outlineVariant, width: 1),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.all(Radius.circular(8)),
@@ -358,10 +359,12 @@ class _FormTambahPersonelState extends State<FormTambahPersonel> {
   );
 
   Widget formField({required String label, required Widget child}) {
+    final scheme = Theme.of(context).colorScheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Color(0xFF374151))),
+        Text(label, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: scheme.onSurface)),
         const SizedBox(height: 8),
         child,
       ],
@@ -370,6 +373,8 @@ class _FormTambahPersonelState extends State<FormTambahPersonel> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final bool twoColumn = constraints.maxWidth > 700;
@@ -382,7 +387,7 @@ class _FormTambahPersonelState extends State<FormTambahPersonel> {
           children: [
             Text(
               isEditMode ? "EDIT PERSONEL" : "TAMBAH PERSONEL BARU",
-              style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF111827)),
+              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: scheme.onSurface),
             ),
 
             const SizedBox(height: 25),
@@ -397,7 +402,7 @@ class _FormTambahPersonelState extends State<FormTambahPersonel> {
                     label: "NRP *",
                     child: TextFormField(
                       controller: nrp,
-                      decoration: _inputDecoration,
+                      decoration: _inputDecoration(scheme),
                     ),
                   ),
                 ),
@@ -408,7 +413,7 @@ class _FormTambahPersonelState extends State<FormTambahPersonel> {
                     label: "Nama Lengkap *",
                     child: TextFormField(
                       controller: namaLengkap,
-                      decoration: _inputDecoration,
+                      decoration: _inputDecoration(scheme),
                     ),
                   ),
                 ),
@@ -445,17 +450,17 @@ class _FormTambahPersonelState extends State<FormTambahPersonel> {
                                   });
                                 },
                           decoration: _poldaLocked
-                              ? _inputDecoration.copyWith(
+                              ? _inputDecoration(scheme).copyWith(
                                   helperText:
                                       "Disesuaikan dengan Polda Anda",
-                                  helperStyle: const TextStyle(
+                                  helperStyle: TextStyle(
                                     color: Color(0xFF1D4ED8),
                                     fontSize: 12,
                                     fontWeight: FontWeight.w500,
                                   ),
                                 )
-                              : _inputDecoration,
-                          hint: const Text("Pilih Polda"),
+                              : _inputDecoration(scheme),
+                          hint: Text("Pilih Polda"),
                           items: daftarPolda.map((polda) {
                             return DropdownMenuItem<int>(
                               value:
@@ -495,8 +500,8 @@ class _FormTambahPersonelState extends State<FormTambahPersonel> {
                     label: "Polres",
                     child: DropdownButtonFormField<int>(
                       value: selectedPolresId,
-                      decoration: _inputDecoration,
-                      hint: const Text("Pilih Polres"),
+                      decoration: _inputDecoration(scheme),
+                      hint: Text("Pilih Polres"),
                       items: [
                         // Sentinel always present — selectedPolresId resets
                         // to _polresNone (0) on Polda change, so the value
@@ -529,8 +534,8 @@ class _FormTambahPersonelState extends State<FormTambahPersonel> {
                     label: "Pangkat *",
                     child: DropdownButtonFormField<int>(
                       value: selectedPangkatId,
-                      decoration: _inputDecoration,
-                      hint: const Text("Pilih Pangkat"),
+                      decoration: _inputDecoration(scheme),
+                      hint: Text("Pilih Pangkat"),
                       items:
                           daftarPangkat.map((pkt) {
                             return DropdownMenuItem<int>(
@@ -553,8 +558,8 @@ class _FormTambahPersonelState extends State<FormTambahPersonel> {
                     label: "Jabatan *",
                     child: DropdownButtonFormField<int>(
                       value: selectedJabatanId,
-                      decoration: _inputDecoration,
-                      hint: const Text("Pilih Jabatan"),
+                      decoration: _inputDecoration(scheme),
+                      hint: Text("Pilih Jabatan"),
                       items:
                           daftarJabatan.map((jbt) {
                             return DropdownMenuItem<int>(
@@ -587,16 +592,16 @@ class _FormTambahPersonelState extends State<FormTambahPersonel> {
                 ),
                 child: Text(
                   isEditMode ? "Update Personel" : "Simpan Data",
-                  style: const TextStyle(fontSize: 18),
+                  style: TextStyle(fontSize: 18),
                 ),
               ),
             ),
 
             const SizedBox(height: 20),
 
-            const Text(
+            Text(
               "Lengkapi semua data bertanda *",
-              style: TextStyle(color: Colors.grey),
+              style: TextStyle(color: scheme.onSurfaceVariant),
             ),
           ],
         );

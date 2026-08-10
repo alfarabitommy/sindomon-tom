@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widget/form_input_personel.dart';
 import '../widget/app_scaffold.dart';
+import '../widget/glass_surface.dart';
 
 class AddPersonelPage extends StatefulWidget {
   final String? personilId; // null = create, non-null = edit
@@ -16,6 +17,8 @@ class _AddPersonelPageState extends State<AddPersonelPage> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
     return AppScaffold(
   currentRoute: "personel",
   breadcrumb: widget.personilId != null ? "Dashboard / Edit Personel" : "Dashboard / Tambah Personel",
@@ -30,12 +33,12 @@ class _AddPersonelPageState extends State<AddPersonelPage> {
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text(
+          Text(
             "Pengaturan Personel",
             style: TextStyle(
               fontSize: 34,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF111827),
+              color: scheme.onSurface,
             ),
           ),
 
@@ -68,19 +71,12 @@ class _AddPersonelPageState extends State<AddPersonelPage> {
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 600),
-              child: Card(
-                elevation: 0,
-                color: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  side: BorderSide(color: Colors.grey.shade200, width: 1.5),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(25),
-                  child: FormTambahPersonel(
-                    personilId: widget.personilId,
-                    personilData: widget.personilData,
-                  ),
+              child: GlassSurface(
+                borderRadius: BorderRadius.circular(16),
+                padding: const EdgeInsets.all(25),
+                child: FormTambahPersonel(
+                  personilId: widget.personilId,
+                  personilData: widget.personilData,
                 ),
               ),
             ),

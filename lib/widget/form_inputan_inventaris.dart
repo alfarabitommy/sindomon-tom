@@ -27,7 +27,7 @@ class _FormTambahInventarisState extends State<FormTambahInventaris> {
             children: [
               ListTile(
                 leading: const Icon(Icons.photo_library),
-                title: const Text("Galeri"),
+                title: Text("Galeri"),
                 onTap: () async {
                   Navigator.pop(context);
 
@@ -51,16 +51,17 @@ class _FormTambahInventarisState extends State<FormTambahInventaris> {
     );
   }
 
-  static const InputDecoration _inputDecoration = InputDecoration(
+  static InputDecoration _inputDecoration(ColorScheme scheme) =>
+      InputDecoration(
     filled: true,
-    fillColor: Color(0xFFF9FAFB),
+    fillColor: scheme.surfaceContainerHighest,
     border: OutlineInputBorder(
       borderRadius: BorderRadius.all(Radius.circular(8)),
-      borderSide: BorderSide(color: Color(0xFFE5E7EB)),
+      borderSide: BorderSide(color: scheme.outlineVariant),
     ),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.all(Radius.circular(8)),
-      borderSide: BorderSide(color: Color(0xFFE5E7EB), width: 1),
+      borderSide: BorderSide(color: scheme.outlineVariant, width: 1),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.all(Radius.circular(8)),
@@ -80,44 +81,46 @@ class _FormTambahInventarisState extends State<FormTambahInventaris> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             "TAMBAH DATA INVENTARIS",
-            style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF111827)),
+            style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: scheme.onSurface),
           ),
 
           const SizedBox(height: 25),
 
           /// No Seri
-          const Text(
+          Text(
             "Nama Asset *",
-            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Color(0xFF374151)),
+            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: scheme.onSurface),
           ),
 
           const SizedBox(height: 8),
 
           TextFormField(
             controller: namaassets,
-            decoration: _inputDecoration.copyWith(hintText: "Masukkan Nama Assets"),
+            decoration: _inputDecoration(scheme).copyWith(hintText: "Masukkan Nama Assets"),
           ),
 
           const SizedBox(height: 20),
 
           /// Kategori
-          const Text(
+          Text(
             "Kategori Assets *",
-            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Color(0xFF374151)),
+            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: scheme.onSurface),
           ),
  
           const SizedBox(height: 8),
 
           DropdownButtonFormField<String>(
             value: kategori,
-            decoration: _inputDecoration,
-            hint: const Text("Pilih Pangkat"),
+            decoration: _inputDecoration(scheme),
+            hint: Text("Pilih Pangkat"),
             items: const [
               DropdownMenuItem(value: "rantis", child: Text("Rantis")),
               DropdownMenuItem(value: "water_canon", child: Text("Water Canon")),
@@ -132,9 +135,9 @@ class _FormTambahInventarisState extends State<FormTambahInventaris> {
           const SizedBox(height: 20),
 
           /// Tahun Pengadaan
-          const Text(
+          Text(
             "Kondisi *",
-            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Color(0xFF374151)),
+            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: scheme.onSurface),
           ),
 
           const SizedBox(height: 8),
@@ -142,15 +145,15 @@ class _FormTambahInventarisState extends State<FormTambahInventaris> {
           TextFormField(
             controller: kondisi,
             keyboardType: TextInputType.text,
-            decoration: _inputDecoration.copyWith(hintText: "Contoh : baik"),
+            decoration: _inputDecoration(scheme).copyWith(hintText: "Contoh : baik"),
           ),
 
           const SizedBox(height: 20),
 
           /// Upload Foto
-          const Text(
+          Text(
             "Foto Satwa *",
-            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Color(0xFF374151)),
+            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: scheme.onSurface),
           ),
 
           const SizedBox(height: 10),
@@ -159,7 +162,7 @@ class _FormTambahInventarisState extends State<FormTambahInventaris> {
             width: double.infinity,
             height: 180,
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey),
+              border: Border.all(color: scheme.outlineVariant),
               borderRadius: BorderRadius.circular(8),
             ),
             child:
@@ -173,8 +176,8 @@ class _FormTambahInventarisState extends State<FormTambahInventaris> {
                         height: 180,
                       ),
                     )
-                    : const Center(
-                      child: Icon(Icons.image, size: 80, color: Colors.grey),
+                    : Center(
+                      child: Icon(Icons.image, size: 80, color: scheme.onSurfaceVariant),
                     ),
           ),
 
@@ -185,7 +188,7 @@ class _FormTambahInventarisState extends State<FormTambahInventaris> {
               _showPicker();
             },
             icon: const Icon(Icons.photo_camera),
-            label: const Text("Pilih Foto"),
+            label: Text("Pilih Foto"),
           ),
 
           const SizedBox(height: 30),
@@ -201,15 +204,15 @@ class _FormTambahInventarisState extends State<FormTambahInventaris> {
                 shape: const StadiumBorder(),
               ),
               onPressed: () {},
-              child: const Text("Submit", style: TextStyle(fontSize: 18)),
+              child: Text("Submit", style: TextStyle(fontSize: 18)),
             ),
           ),
 
           const SizedBox(height: 20),
 
-          const Text(
+          Text(
             "* Semua data wajib diisi",
-            style: TextStyle(color: Colors.grey),
+            style: TextStyle(color: scheme.onSurfaceVariant),
           ),
         ],
       ),

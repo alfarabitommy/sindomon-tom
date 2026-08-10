@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widget/form_inputan_satwa.dart';
 import '../widget/app_scaffold.dart';
+import '../widget/glass_surface.dart';
 
 class AddSatwaPage extends StatefulWidget {
   final Map<String, dynamic>? initialData;
@@ -15,6 +16,8 @@ class _AddSatwaPageState extends State<AddSatwaPage> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
     return AppScaffold(
   currentRoute: "satwa",
   breadcrumb: widget.initialData != null ? "Dashboard / Edit Satwa K9 & Turangga" : "Dashboard / Tambah Satwa K9 & Turangga",
@@ -29,12 +32,12 @@ class _AddSatwaPageState extends State<AddSatwaPage> {
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text(
+          Text(
             "Pengaturan Satwa",
             style: TextStyle(
               fontSize: 34,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF111827),
+              color: scheme.onSurface,
             ),
           ),
 
@@ -68,21 +71,11 @@ class _AddSatwaPageState extends State<AddSatwaPage> {
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 600),
-              child: Card(
-                elevation: 0,
-                color: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  side: BorderSide(
-                    color: Colors.grey.shade200,
-                    width: 1.5,
-                  ),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(25),
-                  child: FormInputanSatwa(
-                    initialData: widget.initialData,
-                  ),
+              child: GlassSurface(
+                borderRadius: BorderRadius.circular(16),
+                padding: const EdgeInsets.all(25),
+                child: FormInputanSatwa(
+                  initialData: widget.initialData,
                 ),
               ),
             ),

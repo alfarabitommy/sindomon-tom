@@ -10,6 +10,7 @@ import '../widget/app_pagination.dart';
 import '../widget/app_search_field.dart';
 import '../widget/action_buttons.dart';
 import '../widget/app_scaffold.dart';
+import '../widget/glass_surface.dart';
 import '../widget/hud_loading_spinner.dart';
 import '../utils/hud_loading.dart';
 
@@ -196,6 +197,7 @@ class _MasterKategoriSenjataPageState extends State<MasterKategoriSenjataPage> {
   // MODAL FORM (Tambah / Edit)
   // =====================================================================
   Future<void> _showKategoriForm({Map<String, dynamic>? existing}) async {
+    final scheme = Theme.of(context).colorScheme;
     final bool isEdit = existing != null;
 
     // Pre-fill saat edit; fallback aman bila API mengembalikan nilai lain.
@@ -227,19 +229,19 @@ class _MasterKategoriSenjataPageState extends State<MasterKategoriSenjataPage> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   "Tipe Laras *",
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 14,
-                    color: Color(0xFF374151),
+                    color: scheme.onSurface,
                   ),
                 ),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<String>(
                   value: selectedTipe,
                   isExpanded: true,
-                  decoration: _dialogInputDecoration.copyWith(
+                  decoration: _dialogInputDecoration(scheme).copyWith(
                     hintText: "Pilih Tipe Laras",
                   ),
                   items: _tipeLarasOptions
@@ -257,18 +259,18 @@ class _MasterKategoriSenjataPageState extends State<MasterKategoriSenjataPage> {
                   },
                 ),
                 const SizedBox(height: 20),
-                const Text(
+                Text(
                   "Kaliber *",
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 14,
-                    color: Color(0xFF374151),
+                    color: scheme.onSurface,
                   ),
                 ),
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: kaliberController,
-                  decoration: _dialogInputDecoration.copyWith(
+                  decoration: _dialogInputDecoration(scheme).copyWith(
                     hintText: "Contoh: 9mm",
                   ),
                 ),
@@ -279,7 +281,7 @@ class _MasterKategoriSenjataPageState extends State<MasterKategoriSenjataPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text("Batal"),
+            child: Text("Batal"),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -302,7 +304,7 @@ class _MasterKategoriSenjataPageState extends State<MasterKategoriSenjataPage> {
                 "kaliber": kaliber,
               });
             },
-            child: const Text("Simpan"),
+            child: Text("Simpan"),
           ),
         ],
       ),
@@ -318,16 +320,17 @@ class _MasterKategoriSenjataPageState extends State<MasterKategoriSenjataPage> {
     }
   }
 
-  static const InputDecoration _dialogInputDecoration = InputDecoration(
+  static InputDecoration _dialogInputDecoration(ColorScheme scheme) =>
+      InputDecoration(
     filled: true,
-    fillColor: Color(0xFFF9FAFB),
+    fillColor: scheme.surfaceContainerHighest,
     border: OutlineInputBorder(
       borderRadius: BorderRadius.all(Radius.circular(8)),
-      borderSide: BorderSide(color: Color(0xFFE5E7EB)),
+      borderSide: BorderSide(color: scheme.outlineVariant),
     ),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.all(Radius.circular(8)),
-      borderSide: BorderSide(color: Color(0xFFE5E7EB), width: 1),
+      borderSide: BorderSide(color: scheme.outlineVariant, width: 1),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.all(Radius.circular(8)),
@@ -481,6 +484,9 @@ class _MasterKategoriSenjataPageState extends State<MasterKategoriSenjataPage> {
   // =====================================================================
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return AppScaffold(
   currentRoute: "kategori_senjata",
   breadcrumb: "Dashboard / Master Data / Kategori Senjata",
@@ -493,19 +499,19 @@ class _MasterKategoriSenjataPageState extends State<MasterKategoriSenjataPage> {
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text(
+          Text(
             "Master Kategori Senjata & Kaliber",
             style: TextStyle(
               fontSize: 34,
               fontWeight: FontWeight.bold,
-              color: Colors.black,
+              color: scheme.onSurface,
             ),
           ),
 
           ElevatedButton.icon(
             onPressed: () => _showKategoriForm(),
             icon: const Icon(Icons.add),
-            label: const Text("Tambah Kategori"),
+            label: Text("Tambah Kategori"),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.amber,
               foregroundColor: Colors.black,
@@ -535,18 +541,8 @@ class _MasterKategoriSenjataPageState extends State<MasterKategoriSenjataPage> {
 
       /// TABLE DATA
       Expanded(
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
+        child: GlassSurface(
+          borderRadius: BorderRadius.circular(12),
           child: Column(
             children: [
               Expanded(
@@ -573,42 +569,31 @@ class _MasterKategoriSenjataPageState extends State<MasterKategoriSenjataPage> {
                                           ),
                                       child: DataTable(
                                         headingRowColor:
-                                            WidgetStateProperty
-                                                .all(
-                                                  Colors.grey
-                                                      .shade50,
-                                                ),
-                                        headingTextStyle:
-                                            const TextStyle(
-                                              fontSize: 12,
-                                              fontWeight:
-                                                  FontWeight
-                                                      .w700,
-                                              color: Color(
-                                                0xFF6B7280,
-                                              ),
-                                            ),
-                                        dataTextStyle:
-                                            const TextStyle(
-                                              fontSize: 14,
-                                              fontWeight:
-                                                  FontWeight
-                                                      .w400,
-                                              color: Color(
-                                                0xFF374151,
-                                              ),
-                                            ),
-                                        dividerThickness: 0.5,
-                                        border:
-                                            const TableBorder(
-                                              horizontalInside:
-                                                  BorderSide(
-                                                    color: Color(
-                                                      0xFFE5E7EB,
+                                            WidgetStateProperty.all(
+                                              isDark
+                                                  ? scheme
+                                                      .surfaceContainerHighest
+                                                  : const Color(
+                                                      0xFFF9FAFB,
                                                     ),
-                                                    width: 0.5,
-                                                  ),
                                             ),
+                                        headingTextStyle: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w700,
+                                          color: scheme.onSurfaceVariant,
+                                        ),
+                                        dataTextStyle: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w400,
+                                          color: scheme.onSurface,
+                                        ),
+                                        dividerThickness: 0.5,
+                                        border: TableBorder(
+                                          horizontalInside: BorderSide(
+                                            color: scheme.outlineVariant,
+                                            width: 0.5,
+                                          ),
+                                        ),
                                         dataRowMinHeight: 60,
                                         dataRowMaxHeight: 70,
                                         columns: const [
@@ -686,7 +671,7 @@ class _MasterKategoriSenjataPageState extends State<MasterKategoriSenjataPage> {
                                                               ) =>
                                                                   AlertDialog(
                                                             title:
-                                                                const Text(
+                                                                Text(
                                                                   "Hapus Kategori",
                                                                 ),
                                                             content:
@@ -703,7 +688,7 @@ class _MasterKategoriSenjataPageState extends State<MasterKategoriSenjataPage> {
                                                                               false,
                                                                             ),
                                                                     child:
-                                                                        const Text(
+                                                                        Text(
                                                                           "Batal",
                                                                         ),
                                                                   ),
@@ -721,7 +706,7 @@ class _MasterKategoriSenjataPageState extends State<MasterKategoriSenjataPage> {
                                                                               true,
                                                                             ),
                                                                     child:
-                                                                        const Text(
+                                                                        Text(
                                                                           "Hapus",
                                                                         ),
                                                                   ),
@@ -769,6 +754,8 @@ class _MasterKategoriSenjataPageState extends State<MasterKategoriSenjataPage> {
   }
 
   Widget _buildErrorState() {
+    final scheme = Theme.of(context).colorScheme;
+
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -780,7 +767,7 @@ class _MasterKategoriSenjataPageState extends State<MasterKategoriSenjataPage> {
             child: Text(
               errorMessage,
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 15, color: Colors.black87),
+              style: TextStyle(fontSize: 15, color: scheme.onSurface),
             ),
           ),
           const SizedBox(height: 16),
@@ -793,7 +780,7 @@ class _MasterKategoriSenjataPageState extends State<MasterKategoriSenjataPage> {
               getKategoriApi();
             },
             icon: const Icon(Icons.refresh),
-            label: const Text("Coba Lagi"),
+            label: Text("Coba Lagi"),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.amber,
               foregroundColor: Colors.black,

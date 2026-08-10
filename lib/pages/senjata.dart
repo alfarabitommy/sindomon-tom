@@ -11,6 +11,7 @@ import '../widget/app_search_field.dart';
 import '../widget/action_buttons.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../widget/app_scaffold.dart';
+import '../widget/glass_surface.dart';
 import '../widget/hud_loading_spinner.dart';
 import '../utils/hud_loading.dart';
 
@@ -243,6 +244,9 @@ class _SenjataPageState extends State<SenjataPage> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return AppScaffold(
   currentRoute: "senjata",
   breadcrumb: "Dashboard / Inventaris / Senjata Api",
@@ -257,12 +261,12 @@ class _SenjataPageState extends State<SenjataPage> {
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text(
+          Text(
             "Manajemen Senjata Api",
             style: TextStyle(
               fontSize: 34,
               fontWeight: FontWeight.bold,
-              color: Colors.black,
+              color: scheme.onSurface,
             ),
           ),
 
@@ -309,18 +313,8 @@ class _SenjataPageState extends State<SenjataPage> {
 
       /// TABLE DATA
       Expanded(
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
+        child: GlassSurface(
+          borderRadius: BorderRadius.circular(12),
           child: Column(
             children: [
               Expanded(
@@ -338,24 +332,25 @@ class _SenjataPageState extends State<SenjataPage> {
                               minWidth: constraints.maxWidth,
                             ),
                             child: DataTable(
-                              headingRowColor:
-                                  WidgetStateProperty.all(
-                                    Colors.grey.shade50,
-                                  ),
-                              headingTextStyle: const TextStyle(
+                              headingRowColor: WidgetStateProperty.all(
+                                isDark
+                                    ? scheme.surfaceContainerHighest
+                                    : const Color(0xFFF9FAFB),
+                              ),
+                              headingTextStyle: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w700,
-                                color: Color(0xFF6B7280),
+                                color: scheme.onSurfaceVariant,
                               ),
-                              dataTextStyle: const TextStyle(
+                              dataTextStyle: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w400,
-                                color: Color(0xFF374151),
+                                color: scheme.onSurface,
                               ),
                               dividerThickness: 0.5,
-                              border: const TableBorder(
+                              border: TableBorder(
                                 horizontalInside: BorderSide(
-                                  color: Color(0xFFE5E7EB),
+                                  color: scheme.outlineVariant,
                                   width: 0.5,
                                 ),
                               ),

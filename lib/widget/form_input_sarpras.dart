@@ -64,7 +64,7 @@ class _FormTambahSarprasState extends State<FormTambahSarpras> {
             children: [
               ListTile(
                 leading: const Icon(Icons.photo_camera),
-                title: const Text("Kamera"),
+                title: Text("Kamera"),
                 onTap: () async {
                   Navigator.pop(context);
                   await _pickImage(ImageSource.camera);
@@ -72,7 +72,7 @@ class _FormTambahSarprasState extends State<FormTambahSarpras> {
               ),
               ListTile(
                 leading: const Icon(Icons.photo_library),
-                title: const Text("Galeri"),
+                title: Text("Galeri"),
                 onTap: () async {
                   Navigator.pop(context);
                   await _pickImage(ImageSource.gallery);
@@ -306,16 +306,17 @@ class _FormTambahSarprasState extends State<FormTambahSarpras> {
   // ---------------------------------------------------------------------
   // UI
   // ---------------------------------------------------------------------
-  static const InputDecoration _inputDecoration = InputDecoration(
+  static InputDecoration _inputDecoration(ColorScheme scheme) =>
+      InputDecoration(
     filled: true,
-    fillColor: Color(0xFFF9FAFB),
+    fillColor: scheme.surfaceContainerHighest,
     border: OutlineInputBorder(
       borderRadius: BorderRadius.all(Radius.circular(8)),
-      borderSide: BorderSide(color: Color(0xFFE5E7EB)),
+      borderSide: BorderSide(color: scheme.outlineVariant),
     ),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.all(Radius.circular(8)),
-      borderSide: BorderSide(color: Color(0xFFE5E7EB), width: 1),
+      borderSide: BorderSide(color: scheme.outlineVariant, width: 1),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.all(Radius.circular(8)),
@@ -334,15 +335,17 @@ class _FormTambahSarprasState extends State<FormTambahSarpras> {
   );
 
   Widget formField({required String label, required Widget child}) {
+    final scheme = Theme.of(context).colorScheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontWeight: FontWeight.w600,
             fontSize: 14,
-            color: Color(0xFF374151),
+            color: scheme.onSurface,
           ),
         ),
         const SizedBox(height: 8),
@@ -353,16 +356,18 @@ class _FormTambahSarprasState extends State<FormTambahSarpras> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             _isEdit ? "EDIT DATA SARPRAS" : "TAMBAH DATA SARPRAS",
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF111827),
+              color: scheme.onSurface,
             ),
           ),
 
@@ -379,7 +384,7 @@ class _FormTambahSarprasState extends State<FormTambahSarpras> {
                       label: "Kode Barang *",
                       child: TextFormField(
                         controller: kodeBarang,
-                        decoration: _inputDecoration.copyWith(
+                        decoration: _inputDecoration(scheme).copyWith(
                           hintText: "Contoh: SPR-001",
                         ),
                       ),
@@ -393,7 +398,7 @@ class _FormTambahSarprasState extends State<FormTambahSarpras> {
                         value: _kategoriItems.contains(selectedKategori)
                             ? selectedKategori
                             : null,
-                        decoration: _inputDecoration.copyWith(
+                        decoration: _inputDecoration(scheme).copyWith(
                           hintText: "Pilih Kategori",
                         ),
                         items: _kategoriItems
@@ -419,7 +424,7 @@ class _FormTambahSarprasState extends State<FormTambahSarpras> {
                       child: InkWell(
                         onTap: _pickTahunPengadaan,
                         child: InputDecorator(
-                          decoration: _inputDecoration.copyWith(
+                          decoration: _inputDecoration(scheme).copyWith(
                             hintText: "Pilih Tahun Pengadaan",
                             suffixIcon: const Icon(
                               Icons.calendar_today,
@@ -433,8 +438,8 @@ class _FormTambahSarprasState extends State<FormTambahSarpras> {
                                 : _tahunPengadaan!.year.toString(),
                             style: TextStyle(
                               color: _tahunPengadaan == null
-                                  ? Colors.grey.shade400
-                                  : Colors.black87,
+                                  ? scheme.onSurfaceVariant
+                                  : scheme.onSurface,
                               fontSize: 14,
                             ),
                           ),
@@ -455,7 +460,7 @@ class _FormTambahSarprasState extends State<FormTambahSarpras> {
                       label: "Nama Barang *",
                       child: TextFormField(
                         controller: namaBarang,
-                        decoration: _inputDecoration.copyWith(
+                        decoration: _inputDecoration(scheme).copyWith(
                           hintText: "Masukkan Nama Barang",
                         ),
                       ),
@@ -469,7 +474,7 @@ class _FormTambahSarprasState extends State<FormTambahSarpras> {
                         value: _kondisiItems.contains(selectedKondisi)
                             ? selectedKondisi
                             : null,
-                        decoration: _inputDecoration.copyWith(
+                        decoration: _inputDecoration(scheme).copyWith(
                           hintText: "Pilih Kondisi",
                         ),
                         items: _kondisiItems
@@ -503,11 +508,11 @@ class _FormTambahSarprasState extends State<FormTambahSarpras> {
                   width: double.infinity,
                   height: 180,
                   decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey),
+                    border: Border.all(color: scheme.outlineVariant),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: _isCompressing
-                      ? const Center(child: HudLoadingSpinner(size: 30))
+                      ? Center(child: HudLoadingSpinner(size: 30))
                       : _imageBytes != null
                           ? ClipRRect(
                               borderRadius: BorderRadius.circular(8),
@@ -517,28 +522,28 @@ class _FormTambahSarprasState extends State<FormTambahSarpras> {
                               ),
                             )
                           : (_isEdit
-                              ? const Center(
+                              ? Center(
                                   child: Column(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       Icon(
                                         Icons.image,
                                         size: 80,
-                                        color: Colors.grey,
+                                        color: scheme.onSurfaceVariant,
                                       ),
                                       SizedBox(height: 8),
                                       Text(
                                         "Foto lama tetap dipakai jika tidak diganti",
-                                        style: TextStyle(color: Colors.grey),
+                                        style: TextStyle(color: scheme.onSurfaceVariant),
                                       ),
                                     ],
                                   ),
                                 )
-                              : const Center(
+                              : Center(
                                   child: Icon(
                                     Icons.image,
                                     size: 80,
-                                    color: Colors.grey,
+                                    color: scheme.onSurfaceVariant,
                                   ),
                                 )),
                 ),
@@ -551,7 +556,7 @@ class _FormTambahSarprasState extends State<FormTambahSarpras> {
                     OutlinedButton.icon(
                       onPressed: _isCompressing ? null : _showImageSourceSheet,
                       icon: const Icon(Icons.photo_camera),
-                      label: const Text("Kamera / Galeri"),
+                      label: Text("Kamera / Galeri"),
                     ),
                   ],
                 ),
@@ -572,14 +577,14 @@ class _FormTambahSarprasState extends State<FormTambahSarpras> {
               onPressed: submitData,
               child: Text(
                 _isEdit ? "Update Data" : "Simpan Data",
-                style: const TextStyle(fontSize: 18),
+                style: TextStyle(fontSize: 18),
               ),
             ),
           ),
           const SizedBox(height: 20),
-          const Text(
+          Text(
             "Lengkapi semua data bertanda *",
-            style: TextStyle(color: Colors.grey),
+            style: TextStyle(color: scheme.onSurfaceVariant),
           ),
         ],
       ),

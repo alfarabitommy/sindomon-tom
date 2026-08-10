@@ -63,7 +63,7 @@ class _FormInputanSatwaState extends State<FormInputanSatwa> {
             children: [
               ListTile(
                 leading: const Icon(Icons.photo_camera),
-                title: const Text("Kamera"),
+                title: Text("Kamera"),
                 onTap: () async {
                   Navigator.pop(context);
                   await _pickImage(ImageSource.camera);
@@ -71,7 +71,7 @@ class _FormInputanSatwaState extends State<FormInputanSatwa> {
               ),
               ListTile(
                 leading: const Icon(Icons.photo_library),
-                title: const Text("Galeri"),
+                title: Text("Galeri"),
                 onTap: () async {
                   Navigator.pop(context);
                   await _pickImage(ImageSource.gallery);
@@ -164,6 +164,8 @@ class _FormInputanSatwaState extends State<FormInputanSatwa> {
   /// Builds the edit-mode photo preview using the same fallback key chain
   /// as the list page (foto_url → foto_satwa → foto).
   Widget _buildPhotoPreview() {
+    final scheme = Theme.of(context).colorScheme;
+
     final rawFoto =
         widget.initialData!["foto_url"] ??
         widget.initialData!["foto_satwa"] ??
@@ -171,15 +173,15 @@ class _FormInputanSatwaState extends State<FormInputanSatwa> {
     final url = _resolveImageUrl(rawFoto);
 
     if (url.isEmpty) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.image, size: 80, color: Colors.grey),
+            Icon(Icons.image, size: 80, color: scheme.onSurfaceVariant),
             SizedBox(height: 8),
             Text(
               "Foto lama tetap dipakai jika tidak diganti",
-              style: TextStyle(color: Colors.grey),
+              style: TextStyle(color: scheme.onSurfaceVariant),
             ),
           ],
         ),
@@ -193,16 +195,16 @@ class _FormInputanSatwaState extends State<FormInputanSatwa> {
         fit: BoxFit.cover,
         width: double.infinity,
         placeholder: (context, url) => Container(
-          color: Colors.grey.shade100,
-          child: const Center(
+          color: scheme.surfaceContainerHighest,
+          child: Center(
             child: CircularProgressIndicator(strokeWidth: 2),
           ),
         ),
-        errorWidget: (context, url, error) => const Center(
+        errorWidget: (context, url, error) => Center(
           child: Icon(
             Icons.image_not_supported_outlined,
             size: 60,
-            color: Colors.grey,
+            color: scheme.onSurfaceVariant,
           ),
         ),
       ),
@@ -388,16 +390,17 @@ class _FormInputanSatwaState extends State<FormInputanSatwa> {
   // ---------------------------------------------------------------------
   // UI
   // ---------------------------------------------------------------------
-  static const InputDecoration _inputDecoration = InputDecoration(
+  static InputDecoration _inputDecoration(ColorScheme scheme) =>
+      InputDecoration(
     filled: true,
-    fillColor: Color(0xFFF9FAFB),
+    fillColor: scheme.surfaceContainerHighest,
     border: OutlineInputBorder(
       borderRadius: BorderRadius.all(Radius.circular(8)),
-      borderSide: BorderSide(color: Color(0xFFE5E7EB)),
+      borderSide: BorderSide(color: scheme.outlineVariant),
     ),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.all(Radius.circular(8)),
-      borderSide: BorderSide(color: Color(0xFFE5E7EB), width: 1),
+      borderSide: BorderSide(color: scheme.outlineVariant, width: 1),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.all(Radius.circular(8)),
@@ -416,15 +419,17 @@ class _FormInputanSatwaState extends State<FormInputanSatwa> {
   );
 
   Widget formField({required String label, required Widget child}) {
+    final scheme = Theme.of(context).colorScheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontWeight: FontWeight.w600,
             fontSize: 14,
-            color: Color(0xFF374151),
+            color: scheme.onSurface,
           ),
         ),
         const SizedBox(height: 8),
@@ -435,16 +440,18 @@ class _FormInputanSatwaState extends State<FormInputanSatwa> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             _isEdit ? "EDIT DATA SATWA" : "TAMBAH DATA SATWA",
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF111827),
+              color: scheme.onSurface,
             ),
           ),
 
@@ -461,7 +468,7 @@ class _FormInputanSatwaState extends State<FormInputanSatwa> {
                       label: "Nomor Registrasi *",
                       child: TextFormField(
                         controller: nomorRegistrasi,
-                        decoration: _inputDecoration.copyWith(
+                        decoration: _inputDecoration(scheme).copyWith(
                           hintText: "Masukkan Nomor Registrasi",
                         ),
                       ),
@@ -475,7 +482,7 @@ class _FormInputanSatwaState extends State<FormInputanSatwa> {
                         value: _jenisItems.contains(selectedJenisSatwa)
                             ? selectedJenisSatwa
                             : null,
-                        decoration: _inputDecoration.copyWith(
+                        decoration: _inputDecoration(scheme).copyWith(
                           hintText: "Pilih Jenis Satwa",
                         ),
                         items: _jenisItems
@@ -500,7 +507,7 @@ class _FormInputanSatwaState extends State<FormInputanSatwa> {
                       label: "Nama Satwa *",
                       child: TextFormField(
                         controller: namaSatwa,
-                        decoration: _inputDecoration.copyWith(
+                        decoration: _inputDecoration(scheme).copyWith(
                           hintText: "Contoh : Rex",
                         ),
                       ),
@@ -521,7 +528,7 @@ class _FormInputanSatwaState extends State<FormInputanSatwa> {
                         controller: namaHandler,
                         // BUG FIX: text input — nama handler is a NAME, not a number.
                         keyboardType: TextInputType.text,
-                        decoration: _inputDecoration.copyWith(
+                        decoration: _inputDecoration(scheme).copyWith(
                           hintText: "Contoh : Bripka Sanut",
                         ),
                       ),
@@ -535,7 +542,7 @@ class _FormInputanSatwaState extends State<FormInputanSatwa> {
                         value: _kualifikasiItems.contains(selectedKualifikasi)
                             ? selectedKualifikasi
                             : null,
-                        decoration: _inputDecoration.copyWith(
+                        decoration: _inputDecoration(scheme).copyWith(
                           hintText: "Pilih Kualifikasi",
                         ),
                         items: _kualifikasiItems
@@ -561,7 +568,7 @@ class _FormInputanSatwaState extends State<FormInputanSatwa> {
                       child: InkWell(
                         onTap: _pickJadwalVaksin,
                         child: InputDecorator(
-                          decoration: _inputDecoration.copyWith(
+                          decoration: _inputDecoration(scheme).copyWith(
                             hintText: "Pilih Jadwal Vaksin",
                             suffixIcon: const Icon(
                               Icons.calendar_today,
@@ -575,8 +582,8 @@ class _FormInputanSatwaState extends State<FormInputanSatwa> {
                                 : _formatDate(_jadwalVaksin!),
                             style: TextStyle(
                               color: _jadwalVaksin == null
-                                  ? Colors.grey.shade400
-                                  : Colors.black87,
+                                  ? scheme.onSurfaceVariant
+                                  : scheme.onSurface,
                               fontSize: 14,
                             ),
                           ),
@@ -599,11 +606,11 @@ class _FormInputanSatwaState extends State<FormInputanSatwa> {
                   width: double.infinity,
                   height: 180,
                   decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey),
+                    border: Border.all(color: scheme.outlineVariant),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: _isCompressing
-                      ? const Center(child: HudLoadingSpinner(size: 30))
+                      ? Center(child: HudLoadingSpinner(size: 30))
                       : _imageBytes != null
                           ? ClipRRect(
                               borderRadius: BorderRadius.circular(8),
@@ -614,11 +621,11 @@ class _FormInputanSatwaState extends State<FormInputanSatwa> {
                             )
                           : _isEdit
                               ? _buildPhotoPreview()
-                              : const Center(
+                              : Center(
                                   child: Icon(
                                     Icons.image,
                                     size: 80,
-                                    color: Colors.grey,
+                                    color: scheme.onSurfaceVariant,
                                   ),
                                 ),
                 ),
@@ -632,7 +639,7 @@ class _FormInputanSatwaState extends State<FormInputanSatwa> {
                       onPressed:
                           _isCompressing ? null : _showImageSourceSheet,
                       icon: const Icon(Icons.photo_camera),
-                      label: const Text("Kamera / Galeri"),
+                      label: Text("Kamera / Galeri"),
                     ),
                   ],
                 ),
@@ -653,14 +660,14 @@ class _FormInputanSatwaState extends State<FormInputanSatwa> {
               onPressed: submitData,
               child: Text(
                 _isEdit ? "Update Data" : "Simpan Data",
-                style: const TextStyle(fontSize: 18),
+                style: TextStyle(fontSize: 18),
               ),
             ),
           ),
           const SizedBox(height: 20),
-          const Text(
+          Text(
             "Lengkapi semua data bertanda *",
-            style: TextStyle(color: Colors.grey),
+            style: TextStyle(color: scheme.onSurfaceVariant),
           ),
         ],
       ),

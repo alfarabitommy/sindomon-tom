@@ -34,15 +34,19 @@ class AppHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final scheme = Theme.of(context).colorScheme;
+
     return Container(
       height: 65,
       padding: const EdgeInsets.symmetric(horizontal: 24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        // Dark: void surface card / Light: crisp white card.
+        color: scheme.surface,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
+            color: Colors.black.withValues(alpha: isDark ? 0.30 : 0.06),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -69,8 +73,8 @@ class AppHeader extends StatelessWidget {
               breadcrumb,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: Colors.black87,
+              style: TextStyle(
+                color: scheme.onSurface,
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
               ),
@@ -107,7 +111,12 @@ class AppHeader extends StatelessWidget {
                     padding: const EdgeInsets.all(2),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      border: Border.all(color: Colors.grey.shade300, width: 1.5),
+                      border: Border.all(
+                        color: isDark
+                            ? Colors.grey.shade700
+                            : Colors.grey.shade300,
+                        width: 1.5,
+                      ),
                     ),
                     child: const CircleAvatar(
                       radius: 18,
@@ -122,24 +131,28 @@ class AppHeader extends StatelessWidget {
                     children: [
                       Text(
                         username,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 13,
                           height: 1.2,
+                          color: scheme.onSurface,
                         ),
                       ),
                       Text(
                         role,
                         style: TextStyle(
                           fontSize: 11,
-                          color: Colors.grey.shade500,
+                          color: scheme.onSurfaceVariant,
                           height: 1.2,
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(width: 4),
-                  const Icon(Icons.arrow_drop_down, color: Colors.grey),
+                  Icon(
+                    Icons.arrow_drop_down,
+                    color: scheme.onSurfaceVariant,
+                  ),
                 ],
               ),
             ),
@@ -159,11 +172,12 @@ class _ProfileMenuItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final onSurface = Theme.of(context).colorScheme.onSurface;
     return Row(
       children: [
-        Icon(icon, size: 20, color: Colors.black87),
+        Icon(icon, size: 20, color: onSurface),
         const SizedBox(width: 12),
-        Text(label, style: const TextStyle(fontSize: 14)),
+        Text(label, style: TextStyle(fontSize: 14, color: onSurface)),
       ],
     );
   }

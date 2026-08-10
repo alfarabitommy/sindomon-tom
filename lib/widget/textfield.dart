@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 
+/// Theme-aware login/input text field.
+///
+/// All colors are read from `Theme.of(context).colorScheme` so the field is
+/// legible on both the light corporate background and the dark glass login
+/// card (previously the text and borders were hardcoded near-black).
 class AppTextField extends StatelessWidget {
   final String hint;
   final bool obscure;
@@ -16,24 +21,26 @@ class AppTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
     return SizedBox(
       height: 42,
       child: TextField(
         controller: controller,
         obscureText: obscure,
-        style: const TextStyle(color: Color(0xFF23251D)),
+        style: TextStyle(color: scheme.onSurface),
         decoration: InputDecoration(
           hintText: hint,
           hintStyle: TextStyle(
             fontSize: 14,
-            color: const Color(0xFF4D4F46).withValues(alpha: 0.6),
+            color: scheme.onSurfaceVariant,
           ),
           contentPadding: const EdgeInsets.symmetric(horizontal: 12),
 
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(6),
             borderSide: BorderSide(
-              color: error ? Colors.red : const Color(0xFFBFC1B7),
+              color: error ? Colors.red : scheme.outline,
               width: 1.2,
             ),
           ),
@@ -41,7 +48,7 @@ class AppTextField extends StatelessWidget {
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(6),
             borderSide: BorderSide(
-              color: error ? Colors.red : const Color(0xFF1D4ED8),
+              color: error ? Colors.red : scheme.outline,
               width: 2,
             ),
           ),
@@ -61,7 +68,6 @@ class AppTextField extends StatelessWidget {
               width: 2,
             ),
           ),
-
         ),
       ),
     );

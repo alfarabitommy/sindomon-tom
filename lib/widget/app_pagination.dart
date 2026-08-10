@@ -7,6 +7,9 @@ import 'package:flutter/material.dart';
 /// sites like `const AppPagination()` keep compiling and render the same
 /// layout. Pages that opt in pass [currentPage], [totalPages], [totalItems],
 /// [perPage] and [onPageChanged] to get a live, clickable widget.
+///
+/// All colors are theme-aware (`Theme.of(context).colorScheme`) so the strip
+/// is legible on light corporate panels and dark glass panels alike.
 class AppPagination extends StatelessWidget {
   final int currentPage;
   final int totalPages;
@@ -43,6 +46,8 @@ class AppPagination extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
     final int start = totalItems == 0 ? 0 : (currentPage - 1) * perPage + 1;
     final int end = totalItems == 0
         ? 0
@@ -60,7 +65,7 @@ class AppPagination extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       decoration: BoxDecoration(
         border: Border(
-          top: BorderSide(color: Colors.grey.shade200, width: 0.5),
+          top: BorderSide(color: scheme.outlineVariant, width: 0.5),
         ),
       ),
       child: Row(
@@ -68,12 +73,13 @@ class AppPagination extends StatelessWidget {
         children: [
           Text(
             displayText,
-            style: const TextStyle(color: Color(0xFF6B7280), fontSize: 13),
+            style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 13),
           ),
           Row(
             children: [
               _pageButton(
                 "<",
+                scheme: scheme,
                 onTap: onPageChanged != null && currentPage > 1
                     ? () => onPageChanged!(currentPage - 1)
                     : null,
@@ -81,18 +87,19 @@ class AppPagination extends StatelessWidget {
               const SizedBox(width: 6),
               for (int i = 0; i < pages.length; i++) ...[
                 if (i > 0 && pages[i] - pages[i - 1] > 1)
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 4),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
                     child: Text(
                       "...",
                       style: TextStyle(
                         fontSize: 13,
-                        color: Color(0xFF6B7280),
+                        color: scheme.onSurfaceVariant,
                       ),
                     ),
                   ),
                 _pageButton(
                   "${pages[i]}",
+                  scheme: scheme,
                   active: pages[i] == currentPage,
                   onTap: onPageChanged != null && pages[i] != currentPage
                       ? () => onPageChanged!(pages[i])
@@ -102,6 +109,7 @@ class AppPagination extends StatelessWidget {
               ],
               _pageButton(
                 ">",
+                scheme: scheme,
                 onTap: onPageChanged != null && currentPage < totalPages
                     ? () => onPageChanged!(currentPage + 1)
                     : null,
@@ -113,8 +121,9 @@ class AppPagination extends StatelessWidget {
     );
   }
 
-  static Widget _pageButton(
+  Widget _pageButton(
     String label, {
+    required ColorScheme scheme,
     bool active = false,
     VoidCallback? onTap,
   }) {
@@ -129,7 +138,7 @@ class AppPagination extends StatelessWidget {
           color: active ? Colors.amber : Colors.transparent,
           borderRadius: BorderRadius.circular(6),
           border: Border.all(
-            color: active ? Colors.amber : Colors.grey.shade300,
+            color: active ? Colors.amber : scheme.outlineVariant,
             width: 1,
           ),
         ),
@@ -138,7 +147,7 @@ class AppPagination extends StatelessWidget {
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: active ? Colors.black : Colors.grey.shade600,
+            color: active ? Colors.black : scheme.onSurfaceVariant,
           ),
         ),
       ),

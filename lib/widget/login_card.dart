@@ -234,6 +234,8 @@ class _LoginCardState extends State<LoginCard> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(6),
       child: BackdropFilter(
@@ -242,9 +244,12 @@ class _LoginCardState extends State<LoginCard> {
           width: 320,
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.15),
+            color: scheme.surface.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(6),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.4), width: 1.0),
+            border: Border.all(
+              color: scheme.outline.withValues(alpha: 0.4),
+              width: 1.0,
+            ),
           ),
           child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -253,18 +258,26 @@ class _LoginCardState extends State<LoginCard> {
 
           const SizedBox(height: 12),
 
-          const Text(
+          Text(
             "SINDOMON - Portal Masuk",
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: Color(0xFF23251D)),
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+              color: scheme.onSurface,
+            ),
           ),
 
           const SizedBox(height: 25),
 
-          const Align(
+          Align(
             alignment: Alignment.centerLeft,
             child: Text(
               "Username / NRP",
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Color(0xFF23251D)),
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 14,
+                color: scheme.onSurface,
+              ),
             ),
           ),
 
@@ -278,11 +291,15 @@ class _LoginCardState extends State<LoginCard> {
 
           const SizedBox(height: 15),
 
-          const Align(
+          Align(
             alignment: Alignment.centerLeft,
             child: Text(
               "Kata Sandi",
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Color(0xFF23251D)),
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 14,
+                color: scheme.onSurface,
+              ),
             ),
           ),
 

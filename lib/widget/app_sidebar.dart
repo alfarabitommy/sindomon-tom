@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/menu_config.dart';
 import '../utils/session_util.dart' as session;
+import '../theme/sidebar_colors.dart';
+import '../theme/theme_controller.dart';
 import '../widget/hud_loading_spinner.dart';
 
 /// Collapsed width: icons only (Navigation Rail style).
@@ -23,8 +25,13 @@ const Curve _textFadeCurve = Interval(0.5, 1.0, curve: Curves.easeOutCubic);
 
 class AppSidebar extends StatefulWidget {
   final String currentRoute;
+  final ThemeController themeController;
 
-  const AppSidebar({super.key, required this.currentRoute});
+  const AppSidebar({
+    super.key,
+    required this.currentRoute,
+    required this.themeController,
+  });
 
   /// Harus sinkron dengan keys [roleMenus] di menu_config.dart.
   /// Setiap case di sini memerlukan definisi menu yang sesuai.
@@ -81,20 +88,23 @@ class _AppSidebarState extends State<AppSidebar> {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final colors = SidebarColors.fromBrightness(brightness);
+
     return AnimatedContainer(
       duration: _widthAnimationDuration,
       curve: Curves.easeOutCubic,
       width: _isExpanded ? _expandedWidth : _collapsedWidth,
       decoration: BoxDecoration(
-        // Flat design: solid indigo, no backdrop blur.
-        color: const Color(0xff1E1B4B).withValues(alpha: 0.9),
+        color: colors.background,
         borderRadius: BorderRadius.only(
           topRight: Radius.circular(25),
           bottomRight: Radius.circular(25),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black26,
+            color: colors.shadowColor,
             blurRadius: 20,
             offset: Offset(5, 0),
           ),
@@ -122,17 +132,17 @@ class _AppSidebarState extends State<AppSidebar> {
                   children: [
                     Offstage(
                       offstage: _isExpanded,
-                      child: const Icon(Icons.menu, color: Colors.white70),
+                      child: Icon(Icons.menu, color: colors.iconColor),
                     ),
                     Offstage(
                       offstage: !_isExpanded,
-                      child: const Icon(Icons.menu_open, color: Colors.white70),
+                      child: Icon(Icons.menu_open, color: colors.iconColor),
                     ),
                   ],
                 ),
                 onPressed: _toggleExpanded,
                 tooltip: _isExpanded ? 'Collapse sidebar' : 'Expand sidebar',
-                style: IconButton.styleFrom(hoverColor: Colors.white10),
+                style: IconButton.styleFrom(hoverColor: colors.hoverColor),
               ),
             ),
           ),
@@ -159,10 +169,10 @@ class _AppSidebarState extends State<AppSidebar> {
             duration: _textFadeDuration,
             curve: _textFadeCurve,
             opacity: _isExpanded ? 1.0 : 0.0,
-            child: const Text(
+            child: Text(
               "SINDOMON",
               style: TextStyle(
-                color: Colors.white,
+                color: colors.textPrimary,
                 fontSize: 26,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 1.5,
@@ -181,7 +191,7 @@ class _AppSidebarState extends State<AppSidebar> {
             child: Text(
               "Sistem Informasi Manajemen",
               style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.6),
+                color: colors.textSecondary,
                 fontSize: 13,
               ),
             ),
@@ -204,6 +214,35 @@ class _AppSidebarState extends State<AppSidebar> {
                 : const Center(
                     child: HudLoadingSpinner(size: 40),
                   ),
+          ),
+
+          // ── Theme toggle: J.A.R.V.I.S / Corporate switcher ──
+          Divider(
+            color: colors.hoverColor,
+            height: 1,
+            indent: 20,
+            endIndent: 20,
+          ),
+          const SizedBox(height: 4),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: IconButton(
+              onPressed: () => widget.themeController.toggleTheme(),
+              tooltip: isDark
+                  ? 'Switch to Light Mode'
+                  : 'Switch to Dark Mode',
+              icon: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                transitionBuilder: (child, animation) =>
+                    RotationTransition(turns: animation, child: child),
+                child: Icon(
+                  isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+                  key: ValueKey(isDark),
+                  color: colors.iconColor,
+                ),
+              ),
+              style: IconButton.styleFrom(hoverColor: colors.hoverColor),
+            ),
           ),
           const SizedBox(height: 20),
         ],
@@ -245,19 +284,20 @@ class _AppSidebarState extends State<AppSidebar> {
   }
 
   Widget _buildLeafItem(LeafMenuItem item) {
+    final colors = SidebarColors.fromBrightness(Theme.of(context).brightness);
     final selected = widget.currentRoute == item.routeName;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         decoration: BoxDecoration(
-          color: selected ? Colors.amber : Colors.transparent,
+          color: selected ? colors.selectedBg : Colors.transparent,
           borderRadius: BorderRadius.circular(14),
         ),
         child: ListTile(
           leading: Icon(
             item.icon,
-            color: selected ? Colors.black : Colors.white70,
+            color: selected ? colors.selectedText : colors.iconColor,
           ),
           title: AnimatedOpacity(
             duration: _textFadeDuration,
@@ -268,7 +308,7 @@ class _AppSidebarState extends State<AppSidebar> {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                color: selected ? Colors.black : Colors.white,
+                color: selected ? colors.selectedText : colors.textPrimary,
                 fontWeight: selected ? FontWeight.bold : FontWeight.w500,
               ),
             ),
@@ -279,14 +319,14 @@ class _AppSidebarState extends State<AppSidebar> {
           // conditionally created or disposed.
           trailing: Offstage(
             offstage: !(selected && _isExpanded),
-            child: const Icon(
+            child: Icon(
               Icons.arrow_forward_ios,
               size: 14,
-              color: Colors.black,
+              color: colors.selectedText,
             ),
           ),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-          hoverColor: Colors.white10,
+          hoverColor: colors.hoverColor,
           // 20px each side centers the 40px leading slot (and its icon) in
           // the 80px collapsed rail; 16px matches the pre-refactor look when
           // expanded.
@@ -300,6 +340,7 @@ class _AppSidebarState extends State<AppSidebar> {
   }
 
   Widget _buildGroupItem(MenuGroup group) {
+    final colors = SidebarColors.fromBrightness(Theme.of(context).brightness);
     return Container(
       // No key needed: this subtree is permanently mounted (Strategy B).
       margin: const EdgeInsets.symmetric(vertical: 2),
@@ -307,7 +348,7 @@ class _AppSidebarState extends State<AppSidebar> {
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
-          leading: Icon(group.icon, color: Colors.white70),
+          leading: Icon(group.icon, color: colors.iconColor),
           title: AnimatedOpacity(
             duration: _textFadeDuration,
             curve: _textFadeCurve,
@@ -316,8 +357,8 @@ class _AppSidebarState extends State<AppSidebar> {
               group.label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: colors.textPrimary,
                 fontWeight: FontWeight.w600,
                 fontSize: 14,
               ),
@@ -325,14 +366,14 @@ class _AppSidebarState extends State<AppSidebar> {
           ),
           // The ExpansionTile is permanently mounted (Strategy B), so it
           // manages its own expansion state internally — no hoisting needed.
-          collapsedIconColor: Colors.white70,
-          iconColor: Colors.amber,
+          collapsedIconColor: colors.iconColor,
+          iconColor: colors.selectedBg,
           childrenPadding: const EdgeInsets.only(left: 24, bottom: 4),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
           collapsedShape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
           ),
-          backgroundColor: Colors.white.withValues(alpha: 0.04),
+          backgroundColor: colors.hoverColor,
           collapsedBackgroundColor: Colors.transparent,
           children: group.children
               .map((child) => _buildChildItem(child))
@@ -349,6 +390,7 @@ class _AppSidebarState extends State<AppSidebar> {
   /// hit-target and the group's ExpansionTile keeps its own open/closed
   /// state while offstage.
   Widget _buildCollapsedGroupItem(MenuGroup group) {
+    final colors = SidebarColors.fromBrightness(Theme.of(context).brightness);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: GestureDetector(
@@ -363,7 +405,7 @@ class _AppSidebarState extends State<AppSidebar> {
           child: SizedBox(
             height: 48,
             child: Center(
-              child: Icon(group.icon, color: Colors.white70),
+              child: Icon(group.icon, color: colors.iconColor),
             ),
           ),
         ),
@@ -372,11 +414,12 @@ class _AppSidebarState extends State<AppSidebar> {
   }
 
   Widget _buildChildItem(LeafMenuItem item) {
+    final colors = SidebarColors.fromBrightness(Theme.of(context).brightness);
     final selected = widget.currentRoute == item.routeName;
     return ListTile(
       leading: Icon(
         item.icon,
-        color: selected ? Colors.amber : Colors.white70,
+        color: selected ? colors.selectedBg : colors.iconColor,
         size: 20,
       ),
       title: AnimatedOpacity(
@@ -388,14 +431,14 @@ class _AppSidebarState extends State<AppSidebar> {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
-            color: selected ? Colors.amber : Colors.white,
+            color: selected ? colors.selectedBg : colors.textPrimary,
             fontWeight: selected ? FontWeight.bold : FontWeight.w500,
             fontSize: 13,
           ),
         ),
       ),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-      hoverColor: Colors.white10,
+      hoverColor: colors.hoverColor,
       onTap: () => _navigateTo(item.pageBuilder()),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16),
       visualDensity: VisualDensity.compact,

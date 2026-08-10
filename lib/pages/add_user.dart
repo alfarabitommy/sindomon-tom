@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widget/form_input_user.dart';
 import '../widget/app_scaffold.dart';
+import '../widget/glass_surface.dart';
 
 class AddUserPage extends StatefulWidget {
   final int? userId; // null = create, non-null = edit
@@ -16,6 +17,8 @@ class _AddUserPageState extends State<AddUserPage> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
     return AppScaffold(
   currentRoute: "pengguna",
   breadcrumb: widget.userId != null ? "Dashboard / Edit User" : "Dashboard / Tambah User",
@@ -30,12 +33,12 @@ class _AddUserPageState extends State<AddUserPage> {
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text(
+          Text(
             "Pengaturan User",
             style: TextStyle(
               fontSize: 34,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF111827),
+              color: scheme.onSurface,
             ),
           ),
 
@@ -68,19 +71,12 @@ class _AddUserPageState extends State<AddUserPage> {
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 600),
-              child: Card(
-                elevation: 0,
-                color: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  side: BorderSide(color: Colors.grey.shade200, width: 1.5),
-                ),
-                child: Padding(
-                  padding: EdgeInsets.all(25),
-                  child: FormTambahUser(
-                    userId: widget.userId,
-                    initialData: widget.userData,
-                  ),
+              child: GlassSurface(
+                borderRadius: BorderRadius.circular(16),
+                padding: const EdgeInsets.all(25),
+                child: FormTambahUser(
+                  userId: widget.userId,
+                  initialData: widget.userData,
                 ),
               ),
             ),

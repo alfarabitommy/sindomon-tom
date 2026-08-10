@@ -11,6 +11,7 @@ import '../widget/app_search_field.dart';
 import '../widget/action_buttons.dart';
 import '../models/polda_model.dart';
 import '../widget/app_scaffold.dart';
+import '../widget/glass_surface.dart';
 import '../widget/hud_loading_spinner.dart';
 import '../utils/hud_loading.dart';
 
@@ -187,6 +188,9 @@ class _PoldaPageState extends State<PoldaPage> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return AppScaffold(
   currentRoute: "polda",
   breadcrumb: "Dashboard / Polda",
@@ -219,9 +223,9 @@ class _PoldaPageState extends State<PoldaPage> {
                   child: Text(
                     errorMessage,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 15,
-                      color: Colors.black87,
+                      color: scheme.onSurface,
                     ),
                   ),
                 ),
@@ -240,7 +244,7 @@ class _PoldaPageState extends State<PoldaPage> {
           ),
         )
       else if (polda.isEmpty)
-        const Expanded(
+        Expanded(
           child: Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -255,7 +259,7 @@ class _PoldaPageState extends State<PoldaPage> {
                   "Tidak ada data Polda untuk ditampilkan",
                   style: TextStyle(
                     fontSize: 16,
-                    color: Colors.black54,
+                    color: scheme.onSurfaceVariant,
                   ),
                 ),
               ],
@@ -271,12 +275,12 @@ class _PoldaPageState extends State<PoldaPage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
+            Text(
               "Manajemen Polda",
               style: TextStyle(
                 fontSize: 34,
                 fontWeight: FontWeight.bold,
-                color: Colors.black,
+                color: scheme.onSurface,
               ),
             ),
 
@@ -324,18 +328,8 @@ class _PoldaPageState extends State<PoldaPage> {
 
         /// TABLE DATA
         Expanded(
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
+          child: GlassSurface(
+            borderRadius: BorderRadius.circular(12),
             child: Column(
               children: [
                 Expanded(
@@ -353,24 +347,27 @@ class _PoldaPageState extends State<PoldaPage> {
                               child: DataTable(
                                 headingRowColor:
                                     WidgetStateProperty.all(
-                                      Colors.grey.shade50,
+                                      isDark
+                                          ? scheme
+                                              .surfaceContainerHighest
+                                          : const Color(
+                                              0xFFF9FAFB,
+                                            ),
                                     ),
-                                headingTextStyle:
-                                    const TextStyle(
-                                      fontSize: 12,
-                                      fontWeight:
-                                          FontWeight.w700,
-                                      color: Color(0xFF6B7280),
-                                    ),
-                                dataTextStyle: const TextStyle(
+                                headingTextStyle: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: scheme.onSurfaceVariant,
+                                ),
+                                dataTextStyle: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w400,
-                                  color: Color(0xFF374151),
+                                  color: scheme.onSurface,
                                 ),
                                 dividerThickness: 0.5,
-                                border: const TableBorder(
+                                border: TableBorder(
                                   horizontalInside: BorderSide(
-                                    color: Color(0xFFE5E7EB),
+                                    color: scheme.outlineVariant,
                                     width: 0.5,
                                   ),
                                 ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widget/form_input_polda.dart';
 import '../widget/app_scaffold.dart';
+import '../widget/glass_surface.dart';
 
 class AddPoldaPage extends StatefulWidget {
   final int? poldaId; // null = create, non-null = edit
@@ -16,6 +17,8 @@ class _AddPoldaPageState extends State<AddPoldaPage> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
     return AppScaffold(
   currentRoute: "polda",
   breadcrumb: widget.poldaId != null ? "Dashboard / Edit Polda" : "Dashboard / Tambah Polda",
@@ -30,12 +33,12 @@ class _AddPoldaPageState extends State<AddPoldaPage> {
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text(
+          Text(
             "Pengaturan Polda",
             style: TextStyle(
               fontSize: 34,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF111827),
+              color: scheme.onSurface,
             ),
           ),
 
@@ -68,22 +71,12 @@ class _AddPoldaPageState extends State<AddPoldaPage> {
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 600),
-              child: Card(
-                elevation: 0,
-                color: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  side: BorderSide(
-                    color: Colors.grey.shade200,
-                    width: 1.5,
-                  ),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(25),
-                  child: FormTambahPolda(
-                    poldaId: widget.poldaId,
-                    poldaData: widget.poldaData,
-                  ),
+              child: GlassSurface(
+                borderRadius: BorderRadius.circular(16),
+                padding: const EdgeInsets.all(25),
+                child: FormTambahPolda(
+                  poldaId: widget.poldaId,
+                  poldaData: widget.poldaData,
                 ),
               ),
             ),

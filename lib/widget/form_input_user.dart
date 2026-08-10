@@ -28,16 +28,17 @@ class _FormTambahUserState extends State<FormTambahUser> {
   final username = TextEditingController();
   final password = TextEditingController();
 
-  static const InputDecoration _inputDecoration = InputDecoration(
+  static InputDecoration _inputDecoration(ColorScheme scheme) =>
+      InputDecoration(
     filled: true,
-    fillColor: Color(0xFFF9FAFB),
+    fillColor: scheme.surfaceContainerHighest,
     border: OutlineInputBorder(
       borderRadius: BorderRadius.all(Radius.circular(8)),
-      borderSide: BorderSide(color: Color(0xFFE5E7EB)),
+      borderSide: BorderSide(color: scheme.outlineVariant),
     ),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.all(Radius.circular(8)),
-      borderSide: BorderSide(color: Color(0xFFE5E7EB), width: 1),
+      borderSide: BorderSide(color: scheme.outlineVariant, width: 1),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.all(Radius.circular(8)),
@@ -56,14 +57,16 @@ class _FormTambahUserState extends State<FormTambahUser> {
   );
 
   Widget formField({required String label, required Widget child}) {
+    final scheme = Theme.of(context).colorScheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label,
-            style: const TextStyle(
+            style: TextStyle(
                 fontWeight: FontWeight.w600,
                 fontSize: 14,
-                color: Color(0xFF374151))),
+                color: scheme.onSurface)),
         const SizedBox(height: 8),
         child,
       ],
@@ -255,6 +258,8 @@ class _FormTambahUserState extends State<FormTambahUser> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final isDesktop = constraints.maxWidth >= 700;
@@ -265,10 +270,10 @@ class _FormTambahUserState extends State<FormTambahUser> {
             children: [
               Text(
                 isEditMode ? "EDIT AKUN" : "TAMBAH AKUN BARU",
-                style: const TextStyle(
+                style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF111827)),
+                    color: scheme.onSurface),
               ),
 
               const SizedBox(height: 25),
@@ -282,7 +287,7 @@ class _FormTambahUserState extends State<FormTambahUser> {
                         label: "Username *",
                         child: TextFormField(
                           controller: username,
-                          decoration: _inputDecoration,
+                          decoration: _inputDecoration(scheme),
                         ),
                       ),
                     ),
@@ -295,7 +300,7 @@ class _FormTambahUserState extends State<FormTambahUser> {
                         child: TextFormField(
                           controller: password,
                           obscureText: true,
-                          decoration: _inputDecoration,
+                          decoration: _inputDecoration(scheme),
                         ),
                       ),
                     ),
@@ -306,7 +311,7 @@ class _FormTambahUserState extends State<FormTambahUser> {
                   label: "Username *",
                   child: TextFormField(
                     controller: username,
-                    decoration: _inputDecoration,
+                    decoration: _inputDecoration(scheme),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -317,7 +322,7 @@ class _FormTambahUserState extends State<FormTambahUser> {
                   child: TextFormField(
                     controller: password,
                     obscureText: true,
-                    decoration: _inputDecoration,
+                    decoration: _inputDecoration(scheme),
                   ),
                 ),
               ],
@@ -333,7 +338,7 @@ class _FormTambahUserState extends State<FormTambahUser> {
                         label: "Role *",
                         child: DropdownButtonFormField<String>(
                           value: selectedRoleId,
-                          decoration: _inputDecoration,
+                          decoration: _inputDecoration(scheme),
                           items: const [
                             DropdownMenuItem(
                               value: "1",
@@ -386,7 +391,7 @@ class _FormTambahUserState extends State<FormTambahUser> {
                   label: "Role *",
                   child: DropdownButtonFormField<String>(
                     value: selectedRoleId,
-                    decoration: _inputDecoration,
+                    decoration: _inputDecoration(scheme),
                     items: const [
                       DropdownMenuItem(
                         value: "1",
@@ -445,7 +450,7 @@ class _FormTambahUserState extends State<FormTambahUser> {
                             children: [
                               DropdownButtonFormField<String>(
                                 value: selectedPoldaId,
-                                decoration: _inputDecoration,
+                                decoration: _inputDecoration(scheme),
                                 hint: const Text("Pilih Polda"),
                                 items: daftarPolda.map((p) {
                                   return DropdownMenuItem<String>(
@@ -481,7 +486,7 @@ class _FormTambahUserState extends State<FormTambahUser> {
                       children: [
                         DropdownButtonFormField<String>(
                           value: selectedPoldaId,
-                          decoration: _inputDecoration,
+                          decoration: _inputDecoration(scheme),
                           hint: const Text("Pilih Polda"),
                           items: daftarPolda.map((p) {
                             return DropdownMenuItem<String>(
@@ -527,9 +532,9 @@ class _FormTambahUserState extends State<FormTambahUser> {
 
               const SizedBox(height: 20),
 
-              const Text(
+              Text(
                 "Lengkapi semua data bertanda *",
-                style: TextStyle(color: Colors.grey),
+                style: TextStyle(color: scheme.onSurfaceVariant),
               ),
             ],
           ),
