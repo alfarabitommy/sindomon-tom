@@ -1,18 +1,15 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import '../widget/background.dart';
-import '../widget/app_sidebar.dart';
 import '../config/api_config.dart';
 import '../pages/add_polres.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import '../widget/app_footer.dart';
 import '../widget/app_pagination.dart';
-import '../widget/app_header.dart';
 import '../widget/app_search_field.dart';
 import '../widget/action_buttons.dart';
+import '../widget/app_scaffold.dart';
 
 class PolresPage extends StatefulWidget {
   const PolresPage({super.key});
@@ -25,8 +22,6 @@ class _PolresPageState extends State<PolresPage> {
   List<Map<String, dynamic>> polres = [];
   String errorMessage = "";
   bool isLoading = true;
-  String unLogin = "";
-  String roleLabel = "Operator";
 
   /// ========================
   /// SEARCH & PAGINATION STATE
@@ -38,15 +33,6 @@ class _PolresPageState extends State<PolresPage> {
   int _totalPages = 1;
   int _totalItems = 0;
   int _perPage = 10;
-
-  Future<void> loadUser() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    setState(() {
-      unLogin = prefs.getString("username_login") ?? "";
-      roleLabel = AppSidebar.roleLabelFromId(prefs.getString("roleid_login"));
-    });
-  }
 
   Future<void> getPolresApi() async {
     try {
@@ -120,7 +106,6 @@ class _PolresPageState extends State<PolresPage> {
   @override
   void initState() {
     super.initState();
-    loadUser();
     getPolresApi();
   }
 
@@ -192,383 +177,360 @@ class _PolresPageState extends State<PolresPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: AppBackground(
-        imagePath: 'assets/images/wp-putih-mabes.png',
-        child: SafeArea(
-          child: Row(
-            children: [
-              const AppSidebar(currentRoute: "polres"),
+    return AppScaffold(
+  currentRoute: "polres",
+  breadcrumb: "Dashboard / Polres",
+  child: Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      /// STATE HANDLING
+      if (isLoading)
+        const Expanded(
+          child: Center(
+            child: CircularProgressIndicator(
+              color: Colors.amber,
+            ),
+          ),
+        )
+      else if (errorMessage.isNotEmpty)
+        Expanded(
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.error_outline,
+                  size: 64,
+                  color: Colors.redAccent,
+                ),
+                const SizedBox(height: 12),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                  ),
+                  child: Text(
+                    errorMessage,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton.icon(
+                  onPressed: getPolresApi,
+                  icon: const Icon(Icons.refresh),
+                  label: const Text("Coba Lagi"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.amber,
+                    foregroundColor: Colors.black,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        )
+      else if (polres.isEmpty)
+        const Expanded(
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.table_rows_outlined,
+                  size: 64,
+                  color: Colors.grey,
+                ),
+                SizedBox(height: 12),
+                Text(
+                  "Tidak ada data Polres untuk ditampilkan",
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.black54,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        )
+      else ...[
+        const SizedBox(height: 25),
 
-              /// ========================
-              /// CONTENT
-              /// ========================
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(30),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      AppHeader(
-                        breadcrumb: "Dashboard / Polres",
-                        username: unLogin,
-                        role: roleLabel,
-                      ),
+        /// ============================
+        /// TITLE
+        /// ============================
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              "Manajemen Polres",
+              style: TextStyle(
+                fontSize: 34,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+            ),
 
-                      /// STATE HANDLING
-                      if (isLoading)
-                        const Expanded(
-                          child: Center(
-                            child: CircularProgressIndicator(
-                              color: Colors.amber,
-                            ),
-                          ),
-                        )
-                      else if (errorMessage.isNotEmpty)
-                        Expanded(
-                          child: Center(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(
-                                  Icons.error_outline,
-                                  size: 64,
-                                  color: Colors.redAccent,
-                                ),
-                                const SizedBox(height: 12),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 24,
-                                  ),
-                                  child: Text(
-                                    errorMessage,
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      fontSize: 15,
-                                      color: Colors.black87,
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const AddPolresPage(),
+                  ),
+                ).then((result) {
+                  if (result == true) {
+                    getPolresApi();
+                  }
+                });
+              },
+              icon: const Icon(Icons.add),
+              label: const Text("Tambah Polres"),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.amber,
+                foregroundColor: Colors.black,
+                elevation: 5,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 22,
+                  vertical: 18,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+              ),
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 20),
+
+        /// SEARCH
+        AppSearchField(
+          hintText: "Cari Polres...",
+          controller: _searchController,
+          onChanged: _onSearchChanged,
+        ),
+
+        const SizedBox(height: 25),
+
+        /// TABLE DATA
+        Expanded(
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          return SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: ConstrainedBox(
+                              constraints: BoxConstraints(
+                                minWidth: constraints.maxWidth,
+                              ),
+                              child: DataTable(
+                                headingRowColor:
+                                    WidgetStateProperty.all(
+                                      Colors.grey.shade50,
                                     ),
+                                headingTextStyle:
+                                    const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight:
+                                          FontWeight.w700,
+                                      color: Color(0xFF6B7280),
+                                    ),
+                                dataTextStyle: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w400,
+                                  color: Color(0xFF374151),
+                                ),
+                                dividerThickness: 0.5,
+                                border: const TableBorder(
+                                  horizontalInside: BorderSide(
+                                    color: Color(0xFFE5E7EB),
+                                    width: 0.5,
                                   ),
                                 ),
-                                const SizedBox(height: 16),
-                                ElevatedButton.icon(
-                                  onPressed: getPolresApi,
-                                  icon: const Icon(Icons.refresh),
-                                  label: const Text("Coba Lagi"),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.amber,
-                                    foregroundColor: Colors.black,
+                                dataRowMinHeight: 60,
+                                dataRowMaxHeight: 70,
+                                columns: const [
+                                  DataColumn(label: Text("ID")),
+                                  DataColumn(
+                                    label: Text("POLDA ID"),
                                   ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        )
-                      else if (polres.isEmpty)
-                        const Expanded(
-                          child: Center(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.table_rows_outlined,
-                                  size: 64,
-                                  color: Colors.grey,
-                                ),
-                                SizedBox(height: 12),
-                                Text(
-                                  "Tidak ada data Polres untuk ditampilkan",
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.black54,
+                                  DataColumn(
+                                    label: Text("NAMA POLRES"),
                                   ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        )
-                      else ...[
-                        const SizedBox(height: 25),
-
-                        /// ============================
-                        /// TITLE
-                        /// ============================
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              "Manajemen Polres",
-                              style: TextStyle(
-                                fontSize: 34,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
-                              ),
-                            ),
-
-                            ElevatedButton.icon(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const AddPolresPage(),
+                                  DataColumn(
+                                    label: Text("CREATED AT"),
                                   ),
-                                ).then((result) {
-                                  if (result == true) {
-                                    getPolresApi();
-                                  }
-                                });
-                              },
-                              icon: const Icon(Icons.add),
-                              label: const Text("Tambah Polres"),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.amber,
-                                foregroundColor: Colors.black,
-                                elevation: 5,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 22,
-                                  vertical: 18,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(30),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 20),
-
-                        /// SEARCH
-                        AppSearchField(
-                          hintText: "Cari Polres...",
-                          controller: _searchController,
-                          onChanged: _onSearchChanged,
-                        ),
-
-                        const SizedBox(height: 25),
-
-                        /// TABLE DATA
-                        Expanded(
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.05),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: Column(
-                              children: [
-                                Expanded(
-                                  child: SingleChildScrollView(
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(20),
-                                      child: LayoutBuilder(
-                                        builder: (context, constraints) {
-                                          return SingleChildScrollView(
-                                            scrollDirection: Axis.horizontal,
-                                            child: ConstrainedBox(
-                                              constraints: BoxConstraints(
-                                                minWidth: constraints.maxWidth,
+                                  DataColumn(
+                                    label: Text("AKSI"),
+                                  ),
+                                ],
+                                rows:
+                                    polres
+                                        .map(
+                                          (e) => DataRow(
+                                            cells: [
+                                              DataCell(
+                                                Text(
+                                                  "${e["polres_id"]}",
+                                                ),
                                               ),
-                                              child: DataTable(
-                                                headingRowColor:
-                                                    WidgetStateProperty.all(
-                                                      Colors.grey.shade50,
-                                                    ),
-                                                headingTextStyle:
-                                                    const TextStyle(
-                                                      fontSize: 12,
-                                                      fontWeight:
-                                                          FontWeight.w700,
-                                                      color: Color(0xFF6B7280),
-                                                    ),
-                                                dataTextStyle: const TextStyle(
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.w400,
-                                                  color: Color(0xFF374151),
+                                              DataCell(
+                                                Text(
+                                                  e["nama_polda"]
+                                                          ?.toString() ??
+                                                      e["polda_id"]
+                                                          ?.toString() ??
+                                                      "-",
                                                 ),
-                                                dividerThickness: 0.5,
-                                                border: const TableBorder(
-                                                  horizontalInside: BorderSide(
-                                                    color: Color(0xFFE5E7EB),
-                                                    width: 0.5,
-                                                  ),
+                                              ),
+                                              DataCell(
+                                                Text(
+                                                  "${e["nama_polres"]}",
                                                 ),
-                                                dataRowMinHeight: 60,
-                                                dataRowMaxHeight: 70,
-                                                columns: const [
-                                                  DataColumn(label: Text("ID")),
-                                                  DataColumn(
-                                                    label: Text("POLDA ID"),
-                                                  ),
-                                                  DataColumn(
-                                                    label: Text("NAMA POLRES"),
-                                                  ),
-                                                  DataColumn(
-                                                    label: Text("CREATED AT"),
-                                                  ),
-                                                  DataColumn(
-                                                    label: Text("AKSI"),
-                                                  ),
-                                                ],
-                                                rows:
-                                                    polres
-                                                        .map(
-                                                          (e) => DataRow(
-                                                            cells: [
-                                                              DataCell(
-                                                                Text(
-                                                                  "${e["polres_id"]}",
-                                                                ),
+                                              ),
+                                              DataCell(
+                                                Text(
+                                                  e["created_at"]
+                                                          ?.toString() ??
+                                                      "-",
+                                                ),
+                                              ),
+                                              DataCell(
+                                                ActionButtons(
+                                                  onEdit: () {
+                                                    Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                        builder:
+                                                            (
+                                                              _,
+                                                            ) => AddPolresPage(
+                                                              polresId: int.tryParse(
+                                                                e["polres_id"].toString(),
                                                               ),
-                                                              DataCell(
-                                                                Text(
-                                                                  e["nama_polda"]
-                                                                          ?.toString() ??
-                                                                      e["polda_id"]
-                                                                          ?.toString() ??
-                                                                      "-",
-                                                                ),
-                                                              ),
-                                                              DataCell(
-                                                                Text(
-                                                                  "${e["nama_polres"]}",
-                                                                ),
-                                                              ),
-                                                              DataCell(
-                                                                Text(
-                                                                  e["created_at"]
-                                                                          ?.toString() ??
-                                                                      "-",
-                                                                ),
-                                                              ),
-                                                              DataCell(
-                                                                ActionButtons(
-                                                                  onEdit: () {
-                                                                    Navigator.push(
+                                                              polresData: {
+                                                                "nama_polres":
+                                                                    "${e["nama_polres"]}",
+                                                                "polda_id":
+                                                                    e["polda_id"],
+                                                              },
+                                                            ),
+                                                      ),
+                                                    ).then((
+                                                      result,
+                                                    ) {
+                                                      if (result ==
+                                                          true) {
+                                                        getPolresApi();
+                                                      }
+                                                    });
+                                                  },
+                                                  onDelete: () async {
+                                                    final result = await showDialog<
+                                                      bool
+                                                    >(
+                                                      context:
+                                                          context,
+                                                      builder:
+                                                          (
+                                                            _,
+                                                          ) => AlertDialog(
+                                                            title: const Text(
+                                                              "Hapus Polres",
+                                                            ),
+                                                            content: Text(
+                                                              "Apakah Anda yakin ingin menghapus Polres \"${e["nama_polres"]}\"?",
+                                                            ),
+                                                            actions: [
+                                                              TextButton(
+                                                                onPressed:
+                                                                    () => Navigator.pop(
                                                                       context,
-                                                                      MaterialPageRoute(
-                                                                        builder:
-                                                                            (
-                                                                              _,
-                                                                            ) => AddPolresPage(
-                                                                              polresId: int.tryParse(
-                                                                                e["polres_id"].toString(),
-                                                                              ),
-                                                                              polresData: {
-                                                                                "nama_polres":
-                                                                                    "${e["nama_polres"]}",
-                                                                                "polda_id":
-                                                                                    e["polda_id"],
-                                                                              },
-                                                                            ),
-                                                                      ),
-                                                                    ).then((
-                                                                      result,
-                                                                    ) {
-                                                                      if (result ==
-                                                                          true) {
-                                                                        getPolresApi();
-                                                                      }
-                                                                    });
-                                                                  },
-                                                                  onDelete: () async {
-                                                                    final result = await showDialog<
-                                                                      bool
-                                                                    >(
-                                                                      context:
-                                                                          context,
-                                                                      builder:
-                                                                          (
-                                                                            _,
-                                                                          ) => AlertDialog(
-                                                                            title: const Text(
-                                                                              "Hapus Polres",
-                                                                            ),
-                                                                            content: Text(
-                                                                              "Apakah Anda yakin ingin menghapus Polres \"${e["nama_polres"]}\"?",
-                                                                            ),
-                                                                            actions: [
-                                                                              TextButton(
-                                                                                onPressed:
-                                                                                    () => Navigator.pop(
-                                                                                      context,
-                                                                                      false,
-                                                                                    ),
-                                                                                child: const Text(
-                                                                                  "Batal",
-                                                                                ),
-                                                                              ),
-                                                                              ElevatedButton(
-                                                                                style: ElevatedButton.styleFrom(
-                                                                                  backgroundColor:
-                                                                                      Colors.red,
-                                                                                  foregroundColor:
-                                                                                      Colors.white,
-                                                                                ),
-                                                                                onPressed:
-                                                                                    () => Navigator.pop(
-                                                                                      context,
-                                                                                      true,
-                                                                                    ),
-                                                                                child: const Text(
-                                                                                  "Hapus",
-                                                                                ),
-                                                                              ),
-                                                                            ],
-                                                                          ),
-                                                                    );
-                                                                    if (result ==
-                                                                        true) {
-                                                                      deletePolres(
-                                                                        int.parse(
-                                                                          e["polres_id"]
-                                                                              .toString(),
-                                                                        ),
-                                                                      );
-                                                                    }
-                                                                  },
+                                                                      false,
+                                                                    ),
+                                                                child: const Text(
+                                                                  "Batal",
+                                                                ),
+                                                              ),
+                                                              ElevatedButton(
+                                                                style: ElevatedButton.styleFrom(
+                                                                  backgroundColor:
+                                                                      Colors.red,
+                                                                  foregroundColor:
+                                                                      Colors.white,
+                                                                ),
+                                                                onPressed:
+                                                                    () => Navigator.pop(
+                                                                      context,
+                                                                      true,
+                                                                    ),
+                                                                child: const Text(
+                                                                  "Hapus",
                                                                 ),
                                                               ),
                                                             ],
                                                           ),
-                                                        )
-                                                        .toList(),
+                                                    );
+                                                    if (result ==
+                                                        true) {
+                                                      deletePolres(
+                                                        int.parse(
+                                                          e["polres_id"]
+                                                              .toString(),
+                                                        ),
+                                                      );
+                                                    }
+                                                  },
+                                                ),
                                               ),
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                AppPagination(
-                                  currentPage: _currentPage,
-                                  totalPages: _totalPages,
-                                  totalItems: _totalItems,
-                                  perPage: _perPage,
-                                  onPageChanged: _onPageChanged,
-                                ),
-                              ],
+                                            ],
+                                          ),
+                                        )
+                                        .toList(),
+                              ),
                             ),
-                          ),
-                        ),
-
-                        const SizedBox(height: 20),
-                        const AppFooter(),
-                      ],
-                    ],
+                          );
+                        },
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ],
+                AppPagination(
+                  currentPage: _currentPage,
+                  totalPages: _totalPages,
+                  totalItems: _totalItems,
+                  perPage: _perPage,
+                  onPageChanged: _onPageChanged,
+                ),
+              ],
+            ),
           ),
         ),
-      ),
-    );
+
+        const SizedBox(height: 20),
+      ],
+
+    ],
+  ),
+);
   }
 }

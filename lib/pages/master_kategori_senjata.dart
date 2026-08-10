@@ -6,13 +6,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
 import '../config/api_config.dart';
-import '../widget/background.dart';
-import '../widget/app_sidebar.dart';
-import '../widget/app_footer.dart';
 import '../widget/app_pagination.dart';
-import '../widget/app_header.dart';
 import '../widget/app_search_field.dart';
 import '../widget/action_buttons.dart';
+import '../widget/app_scaffold.dart';
 
 /// Master data untuk kategori senjata & kaliber (Screen 2.6).
 ///
@@ -34,8 +31,6 @@ class _MasterKategoriSenjataPageState extends State<MasterKategoriSenjataPage> {
   List<Map<String, dynamic>> kategoriList = [];
   bool isLoading = true;
   String errorMessage = "";
-  String unLogin = "";
-  String roleLabel = "Operator";
 
   String _searchQuery = "";
   Timer? _debounce;
@@ -47,15 +42,6 @@ class _MasterKategoriSenjataPageState extends State<MasterKategoriSenjataPage> {
   int _totalPages = 1;
   int _totalItems = 0;
   int _perPage = 10;
-
-  Future<void> loadUser() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    setState(() {
-      unLogin = prefs.getString("username_login") ?? "";
-      roleLabel = AppSidebar.roleLabelFromId(prefs.getString("roleid_login"));
-    });
-  }
 
   Future<void> getKategoriApi() async {
     try {
@@ -141,7 +127,6 @@ class _MasterKategoriSenjataPageState extends State<MasterKategoriSenjataPage> {
   @override
   void initState() {
     super.initState();
-    loadUser();
     getKategoriApi();
   }
 
@@ -482,315 +467,293 @@ class _MasterKategoriSenjataPageState extends State<MasterKategoriSenjataPage> {
   // =====================================================================
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: AppBackground(
-        imagePath: 'assets/images/wp-putih-mabes.png',
-        child: SafeArea(
-          child: Row(
+    return AppScaffold(
+  currentRoute: "kategori_senjata",
+  breadcrumb: "Dashboard / Master Data / Kategori Senjata",
+  child: Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const SizedBox(height: 25),
+
+      /// TITLE
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const Text(
+            "Master Kategori Senjata & Kaliber",
+            style: TextStyle(
+              fontSize: 34,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+
+          ElevatedButton.icon(
+            onPressed: () => _showKategoriForm(),
+            icon: const Icon(Icons.add),
+            label: const Text("Tambah Kategori"),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.amber,
+              foregroundColor: Colors.black,
+              elevation: 5,
+              padding: const EdgeInsets.symmetric(
+                horizontal: 22,
+                vertical: 18,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30),
+              ),
+            ),
+          ),
+        ],
+      ),
+
+      const SizedBox(height: 20),
+
+      /// SEARCH
+      AppSearchField(
+        hintText: "Cari Kategori...",
+        controller: _searchController,
+        onChanged: _onSearchChanged,
+      ),
+
+      const SizedBox(height: 25),
+
+      /// TABLE DATA
+      Expanded(
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
             children: [
-              const AppSidebar(currentRoute: "kategori_senjata"),
-
-              /// ========================
-              /// CONTENT
-              /// ========================
               Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(30),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      AppHeader(
-                        breadcrumb: "Dashboard / Master Data / Kategori Senjata",
-                        username: unLogin,
-                        role: roleLabel,
-                      ),
-                      const SizedBox(height: 25),
-
-                      /// TITLE
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            "Master Kategori Senjata & Kaliber",
-                            style: TextStyle(
-                              fontSize: 34,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
-                            ),
-                          ),
-
-                          ElevatedButton.icon(
-                            onPressed: () => _showKategoriForm(),
-                            icon: const Icon(Icons.add),
-                            label: const Text("Tambah Kategori"),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.amber,
-                              foregroundColor: Colors.black,
-                              elevation: 5,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 22,
-                                vertical: 18,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 20),
-
-                      /// SEARCH
-                      AppSearchField(
-                        hintText: "Cari Kategori...",
-                        controller: _searchController,
-                        onChanged: _onSearchChanged,
-                      ),
-
-                      const SizedBox(height: 25),
-
-                      /// TABLE DATA
-                      Expanded(
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.05),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            children: [
-                              Expanded(
-                                child: isLoading
-                                    ? const Center(
-                                        child: CircularProgressIndicator(
-                                          color: Colors.amber,
-                                        ),
-                                      )
-                                    : errorMessage.isNotEmpty
-                                        ? _buildErrorState()
-                                        : SingleChildScrollView(
-                                            child: Padding(
-                                              padding:
-                                                  const EdgeInsets.all(20),
-                                              child: LayoutBuilder(
-                                                builder: (context, constraints) {
-                                                  return SingleChildScrollView(
-                                                    scrollDirection:
-                                                        Axis.horizontal,
-                                                    child: ConstrainedBox(
-                                                      constraints:
-                                                          BoxConstraints(
-                                                            minWidth: constraints
-                                                                .maxWidth,
-                                                          ),
-                                                      child: DataTable(
-                                                        headingRowColor:
-                                                            WidgetStateProperty
-                                                                .all(
-                                                                  Colors.grey
-                                                                      .shade50,
-                                                                ),
-                                                        headingTextStyle:
-                                                            const TextStyle(
-                                                              fontSize: 12,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w700,
-                                                              color: Color(
-                                                                0xFF6B7280,
-                                                              ),
-                                                            ),
-                                                        dataTextStyle:
-                                                            const TextStyle(
-                                                              fontSize: 14,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w400,
-                                                              color: Color(
-                                                                0xFF374151,
-                                                              ),
-                                                            ),
-                                                        dividerThickness: 0.5,
-                                                        border:
-                                                            const TableBorder(
-                                                              horizontalInside:
-                                                                  BorderSide(
-                                                                    color: Color(
-                                                                      0xFFE5E7EB,
-                                                                    ),
-                                                                    width: 0.5,
-                                                                  ),
-                                                            ),
-                                                        dataRowMinHeight: 60,
-                                                        dataRowMaxHeight: 70,
-                                                        columns: const [
-                                                          DataColumn(
-                                                            label: Text(
-                                                              "TIPE LARAS",
-                                                            ),
-                                                          ),
-                                                          DataColumn(
-                                                            label: Text(
-                                                              "KALIBER",
-                                                            ),
-                                                          ),
-                                                          DataColumn(
-                                                            label: Text(
-                                                              "AKSI",
-                                                            ),
-                                                          ),
-                                                        ],
-                                                        rows: kategoriList
-                                                            .map(
-                                                              (e) => DataRow(
-                                                                cells: [
-                                                                  DataCell(
-                                                                    _buildTipeLarasBadge(
-                                                                      e[
-                                                                              "tipe_laras"]
-                                                                              ?.toString() ??
-                                                                          "-",
-                                                                    ),
-                                                                  ),
-                                                                  DataCell(
-                                                                    Text(
-                                                                      e["kaliber"]
-                                                                              ?.toString() ??
-                                                                          "-",
-                                                                      style: const TextStyle(
-                                                                        fontFamily:
-                                                                            "monospace",
-                                                                      ),
-                                                                    ),
-                                                                  ),
-                                                                  DataCell(
-                                                                    ActionButtons(
-                                                                      onEdit: () =>
-                                                                          _showKategoriForm(
-                                                                        existing:
-                                                                            e,
-                                                                      ),
-                                                                      onDelete: () async {
-                                                                        final kategoriId =
-                                                                            e["kategori_id"]
-                                                                                ?.toString() ??
-                                                                            "";
-                                                                        if (kategoriId
-                                                                            .isEmpty) {
-                                                                          return;
-                                                                        }
-                                                                        final tipeLaras =
-                                                                            e["tipe_laras"]
-                                                                                    ?.toString() ??
-                                                                                "";
-                                                                        final kaliber =
-                                                                            e["kaliber"]
-                                                                                    ?.toString() ??
-                                                                                "";
-                                                                        final result =
-                                                                            await showDialog<
-                                                                                bool>(
-                                                                          context:
-                                                                              context,
-                                                                          builder:
-                                                                              (
-                                                                                _,
-                                                                              ) =>
-                                                                                  AlertDialog(
-                                                                            title:
-                                                                                const Text(
-                                                                                  "Hapus Kategori",
-                                                                                ),
-                                                                            content:
-                                                                                Text(
-                                                                                  "Apakah Anda yakin ingin menghapus kategori \"$tipeLaras - $kaliber\"?",
-                                                                                ),
-                                                                            actions:
-                                                                                [
-                                                                                  TextButton(
-                                                                                    onPressed:
-                                                                                        () =>
-                                                                                            Navigator.pop(
-                                                                                              context,
-                                                                                              false,
-                                                                                            ),
-                                                                                    child:
-                                                                                        const Text(
-                                                                                          "Batal",
-                                                                                        ),
-                                                                                  ),
-                                                                                  ElevatedButton(
-                                                                                    style: ElevatedButton.styleFrom(
-                                                                                      backgroundColor:
-                                                                                          Colors.red,
-                                                                                      foregroundColor:
-                                                                                          Colors.white,
-                                                                                    ),
-                                                                                    onPressed:
-                                                                                        () =>
-                                                                                            Navigator.pop(
-                                                                                              context,
-                                                                                              true,
-                                                                                            ),
-                                                                                    child:
-                                                                                        const Text(
-                                                                                          "Hapus",
-                                                                                        ),
-                                                                                  ),
-                                                                                ],
-                                                                          ),
-                                                                        );
-                                                                        if (result ==
-                                                                            true) {
-                                                                          deleteKategori(
-                                                                            kategoriId,
-                                                                          );
-                                                                        }
-                                                                      },
-                                                                    ),
-                                                                  ),
-                                                                ],
-                                                              ),
-                                                            )
-                                                            .toList(),
-                                                      ),
-                                                    ),
-                                                  );
-                                                },
+                child: isLoading
+                    ? const Center(
+                        child: CircularProgressIndicator(
+                          color: Colors.amber,
+                        ),
+                      )
+                    : errorMessage.isNotEmpty
+                        ? _buildErrorState()
+                        : SingleChildScrollView(
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.all(20),
+                              child: LayoutBuilder(
+                                builder: (context, constraints) {
+                                  return SingleChildScrollView(
+                                    scrollDirection:
+                                        Axis.horizontal,
+                                    child: ConstrainedBox(
+                                      constraints:
+                                          BoxConstraints(
+                                            minWidth: constraints
+                                                .maxWidth,
+                                          ),
+                                      child: DataTable(
+                                        headingRowColor:
+                                            WidgetStateProperty
+                                                .all(
+                                                  Colors.grey
+                                                      .shade50,
+                                                ),
+                                        headingTextStyle:
+                                            const TextStyle(
+                                              fontSize: 12,
+                                              fontWeight:
+                                                  FontWeight
+                                                      .w700,
+                                              color: Color(
+                                                0xFF6B7280,
                                               ),
                                             ),
+                                        dataTextStyle:
+                                            const TextStyle(
+                                              fontSize: 14,
+                                              fontWeight:
+                                                  FontWeight
+                                                      .w400,
+                                              color: Color(
+                                                0xFF374151,
+                                              ),
+                                            ),
+                                        dividerThickness: 0.5,
+                                        border:
+                                            const TableBorder(
+                                              horizontalInside:
+                                                  BorderSide(
+                                                    color: Color(
+                                                      0xFFE5E7EB,
+                                                    ),
+                                                    width: 0.5,
+                                                  ),
+                                            ),
+                                        dataRowMinHeight: 60,
+                                        dataRowMaxHeight: 70,
+                                        columns: const [
+                                          DataColumn(
+                                            label: Text(
+                                              "TIPE LARAS",
+                                            ),
                                           ),
+                                          DataColumn(
+                                            label: Text(
+                                              "KALIBER",
+                                            ),
+                                          ),
+                                          DataColumn(
+                                            label: Text(
+                                              "AKSI",
+                                            ),
+                                          ),
+                                        ],
+                                        rows: kategoriList
+                                            .map(
+                                              (e) => DataRow(
+                                                cells: [
+                                                  DataCell(
+                                                    _buildTipeLarasBadge(
+                                                      e[
+                                                              "tipe_laras"]
+                                                              ?.toString() ??
+                                                          "-",
+                                                    ),
+                                                  ),
+                                                  DataCell(
+                                                    Text(
+                                                      e["kaliber"]
+                                                              ?.toString() ??
+                                                          "-",
+                                                      style: const TextStyle(
+                                                        fontFamily:
+                                                            "monospace",
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  DataCell(
+                                                    ActionButtons(
+                                                      onEdit: () =>
+                                                          _showKategoriForm(
+                                                        existing:
+                                                            e,
+                                                      ),
+                                                      onDelete: () async {
+                                                        final kategoriId =
+                                                            e["kategori_id"]
+                                                                ?.toString() ??
+                                                            "";
+                                                        if (kategoriId
+                                                            .isEmpty) {
+                                                          return;
+                                                        }
+                                                        final tipeLaras =
+                                                            e["tipe_laras"]
+                                                                    ?.toString() ??
+                                                                "";
+                                                        final kaliber =
+                                                            e["kaliber"]
+                                                                    ?.toString() ??
+                                                                "";
+                                                        final result =
+                                                            await showDialog<
+                                                                bool>(
+                                                          context:
+                                                              context,
+                                                          builder:
+                                                              (
+                                                                _,
+                                                              ) =>
+                                                                  AlertDialog(
+                                                            title:
+                                                                const Text(
+                                                                  "Hapus Kategori",
+                                                                ),
+                                                            content:
+                                                                Text(
+                                                                  "Apakah Anda yakin ingin menghapus kategori \"$tipeLaras - $kaliber\"?",
+                                                                ),
+                                                            actions:
+                                                                [
+                                                                  TextButton(
+                                                                    onPressed:
+                                                                        () =>
+                                                                            Navigator.pop(
+                                                                              context,
+                                                                              false,
+                                                                            ),
+                                                                    child:
+                                                                        const Text(
+                                                                          "Batal",
+                                                                        ),
+                                                                  ),
+                                                                  ElevatedButton(
+                                                                    style: ElevatedButton.styleFrom(
+                                                                      backgroundColor:
+                                                                          Colors.red,
+                                                                      foregroundColor:
+                                                                          Colors.white,
+                                                                    ),
+                                                                    onPressed:
+                                                                        () =>
+                                                                            Navigator.pop(
+                                                                              context,
+                                                                              true,
+                                                                            ),
+                                                                    child:
+                                                                        const Text(
+                                                                          "Hapus",
+                                                                        ),
+                                                                  ),
+                                                                ],
+                                                          ),
+                                                        );
+                                                        if (result ==
+                                                            true) {
+                                                          deleteKategori(
+                                                            kategoriId,
+                                                          );
+                                                        }
+                                                      },
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            )
+                                            .toList(),
+                                      ),
+                                    ),
+                                  );
+                                },
                               ),
-                              AppPagination(
-                                currentPage: _currentPage,
-                                totalPages: _totalPages,
-                                totalItems: _totalItems,
-                                perPage: _perPage,
-                                onPageChanged: _onPageChanged,
-                              ),
-                            ],
+                            ),
                           ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 20),
-                      const AppFooter(),
-                    ],
-                  ),
-                ),
+              ),
+              AppPagination(
+                currentPage: _currentPage,
+                totalPages: _totalPages,
+                totalItems: _totalItems,
+                perPage: _perPage,
+                onPageChanged: _onPageChanged,
               ),
             ],
           ),
         ),
       ),
-    );
+
+      const SizedBox(height: 20),
+
+    ],
+  ),
+);
   }
 
   Widget _buildErrorState() {

@@ -2,18 +2,15 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import '../widget/background.dart';
-import '../widget/app_sidebar.dart';
 import '../config/api_config.dart';
 import '../pages/add_amunisi.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import '../widget/app_footer.dart';
 import '../widget/app_pagination.dart';
-import '../widget/app_header.dart';
 import '../widget/app_search_field.dart';
 import '../widget/action_buttons.dart';
+import '../widget/app_scaffold.dart';
 
 class AmunisiPage extends StatefulWidget {
   const AmunisiPage({super.key});
@@ -25,8 +22,6 @@ class AmunisiPage extends StatefulWidget {
 class _AmunisiPageState extends State<AmunisiPage> {
   List<Map<String, dynamic>> amunisiApi = [];
   bool isLoading = true;
-  String unLogin = "";
-  String roleLabel = "Operator";
 
   String _searchQuery = "";
   Timer? _debounce;
@@ -35,15 +30,6 @@ class _AmunisiPageState extends State<AmunisiPage> {
   int _totalPages = 1;
   int _totalItems = 0;
   int _perPage = 10;
-
-  Future<void> loadUser() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    setState(() {
-      unLogin = prefs.getString("username_login") ?? "";
-      roleLabel = AppSidebar.roleLabelFromId(prefs.getString("roleid_login"));
-    });
-  }
 
   Future<void> getAmunisiApi() async {
     try {
@@ -119,7 +105,6 @@ class _AmunisiPageState extends State<AmunisiPage> {
   @override
   void initState() {
     super.initState();
-    loadUser();
     getAmunisiApi();
   }
 
@@ -236,350 +221,331 @@ class _AmunisiPageState extends State<AmunisiPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: AppBackground(
-        imagePath: 'assets/images/wp-putih-mabes.png',
-        child: SafeArea(
-          child: Row(
+    return AppScaffold(
+  currentRoute: "ammo_stock",
+  breadcrumb: "Dashboard / Logistik / Stok Amunisi",
+  child: Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const SizedBox(height: 25),
+
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const Text(
+            "Manajemen Stok Amunisi",
+            style: TextStyle(
+              fontSize: 34,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+
+          ElevatedButton.icon(
+            onPressed: () async {
+              final result = await Navigator.push<bool>(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const AddAmunisiPage(),
+                ),
+              );
+              if (result == true) {
+                getAmunisiApi();
+              }
+            },
+            icon: const Icon(Icons.add),
+            label: const Text("Tambah Amunisi"),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.amber,
+              foregroundColor: Colors.black,
+              elevation: 5,
+              padding: const EdgeInsets.symmetric(
+                horizontal: 22,
+                vertical: 18,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30),
+              ),
+            ),
+          ),
+        ],
+      ),
+
+      const SizedBox(height: 20),
+
+      AppSearchField(
+        hintText: "Cari Amunisi...",
+        controller: _searchController,
+        onChanged: _onSearchChanged,
+      ),
+
+      const SizedBox(height: 25),
+
+      Expanded(
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
             children: [
-              const AppSidebar(currentRoute: "ammo_stock"),
-
               Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(30),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      AppHeader(
-                        breadcrumb: "Dashboard / Logistik / Stok Amunisi",
-                        username: unLogin,
-                        role: roleLabel,
-                      ),
-                      const SizedBox(height: 25),
-
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            "Manajemen Stok Amunisi",
-                            style: TextStyle(
-                              fontSize: 34,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
-                            ),
-                          ),
-
-                          ElevatedButton.icon(
-                            onPressed: () async {
-                              final result = await Navigator.push<bool>(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const AddAmunisiPage(),
-                                ),
-                              );
-                              if (result == true) {
-                                getAmunisiApi();
-                              }
-                            },
-                            icon: const Icon(Icons.add),
-                            label: const Text("Tambah Amunisi"),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.amber,
-                              foregroundColor: Colors.black,
-                              elevation: 5,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 22,
-                                vertical: 18,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 20),
-
-                      AppSearchField(
-                        hintText: "Cari Amunisi...",
-                        controller: _searchController,
-                        onChanged: _onSearchChanged,
-                      ),
-
-                      const SizedBox(height: 25),
-
-                      Expanded(
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.05),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            children: [
-                              Expanded(
-                                child: isLoading
-                                    ? const Center(
-                                        child: CircularProgressIndicator(),
-                                      )
-                                    : SingleChildScrollView(
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(20),
-                                          child: LayoutBuilder(
-                                            builder: (context, constraints) {
-                                              return SingleChildScrollView(
-                                                scrollDirection:
-                                                    Axis.horizontal,
-                                                child: ConstrainedBox(
-                                                  constraints:
-                                                      BoxConstraints(
-                                                        minWidth:
-                                                            constraints
-                                                                .maxWidth,
-                                                      ),
-                                                  child: DataTable(
-                                                    headingRowColor:
-                                                        WidgetStateProperty
-                                                            .all(
-                                                              Colors.grey
-                                                                  .shade50,
-                                                            ),
-                                                    headingTextStyle:
-                                                        const TextStyle(
-                                                          fontSize: 12,
-                                                          fontWeight:
-                                                              FontWeight.w700,
-                                                          color: Color(
-                                                            0xFF6B7280,
-                                                          ),
-                                                        ),
-                                                    dataTextStyle:
-                                                        const TextStyle(
-                                                          fontSize: 14,
-                                                          fontWeight:
-                                                              FontWeight.w400,
-                                                          color: Color(
-                                                            0xFF374151,
-                                                          ),
-                                                        ),
-                                                    dividerThickness: 0.5,
-                                                    border: const TableBorder(
-                                                      horizontalInside:
-                                                          BorderSide(
-                                                            color: Color(
-                                                              0xFFE5E7EB,
-                                                            ),
-                                                            width: 0.5,
-                                                          ),
-                                                    ),
-                                                    dataRowMinHeight: 60,
-                                                    dataRowMaxHeight: 70,
-                                                    columns: const [
-                                                      DataColumn(
-                                                        label: Text(
-                                                          "KODE BATCH",
-                                                        ),
-                                                      ),
-                                                      DataColumn(
-                                                        label: Text("KALIBER"),
-                                                      ),
-                                                      DataColumn(
-                                                        label: Text(
-                                                          "JUMLAH BUTIR",
-                                                        ),
-                                                      ),
-                                                      DataColumn(
-                                                        label: Text("TGL MASUK"),
-                                                      ),
-                                                      DataColumn(
-                                                        label: Text(
-                                                          "TGL KEDALUWARSA",
-                                                        ),
-                                                      ),
-                                                      DataColumn(
-                                                        label: Text("STATUS"),
-                                                      ),
-                                                      DataColumn(
-                                                        label: Text("AKSI"),
-                                                      ),
-                                                    ],
-                                                    rows: amunisiApi
-                                                        .map(
-                                                          (e) => DataRow(
-                                                            cells: [
-                                                              DataCell(
-                                                                Text(
-                                                                  e[
-                                                                          "kode_batch"]
-                                                                      ?.toString() ??
-                                                                      "-",
-                                                                  style:
-                                                                      const TextStyle(
-                                                                        fontFamily:
-                                                                            "monospace",
-                                                                      ),
-                                                                ),
-                                                              ),
-                                                              DataCell(
-                                                                Text(
-                                                                  _formatKaliber(
-                                                                    e[
-                                                                        "kategori"],
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                              DataCell(
-                                                                Text(
-                                                                  _formatJumlah(
-                                                                    e[
-                                                                        "jumlah_butir"],
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                              DataCell(
-                                                                Text(
-                                                                  e[
-                                                                          "tanggal_masuk"]
-                                                                          ?.toString() ??
-                                                                      "-",
-                                                                ),
-                                                              ),
-                                                              DataCell(
-                                                                Text(
-                                                                  e[
-                                                                          "tanggal_kedaluwarsa"]
-                                                                          ?.toString() ??
-                                                                      "-",
-                                                                ),
-                                                              ),
-                                                              DataCell(
-                                                                _buildStatusBadge(
-                                                                  _isH90(e),
-                                                                ),
-                                                              ),
-                                                              DataCell(
-                                                                ActionButtons(
-                                                                  onEdit: () async {
-                                                                    final result =
-                                                                        await Navigator.push<
-                                                                            bool>(
-                                                                      context,
-                                                                      MaterialPageRoute(
-                                                                        builder: (_) =>
-                                                                            AddAmunisiPage(
-                                                                          initialData:
-                                                                              e,
-                                                                        ),
-                                                                      ),
-                                                                    );
-                                                                    if (result ==
-                                                                        true) {
-                                                                      getAmunisiApi();
-                                                                    }
-                                                                  },
-                                                                  onDelete: () async {
-                                                                    final result =
-                                                                        await showDialog(
-                                                                      context:
-                                                                          context,
-                                                                      builder:
-                                                                          (
-                                                                        _,
-                                                                      ) =>
-                                                                          AlertDialog(
-                                                                        title:
-                                                                            const Text(
-                                                                              "Hapus Amunisi",
-                                                                            ),
-                                                                        content:
-                                                                            const Text(
-                                                                              "Apakah Anda yakin ingin menghapus data ini?",
-                                                                            ),
-                                                                        actions: [
-                                                                          TextButton(
-                                                                            onPressed: () =>
-                                                                                Navigator.pop(
-                                                                                  context,
-                                                                                  false,
-                                                                                ),
-                                                                            child:
-                                                                                const Text(
-                                                                                  "Batal",
-                                                                                ),
-                                                                          ),
-                                                                          ElevatedButton(
-                                                                            onPressed: () =>
-                                                                                Navigator.pop(
-                                                                                  context,
-                                                                                  true,
-                                                                                ),
-                                                                            child:
-                                                                                const Text(
-                                                                                  "Hapus",
-                                                                                ),
-                                                                          ),
-                                                                        ],
-                                                                      ),
-                                                                    );
-                                                                    if (result ==
-                                                                        true) {
-                                                                      final amunisiId =
-                                                                          e[
-                                                                                  "batch_id"]
-                                                                              ?.toString() ??
-                                                                              "";
-                                                                      if (amunisiId
-                                                                          .isNotEmpty) {
-                                                                        deleteAmunisi(
-                                                                          amunisiId,
-                                                                        );
-                                                                      }
-                                                                    }
-                                                                  },
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        )
-                                                        .toList(),
-                                                  ),
-                                                ),
-                                              );
-                                            },
+                child: isLoading
+                    ? const Center(
+                        child: CircularProgressIndicator(),
+                      )
+                    : SingleChildScrollView(
+                        child: Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: LayoutBuilder(
+                            builder: (context, constraints) {
+                              return SingleChildScrollView(
+                                scrollDirection:
+                                    Axis.horizontal,
+                                child: ConstrainedBox(
+                                  constraints:
+                                      BoxConstraints(
+                                        minWidth:
+                                            constraints
+                                                .maxWidth,
+                                      ),
+                                  child: DataTable(
+                                    headingRowColor:
+                                        WidgetStateProperty
+                                            .all(
+                                              Colors.grey
+                                                  .shade50,
+                                            ),
+                                    headingTextStyle:
+                                        const TextStyle(
+                                          fontSize: 12,
+                                          fontWeight:
+                                              FontWeight.w700,
+                                          color: Color(
+                                            0xFF6B7280,
                                           ),
                                         ),
+                                    dataTextStyle:
+                                        const TextStyle(
+                                          fontSize: 14,
+                                          fontWeight:
+                                              FontWeight.w400,
+                                          color: Color(
+                                            0xFF374151,
+                                          ),
+                                        ),
+                                    dividerThickness: 0.5,
+                                    border: const TableBorder(
+                                      horizontalInside:
+                                          BorderSide(
+                                            color: Color(
+                                              0xFFE5E7EB,
+                                            ),
+                                            width: 0.5,
+                                          ),
+                                    ),
+                                    dataRowMinHeight: 60,
+                                    dataRowMaxHeight: 70,
+                                    columns: const [
+                                      DataColumn(
+                                        label: Text(
+                                          "KODE BATCH",
+                                        ),
                                       ),
-                              ),
-                              AppPagination(
-                                currentPage: _currentPage,
-                                totalPages: _totalPages,
-                                totalItems: _totalItems,
-                                perPage: _perPage,
-                                onPageChanged: _onPageChanged,
-                              ),
-                            ],
+                                      DataColumn(
+                                        label: Text("KALIBER"),
+                                      ),
+                                      DataColumn(
+                                        label: Text(
+                                          "JUMLAH BUTIR",
+                                        ),
+                                      ),
+                                      DataColumn(
+                                        label: Text("TGL MASUK"),
+                                      ),
+                                      DataColumn(
+                                        label: Text(
+                                          "TGL KEDALUWARSA",
+                                        ),
+                                      ),
+                                      DataColumn(
+                                        label: Text("STATUS"),
+                                      ),
+                                      DataColumn(
+                                        label: Text("AKSI"),
+                                      ),
+                                    ],
+                                    rows: amunisiApi
+                                        .map(
+                                          (e) => DataRow(
+                                            cells: [
+                                              DataCell(
+                                                Text(
+                                                  e[
+                                                          "kode_batch"]
+                                                      ?.toString() ??
+                                                      "-",
+                                                  style:
+                                                      const TextStyle(
+                                                        fontFamily:
+                                                            "monospace",
+                                                      ),
+                                                ),
+                                              ),
+                                              DataCell(
+                                                Text(
+                                                  _formatKaliber(
+                                                    e[
+                                                        "kategori"],
+                                                  ),
+                                                ),
+                                              ),
+                                              DataCell(
+                                                Text(
+                                                  _formatJumlah(
+                                                    e[
+                                                        "jumlah_butir"],
+                                                  ),
+                                                ),
+                                              ),
+                                              DataCell(
+                                                Text(
+                                                  e[
+                                                          "tanggal_masuk"]
+                                                          ?.toString() ??
+                                                      "-",
+                                                ),
+                                              ),
+                                              DataCell(
+                                                Text(
+                                                  e[
+                                                          "tanggal_kedaluwarsa"]
+                                                          ?.toString() ??
+                                                      "-",
+                                                ),
+                                              ),
+                                              DataCell(
+                                                _buildStatusBadge(
+                                                  _isH90(e),
+                                                ),
+                                              ),
+                                              DataCell(
+                                                ActionButtons(
+                                                  onEdit: () async {
+                                                    final result =
+                                                        await Navigator.push<
+                                                            bool>(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                        builder: (_) =>
+                                                            AddAmunisiPage(
+                                                          initialData:
+                                                              e,
+                                                        ),
+                                                      ),
+                                                    );
+                                                    if (result ==
+                                                        true) {
+                                                      getAmunisiApi();
+                                                    }
+                                                  },
+                                                  onDelete: () async {
+                                                    final result =
+                                                        await showDialog(
+                                                      context:
+                                                          context,
+                                                      builder:
+                                                          (
+                                                        _,
+                                                      ) =>
+                                                          AlertDialog(
+                                                        title:
+                                                            const Text(
+                                                              "Hapus Amunisi",
+                                                            ),
+                                                        content:
+                                                            const Text(
+                                                              "Apakah Anda yakin ingin menghapus data ini?",
+                                                            ),
+                                                        actions: [
+                                                          TextButton(
+                                                            onPressed: () =>
+                                                                Navigator.pop(
+                                                                  context,
+                                                                  false,
+                                                                ),
+                                                            child:
+                                                                const Text(
+                                                                  "Batal",
+                                                                ),
+                                                          ),
+                                                          ElevatedButton(
+                                                            onPressed: () =>
+                                                                Navigator.pop(
+                                                                  context,
+                                                                  true,
+                                                                ),
+                                                            child:
+                                                                const Text(
+                                                                  "Hapus",
+                                                                ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    );
+                                                    if (result ==
+                                                        true) {
+                                                      final amunisiId =
+                                                          e[
+                                                                  "batch_id"]
+                                                              ?.toString() ??
+                                                              "";
+                                                      if (amunisiId
+                                                          .isNotEmpty) {
+                                                        deleteAmunisi(
+                                                          amunisiId,
+                                                        );
+                                                      }
+                                                    }
+                                                  },
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        )
+                                        .toList(),
+                                  ),
+                                ),
+                              );
+                            },
                           ),
                         ),
                       ),
-
-                      const SizedBox(height: 20),
-                      const AppFooter(),
-                    ],
-                  ),
-                ),
+              ),
+              AppPagination(
+                currentPage: _currentPage,
+                totalPages: _totalPages,
+                totalItems: _totalItems,
+                perPage: _perPage,
+                onPageChanged: _onPageChanged,
               ),
             ],
           ),
         ),
       ),
-    );
+
+      const SizedBox(height: 20),
+
+    ],
+  ),
+);
   }
 
   String _formatJumlah(dynamic jumlah) {

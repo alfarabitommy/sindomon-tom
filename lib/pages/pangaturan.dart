@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import '../widget/background.dart';
-import '../widget/app_sidebar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../widget/app_footer.dart';
-import '../widget/app_header.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../config/api_config.dart';
+import '../widget/app_scaffold.dart';
+import '../utils/session_util.dart';
 
 class AccountSettingPage extends StatefulWidget {
   const AccountSettingPage({super.key});
@@ -25,7 +23,7 @@ class _AccountSettingPageState extends State<AccountSettingPage> {
 
     setState(() {
       unLogin = prefs.getString("username_login") ?? "";
-      roleLabel = AppSidebar.roleLabelFromId(prefs.getString("roleid_login"));
+      roleLabel = roleLabelFromId(prefs.getString("roleid_login"));
       polda = prefs.getString("polda_login") ?? "";
     });
   }
@@ -176,123 +174,92 @@ class _AccountSettingPageState extends State<AccountSettingPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: AppBackground(
-        imagePath: 'assets/images/wp-putih-mabes.png',
-        child: SafeArea(
-          child: Row(
+    return AppScaffold(
+      currentRoute: 'pengaturan',
+      breadcrumb: 'Dashboard / Profil Saya',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          /// Gap below the AppHeader (rendered by AppScaffold).
+          const SizedBox(height: 25),
+
+          /// ============================
+          /// TITLE
+          /// ============================
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const AppSidebar(currentRoute: "pengaturan"),
+              const Text(
+                "Profil & Pengaturan",
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF23251D),
+                ),
+              ),
 
-              /// ========================
-              /// CONTENT
-              /// ========================
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(30.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      /// ============================
-                      /// TOP ZONE: HEADER
-                      /// ============================
-                      AppHeader(
-                        breadcrumb: "Dashboard / Profil Saya",
-                        username: unLogin,
-                        role: roleLabel,
-                      ),
-
-                      const SizedBox(height: 25),
-
-                      /// ============================
-                      /// TITLE
-                      /// ============================
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            "Profil & Pengaturan",
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF23251D),
-                            ),
-                          ),
-
-                          ElevatedButton.icon(
-                            onPressed: () => Navigator.pop(context),
-                            icon: const Icon(Icons.arrow_back, size: 16),
-                            label: const Text("Kembali"),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF23251D),
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 25),
-
-                      /// ============================
-                      /// MIDDLE ZONE: SCROLLABLE CONTENT
-                      /// ============================
-                      Expanded(
-                        child: SingleChildScrollView(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              /// ============================
-                              /// PROFIL (READ-ONLY)
-                              /// ============================
-                              Wrap(
-                                spacing: 20,
-                                runSpacing: 20,
-                                children: [
-                                  _infoCard(
-                                    icon: Icons.person_rounded,
-                                    label: "Nama Pengguna",
-                                    value: unLogin,
-                                  ),
-                                  _infoCard(
-                                    icon: Icons.admin_panel_settings_rounded,
-                                    label: "Level Akses",
-                                    value: roleLabel,
-                                  ),
-                                  _infoCard(
-                                    icon: Icons.map_rounded,
-                                    label: "Polda",
-                                    value: polda.isEmpty ? "-" : polda,
-                                  ),
-                                ],
-                              ),
-
-                              const SizedBox(height: 20),
-
-                              /// ============================
-                              /// KEAMANAN PERANGKAT
-                              /// ============================
-                              _bindingCard(),
-                            ],
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 20),
-
-                      /// ============================
-                      /// BOTTOM ZONE: FOOTER
-                      /// ============================
-                      const AppFooter(),
-                    ],
+              ElevatedButton.icon(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.arrow_back, size: 16),
+                label: const Text("Kembali"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF23251D),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
                   ),
                 ),
               ),
             ],
           ),
-        ),
+
+          const SizedBox(height: 25),
+
+          /// ============================
+          /// MIDDLE ZONE: SCROLLABLE CONTENT
+          /// ============================
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.only(bottom: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  /// ============================
+                  /// PROFIL (READ-ONLY)
+                  /// ============================
+                  Wrap(
+                    spacing: 20,
+                    runSpacing: 20,
+                    children: [
+                      _infoCard(
+                        icon: Icons.person_rounded,
+                        label: "Nama Pengguna",
+                        value: unLogin,
+                      ),
+                      _infoCard(
+                        icon: Icons.admin_panel_settings_rounded,
+                        label: "Level Akses",
+                        value: roleLabel,
+                      ),
+                      _infoCard(
+                        icon: Icons.map_rounded,
+                        label: "Polda",
+                        value: polda.isEmpty ? "-" : polda,
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  /// ============================
+                  /// KEAMANAN PERANGKAT
+                  /// ============================
+                  _bindingCard(),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

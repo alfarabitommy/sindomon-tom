@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
-import '../widget/background.dart';
-import '../widget/app_sidebar.dart';
 import '../config/api_config.dart';
 import '../models/dashboard_model.dart';
 import '../models/polda_model.dart';
 import '../pages/pangaturan.dart';
 import '../utils/session_util.dart';
+import '../widget/app_scaffold.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'dart:convert';
@@ -149,23 +148,12 @@ class _DashboardPageState extends State<DashboardPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: AppBackground(
-        imagePath: 'assets/images/wp-putih-mabes.png',
-        child: SafeArea(
-          child: Row(
-            children: [
-              const AppSidebar(currentRoute: "dashboard"),
-              Expanded(
-                child:
-                    _roleId == "3"
-                        ? _buildCommandCenterContent()
-                        : _buildPlaceholder(),
-              ),
-            ],
-          ),
-        ),
-      ),
+    return AppScaffold(
+      currentRoute: 'dashboard',
+      // Executive Command Center: full-screen map without the standard
+      // header/footer chrome (the map owns its own overlays).
+      showHeaderFooter: false,
+      child: _roleId == "3" ? _buildCommandCenterContent() : _buildPlaceholder(),
     );
   }
 

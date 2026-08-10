@@ -2,18 +2,15 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import '../widget/background.dart';
-import '../widget/app_sidebar.dart';
 import '../config/api_config.dart';
 import '../pages/add_satwa.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import '../widget/app_footer.dart';
 import '../widget/app_pagination.dart';
-import '../widget/app_header.dart';
 import '../widget/app_search_field.dart';
 import '../widget/action_buttons.dart';
+import '../widget/app_scaffold.dart';
 
 class SatwaPage extends StatefulWidget {
   const SatwaPage({super.key});
@@ -25,8 +22,6 @@ class SatwaPage extends StatefulWidget {
 class _SatwaPageState extends State<SatwaPage> {
   List<Map<String, dynamic>> satwaApi = [];
   bool isLoading = true;
-  String unLogin = "";
-  String roleLabel = "Operator";
 
   String _searchQuery = "";
   Timer? _debounce;
@@ -35,16 +30,6 @@ class _SatwaPageState extends State<SatwaPage> {
   int _totalPages = 1;
   int _totalItems = 0;
   int _perPage = 10;
-
-  Future<void> loadUser() async {
-    final prefs = await SharedPreferences.getInstance();
-    if (!mounted) return;
-
-    setState(() {
-      unLogin = prefs.getString("username_login") ?? "";
-      roleLabel = AppSidebar.roleLabelFromId(prefs.getString("roleid_login"));
-    });
-  }
 
   // BUG FIX (Rule 3): no trailing "?" appended when the search query is empty.
   Future<void> getSatwaApi() async {
@@ -120,7 +105,6 @@ class _SatwaPageState extends State<SatwaPage> {
   @override
   void initState() {
     super.initState();
-    loadUser();
     getSatwaApi();
   }
 
@@ -270,418 +254,396 @@ class _SatwaPageState extends State<SatwaPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: AppBackground(
-        imagePath: 'assets/images/wp-putih-mabes.png',
-        child: SafeArea(
-          child: Row(
+    return AppScaffold(
+  currentRoute: "satwa",
+  breadcrumb: "Dashboard / Logistik / Satwa K9 & Turangga",
+  child: Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const SizedBox(height: 25),
+
+      /// ============================
+      /// TITLE
+      /// ============================
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const Text(
+            "Manajemen Satwa",
+            style: TextStyle(
+              fontSize: 34,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+
+          ElevatedButton.icon(
+            onPressed: () async {
+              final result = await Navigator.push<bool>(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const AddSatwaPage(),
+                ),
+              );
+              if (result == true) {
+                getSatwaApi();
+              }
+            },
+            icon: const Icon(Icons.add),
+            label: const Text("Tambah Satwa"),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.amber,
+              foregroundColor: Colors.black,
+              elevation: 5,
+              padding: const EdgeInsets.symmetric(
+                horizontal: 22,
+                vertical: 18,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30),
+              ),
+            ),
+          ),
+        ],
+      ),
+
+      const SizedBox(height: 20),
+
+      /// SEARCH
+      AppSearchField(
+        hintText: "Cari Satwa...",
+        controller: _searchController,
+        onChanged: _onSearchChanged,
+      ),
+
+      const SizedBox(height: 25),
+
+      /// TABLE DATA
+      Expanded(
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
             children: [
-              const AppSidebar(currentRoute: "satwa"),
-
-              /// ========================
-              /// CONTENT
-              /// ========================
               Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(30),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      AppHeader(
-                        breadcrumb: "Dashboard / Logistik / Satwa K9 & Turangga",
-                        username: unLogin,
-                        role: roleLabel,
-                      ),
-                      const SizedBox(height: 25),
-
-                      /// ============================
-                      /// TITLE
-                      /// ============================
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            "Manajemen Satwa",
-                            style: TextStyle(
-                              fontSize: 34,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
-                            ),
-                          ),
-
-                          ElevatedButton.icon(
-                            onPressed: () async {
-                              final result = await Navigator.push<bool>(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const AddSatwaPage(),
-                                ),
-                              );
-                              if (result == true) {
-                                getSatwaApi();
-                              }
-                            },
-                            icon: const Icon(Icons.add),
-                            label: const Text("Tambah Satwa"),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.amber,
-                              foregroundColor: Colors.black,
-                              elevation: 5,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 22,
-                                vertical: 18,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 20),
-
-                      /// SEARCH
-                      AppSearchField(
-                        hintText: "Cari Satwa...",
-                        controller: _searchController,
-                        onChanged: _onSearchChanged,
-                      ),
-
-                      const SizedBox(height: 25),
-
-                      /// TABLE DATA
-                      Expanded(
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.05),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            children: [
-                              Expanded(
-                                child: isLoading
-                                    ? const Center(
-                                        child: CircularProgressIndicator(),
-                                      )
-                                    : SingleChildScrollView(
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(20),
-                                          child: LayoutBuilder(
-                                            builder: (context, constraints) {
-                                              return SingleChildScrollView(
-                                                scrollDirection:
-                                                    Axis.horizontal,
-                                                child: ConstrainedBox(
-                                                  constraints: BoxConstraints(
-                                                    minWidth:
-                                                        constraints.maxWidth,
-                                                  ),
-                                                  child: DataTable(
-                                                    headingRowColor:
-                                                        WidgetStateProperty.all(
-                                                          Colors.grey.shade50,
-                                                        ),
-                                                    headingTextStyle:
-                                                        const TextStyle(
-                                                          fontSize: 12,
-                                                          fontWeight:
-                                                              FontWeight.w700,
-                                                          color: Color(
-                                                            0xFF6B7280,
-                                                          ),
-                                                        ),
-                                                    dataTextStyle:
-                                                        const TextStyle(
-                                                          fontSize: 14,
-                                                          fontWeight:
-                                                              FontWeight.w400,
-                                                          color: Color(
-                                                            0xFF374151,
-                                                          ),
-                                                        ),
-                                                    dividerThickness: 0.5,
-                                                    border: const TableBorder(
-                                                      horizontalInside:
-                                                          BorderSide(
-                                                            color: Color(
-                                                              0xFFE5E7EB,
-                                                            ),
-                                                            width: 0.5,
-                                                          ),
-                                                    ),
-                                                    dataRowMinHeight: 60,
-                                                    dataRowMaxHeight: 70,
-                                                    columns: const [
-                                                      DataColumn(
-                                                        label: Text("FOTO"),
-                                                      ),
-                                                      DataColumn(
-                                                        label: Text(
-                                                          "NO REGISTRASI",
-                                                        ),
-                                                      ),
-                                                      DataColumn(
-                                                        label: Text("JENIS"),
-                                                      ),
-                                                      DataColumn(
-                                                        label: Text("NAMA SATWA"),
-                                                      ),
-                                                      DataColumn(
-                                                        label: Text(
-                                                          "NAMA HANDLER",
-                                                        ),
-                                                      ),
-                                                      DataColumn(
-                                                        label: Text(
-                                                          "KUALIFIKASI",
-                                                        ),
-                                                      ),
-                                                      DataColumn(
-                                                        label: Text(
-                                                          "JADWAL VAKSIN",
-                                                        ),
-                                                      ),
-                                                      DataColumn(
-                                                        label: Text("AKSI"),
-                                                      ),
-                                                    ],
-                                                    rows: satwaApi
-                                                        .map(
-                                                          (e) => DataRow(
-                                                            cells: [
-                                                              DataCell(
-                                                                _buildThumbnail(
-                                                                  e[
-                                                                          "foto_url"] ??
-                                                                      e[
-                                                                          "foto_satwa"] ??
-                                                                      e["foto"],
-                                                                ),
-                                                              ),
-                                                              DataCell(
-                                                                Text(
-                                                                  _cellValue(
-                                                                    e,
-                                                                    [
-                                                                      "nomor_registrasi",
-                                                                      "no_registrasi",
-                                                                    ],
-                                                                  ),
-                                                                  style:
-                                                                      const TextStyle(
-                                                                        fontFamily:
-                                                                            "monospace",
-                                                                      ),
-                                                                ),
-                                                              ),
-                                                              DataCell(
-                                                                Text(
-                                                                  _cellValue(
-                                                                    e,
-                                                                    [
-                                                                      "jenis_satwa",
-                                                                      "jenis",
-                                                                    ],
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                              DataCell(
-                                                                Text(
-                                                                  _cellValue(
-                                                                    e,
-                                                                    [
-                                                                      "nama_satwa",
-                                                                      "nama",
-                                                                    ],
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                              DataCell(
-                                                                Text(
-                                                                  _cellValue(
-                                                                    e,
-                                                                    [
-                                                                      "nama_handler",
-                                                                    ],
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                              DataCell(
-                                                                Text(
-                                                                  _cellValue(
-                                                                    e,
-                                                                    [
-                                                                      "kualifikasi",
-                                                                    ],
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                              DataCell(
-                                                                Row(
-                                                                  mainAxisSize:
-                                                                      MainAxisSize
-                                                                          .min,
-                                                                  children: [
-                                                                    Text(
-                                                                      _cellValue(
-                                                                        e,
-                                                                        [
-                                                                          "jadwal_vaksin",
-                                                                        ],
-                                                                      ),
-                                                                    ),
-                                                                    if (_isVaksinUrgent(
-                                                                      e[
-                                                                          "jadwal_vaksin"],
-                                                                    ))
-                                                                      const Padding(
-                                                                        padding:
-                                                                            EdgeInsets.only(
-                                                                              left:
-                                                                                  6,
-                                                                            ),
-                                                                        child:
-                                                                            Tooltip(
-                                                                              message:
-                                                                                  "Vaksinasi kurang dari 30 hari atau sudah lewat",
-                                                                              child:
-                                                                                  Icon(
-                                                                                    Icons
-                                                                                        .vaccines,
-                                                                                    color:
-                                                                                        Colors
-                                                                                            .red,
-                                                                                    size:
-                                                                                        18,
-                                                                                  ),
-                                                                            ),
-                                                                      ),
-                                                                  ],
-                                                                ),
-                                                              ),
-                                                              DataCell(
-                                                                ActionButtons(
-                                                                  onEdit: () async {
-                                                                    final result =
-                                                                        await Navigator.push<
-                                                                            bool>(
-                                                                      context,
-                                                                      MaterialPageRoute(
-                                                                        builder: (_) =>
-                                                                            AddSatwaPage(
-                                                                          initialData:
-                                                                              e,
-                                                                        ),
-                                                                      ),
-                                                                    );
-                                                                    if (result ==
-                                                                        true) {
-                                                                      getSatwaApi();
-                                                                    }
-                                                                  },
-                                                                  onDelete: () async {
-                                                                    final result =
-                                                                        await showDialog(
-                                                                      context:
-                                                                          context,
-                                                                      builder:
-                                                                          (
-                                                                        _,
-                                                                      ) =>
-                                                                          AlertDialog(
-                                                                        title:
-                                                                            const Text(
-                                                                              "Hapus Satwa",
-                                                                            ),
-                                                                        content:
-                                                                            const Text(
-                                                                              "Apakah Anda yakin ingin menghapus data ini?",
-                                                                            ),
-                                                                        actions: [
-                                                                          TextButton(
-                                                                            onPressed: () =>
-                                                                                Navigator.pop(
-                                                                                  context,
-                                                                                  false,
-                                                                                ),
-                                                                            child:
-                                                                                const Text(
-                                                                                  "Batal",
-                                                                                ),
-                                                                          ),
-                                                                          ElevatedButton(
-                                                                            onPressed: () =>
-                                                                                Navigator.pop(
-                                                                                  context,
-                                                                                  true,
-                                                                                ),
-                                                                            child:
-                                                                                const Text(
-                                                                                  "Hapus",
-                                                                                ),
-                                                                          ),
-                                                                        ],
-                                                                      ),
-                                                                    );
-                                                                    if (result ==
-                                                                        true) {
-                                                                      final satwaId =
-                                                                          e[
-                                                                                  "satwa_id"]
-                                                                              ?.toString() ??
-                                                                              "";
-                                                                      if (satwaId
-                                                                          .isNotEmpty) {
-                                                                        deleteSatwa(
-                                                                          satwaId,
-                                                                        );
-                                                                      }
-                                                                    }
-                                                                  },
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        )
-                                                        .toList(),
-                                                  ),
-                                                ),
-                                              );
-                                            },
+                child: isLoading
+                    ? const Center(
+                        child: CircularProgressIndicator(),
+                      )
+                    : SingleChildScrollView(
+                        child: Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: LayoutBuilder(
+                            builder: (context, constraints) {
+                              return SingleChildScrollView(
+                                scrollDirection:
+                                    Axis.horizontal,
+                                child: ConstrainedBox(
+                                  constraints: BoxConstraints(
+                                    minWidth:
+                                        constraints.maxWidth,
+                                  ),
+                                  child: DataTable(
+                                    headingRowColor:
+                                        WidgetStateProperty.all(
+                                          Colors.grey.shade50,
+                                        ),
+                                    headingTextStyle:
+                                        const TextStyle(
+                                          fontSize: 12,
+                                          fontWeight:
+                                              FontWeight.w700,
+                                          color: Color(
+                                            0xFF6B7280,
                                           ),
                                         ),
+                                    dataTextStyle:
+                                        const TextStyle(
+                                          fontSize: 14,
+                                          fontWeight:
+                                              FontWeight.w400,
+                                          color: Color(
+                                            0xFF374151,
+                                          ),
+                                        ),
+                                    dividerThickness: 0.5,
+                                    border: const TableBorder(
+                                      horizontalInside:
+                                          BorderSide(
+                                            color: Color(
+                                              0xFFE5E7EB,
+                                            ),
+                                            width: 0.5,
+                                          ),
+                                    ),
+                                    dataRowMinHeight: 60,
+                                    dataRowMaxHeight: 70,
+                                    columns: const [
+                                      DataColumn(
+                                        label: Text("FOTO"),
                                       ),
-                              ),
-                              AppPagination(
-                                currentPage: _currentPage,
-                                totalPages: _totalPages,
-                                totalItems: _totalItems,
-                                perPage: _perPage,
-                                onPageChanged: _onPageChanged,
-                              ),
-                            ],
+                                      DataColumn(
+                                        label: Text(
+                                          "NO REGISTRASI",
+                                        ),
+                                      ),
+                                      DataColumn(
+                                        label: Text("JENIS"),
+                                      ),
+                                      DataColumn(
+                                        label: Text("NAMA SATWA"),
+                                      ),
+                                      DataColumn(
+                                        label: Text(
+                                          "NAMA HANDLER",
+                                        ),
+                                      ),
+                                      DataColumn(
+                                        label: Text(
+                                          "KUALIFIKASI",
+                                        ),
+                                      ),
+                                      DataColumn(
+                                        label: Text(
+                                          "JADWAL VAKSIN",
+                                        ),
+                                      ),
+                                      DataColumn(
+                                        label: Text("AKSI"),
+                                      ),
+                                    ],
+                                    rows: satwaApi
+                                        .map(
+                                          (e) => DataRow(
+                                            cells: [
+                                              DataCell(
+                                                _buildThumbnail(
+                                                  e[
+                                                          "foto_url"] ??
+                                                      e[
+                                                          "foto_satwa"] ??
+                                                      e["foto"],
+                                                ),
+                                              ),
+                                              DataCell(
+                                                Text(
+                                                  _cellValue(
+                                                    e,
+                                                    [
+                                                      "nomor_registrasi",
+                                                      "no_registrasi",
+                                                    ],
+                                                  ),
+                                                  style:
+                                                      const TextStyle(
+                                                        fontFamily:
+                                                            "monospace",
+                                                      ),
+                                                ),
+                                              ),
+                                              DataCell(
+                                                Text(
+                                                  _cellValue(
+                                                    e,
+                                                    [
+                                                      "jenis_satwa",
+                                                      "jenis",
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                              DataCell(
+                                                Text(
+                                                  _cellValue(
+                                                    e,
+                                                    [
+                                                      "nama_satwa",
+                                                      "nama",
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                              DataCell(
+                                                Text(
+                                                  _cellValue(
+                                                    e,
+                                                    [
+                                                      "nama_handler",
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                              DataCell(
+                                                Text(
+                                                  _cellValue(
+                                                    e,
+                                                    [
+                                                      "kualifikasi",
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                              DataCell(
+                                                Row(
+                                                  mainAxisSize:
+                                                      MainAxisSize
+                                                          .min,
+                                                  children: [
+                                                    Text(
+                                                      _cellValue(
+                                                        e,
+                                                        [
+                                                          "jadwal_vaksin",
+                                                        ],
+                                                      ),
+                                                    ),
+                                                    if (_isVaksinUrgent(
+                                                      e[
+                                                          "jadwal_vaksin"],
+                                                    ))
+                                                      const Padding(
+                                                        padding:
+                                                            EdgeInsets.only(
+                                                              left:
+                                                                  6,
+                                                            ),
+                                                        child:
+                                                            Tooltip(
+                                                              message:
+                                                                  "Vaksinasi kurang dari 30 hari atau sudah lewat",
+                                                              child:
+                                                                  Icon(
+                                                                    Icons
+                                                                        .vaccines,
+                                                                    color:
+                                                                        Colors
+                                                                            .red,
+                                                                    size:
+                                                                        18,
+                                                                  ),
+                                                            ),
+                                                      ),
+                                                  ],
+                                                ),
+                                              ),
+                                              DataCell(
+                                                ActionButtons(
+                                                  onEdit: () async {
+                                                    final result =
+                                                        await Navigator.push<
+                                                            bool>(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                        builder: (_) =>
+                                                            AddSatwaPage(
+                                                          initialData:
+                                                              e,
+                                                        ),
+                                                      ),
+                                                    );
+                                                    if (result ==
+                                                        true) {
+                                                      getSatwaApi();
+                                                    }
+                                                  },
+                                                  onDelete: () async {
+                                                    final result =
+                                                        await showDialog(
+                                                      context:
+                                                          context,
+                                                      builder:
+                                                          (
+                                                        _,
+                                                      ) =>
+                                                          AlertDialog(
+                                                        title:
+                                                            const Text(
+                                                              "Hapus Satwa",
+                                                            ),
+                                                        content:
+                                                            const Text(
+                                                              "Apakah Anda yakin ingin menghapus data ini?",
+                                                            ),
+                                                        actions: [
+                                                          TextButton(
+                                                            onPressed: () =>
+                                                                Navigator.pop(
+                                                                  context,
+                                                                  false,
+                                                                ),
+                                                            child:
+                                                                const Text(
+                                                                  "Batal",
+                                                                ),
+                                                          ),
+                                                          ElevatedButton(
+                                                            onPressed: () =>
+                                                                Navigator.pop(
+                                                                  context,
+                                                                  true,
+                                                                ),
+                                                            child:
+                                                                const Text(
+                                                                  "Hapus",
+                                                                ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    );
+                                                    if (result ==
+                                                        true) {
+                                                      final satwaId =
+                                                          e[
+                                                                  "satwa_id"]
+                                                              ?.toString() ??
+                                                              "";
+                                                      if (satwaId
+                                                          .isNotEmpty) {
+                                                        deleteSatwa(
+                                                          satwaId,
+                                                        );
+                                                      }
+                                                    }
+                                                  },
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        )
+                                        .toList(),
+                                  ),
+                                ),
+                              );
+                            },
                           ),
                         ),
                       ),
-
-                      const SizedBox(height: 20),
-                      const AppFooter(),
-                    ],
-                  ),
-                ),
+              ),
+              AppPagination(
+                currentPage: _currentPage,
+                totalPages: _totalPages,
+                totalItems: _totalItems,
+                perPage: _perPage,
+                onPageChanged: _onPageChanged,
               ),
             ],
           ),
         ),
       ),
-    );
+
+      const SizedBox(height: 20),
+
+    ],
+  ),
+);
   }
 }
