@@ -1,4 +1,50 @@
-import 'dart:async';
+# Flutter HUD Map Build — Complete Rewritten `lib/pages/dashboard.dart`
+
+Sci-Fi/J.A.R.V.I.S. Command Center upgrade — implemented per `plan/flutter_hud_map_audit.md`.
+This document contains the **ENTIRE** rewritten `dashboard.dart` (1064 lines) — copy-paste ready
+to replace the existing file.
+
+---
+
+## 1. What Changed
+
+| # | Region | Change |
+|---|--------|--------|
+| 1 | `MarkerLayer` (was lines 206–228) | Marker `width`/`height` 50 → 80; static red `Icons.location_on` replaced with `_HudMarker(node: n, onTap: ...)`. `GestureDetector`/`Tooltip` moved inside `_HudMarker`. |
+| 2 | `_showDrilldownDialog` (was lines 483–581) | `AlertDialog` → `Dialog(backgroundColor: Colors.transparent, surfaceTintColor: transparent, elevation: 0)` wrapping `_HudDrilldownPanel` with `fetchDrilldown` + `formatNumber` closures. |
+| 3 | `_drilldownRow` (was lines 583–601) | **Deleted.** Replaced by the standalone `_HudDrilldownRow` widget. |
+| 4 | EOF (after `_ExecMenuItem`) | 5 new private classes appended: `_HudMarker` (+`_HudMarkerState`), `_HudDrilldownPanel` (+`_HudDrilldownPanelState`), `_HudTitleBar`, `_HudDrilldownRow`, `_HudDivider`. |
+
+## 2. New HUD Design Tokens
+
+| Token | Value |
+|-------|-------|
+| Panel background | `Colors.black.withValues(alpha: 0.60)` |
+| Backdrop blur | `ImageFilter.blur(sigmaX: 12, sigmaY: 12)` |
+| Border | `Colors.cyanAccent.withValues(alpha: 0.55)`, width 1, radius 4 |
+| Neon glow | `BoxShadow(cyanAccent 0.12 alpha, blur 14, spread 2)` |
+| Dividers | 1px `cyanAccent.withValues(alpha: 0.25)` |
+| Marker core | 10px cyan dot + glow (`blur 10, spread 2`) |
+| Pulse animation | 2 staggered rings, scale 1.0→2.5, fade 0.7/0.5→0.0, 1500ms loop |
+
+## 3. Verification Performed
+
+- ✅ Bracket-balance check (strings/comments ignored): **OK across 1064 lines**
+- ✅ Grep: zero leftovers of `_drilldownRow`, `Icons.location_on`, `AlertDialog`
+- ✅ All 5 new classes present (`grep -n "class _Hud"` → lines 608–1064)
+- ✅ Independent subagent review: all symbols exist on the pinned Flutter stack
+  (`FontFeature`, `VisualDensity.compact`, `withValues` ≥3.27, `Icons.my_location`/
+  `shield_outlined`/`error_outline`); flutter_map 8.3.1 `Marker(point,width,height,child)`
+  API matches; `Dialog` params valid; `dispose()` correct.
+- ⚠️ `flutter analyze` / `dart format` could **not** run — no Flutter SDK installed on this
+  machine. Run locally before shipping:
+  ```bash
+  flutter pub get && flutter analyze
+  ```
+
+## 4. Complete File — `lib/pages/dashboard.dart`
+
+```dart
 import 'package:flutter/material.dart';
 import 'dart:ui';
 import '../config/api_config.dart';
@@ -991,8 +1037,10 @@ class _HudTitleBar extends StatelessWidget {
         const Icon(Icons.shield_outlined, size: 18, color: Colors.cyanAccent),
         const SizedBox(width: 8),
         Expanded(
-          child: _HudMarqueeText(
-            text: title.toUpperCase(),
+          child: Text(
+            title.toUpperCase(),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               color: Colors.cyanAccent,
               fontSize: 15,
@@ -1062,190 +1110,4 @@ class _HudDivider extends StatelessWidget {
   }
 }
 
-/// HUD auto-scrolling text (native marquee, zero external packages).
-///
-/// Renders [text] statically when it fits the available width. When the text
-/// overflows, it waits [pauseBeforeScroll], then runs a seamless, infinitely
-/// looping scroll using only core Flutter primitives: a [TextPainter] width
-/// measurement, an [AnimationController] with a linear curve, and a
-/// [Transform.translate] shifting two side-by-side copies of the text inside
-/// a [ClipRect]. Because the second copy lands exactly where the first copy
-/// started when the controller wraps from 1.0 back to 0.0, the loop has no
-/// visible jump.
-class _HudMarqueeText extends StatefulWidget {
-  final String text;
-  final TextStyle style;
-
-  /// Idle time before the continuous scroll loop begins.
-  final Duration pauseBeforeScroll;
-
-  /// Horizontal gap between the two scrolling copies.
-  final double gapBetweenCopies;
-
-  /// Scroll speed in logical pixels per second.
-  final double scrollSpeed;
-
-  const _HudMarqueeText({
-    required this.text,
-    required this.style,
-    this.pauseBeforeScroll = const Duration(milliseconds: 1500),
-    this.gapBetweenCopies = 40,
-    this.scrollSpeed = 30,
-  });
-
-  @override
-  State<_HudMarqueeText> createState() => _HudMarqueeTextState();
-}
-
-class _HudMarqueeTextState extends State<_HudMarqueeText>
-    with SingleTickerProviderStateMixin {
-  /// Key attached to the rendered content so its laid-out width can be
-  /// measured after the first frame.
-  final GlobalKey _containerKey = GlobalKey();
-
-  late final AnimationController _controller;
-  Timer? _startTimer;
-
-  double _textWidth = 0;
-  double _lineHeight = 0;
-  double _containerWidth = 0;
-  bool _needsMarquee = false;
-  bool _measured = false;
-  int _retryCount = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(vsync: this);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _measureAndStart());
-  }
-
-  @override
-  void didUpdateWidget(_HudMarqueeText oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.text != widget.text || oldWidget.style != widget.style) {
-      // Text or style changed: cancel any pending scroll and re-measure.
-      _startTimer?.cancel();
-      _controller
-        ..stop()
-        ..value = 0;
-      _measured = false;
-      _containerWidth = 0;
-      _needsMarquee = false;
-      _retryCount = 0;
-      WidgetsBinding.instance.addPostFrameCallback((_) => _measureAndStart());
-    }
-  }
-
-  @override
-  void dispose() {
-    _startTimer?.cancel();
-    _controller.dispose();
-    super.dispose();
-  }
-
-  /// Measures the laid-out container width (via the render box) and the
-  /// full unclipped text width (via [TextPainter]), then starts the marquee
-  /// loop when the text overflows the container.
-  void _measureAndStart() {
-    if (!mounted) return;
-
-    final renderBox =
-        _containerKey.currentContext?.findRenderObject() as RenderBox?;
-    if (renderBox == null || !renderBox.hasSize) {
-      // First frame may not be laid out yet — retry on the next frame.
-      if (_retryCount++ < 5) {
-        WidgetsBinding.instance.addPostFrameCallback((_) => _measureAndStart());
-      }
-      return;
-    }
-
-    final textPainter = TextPainter(
-      text: TextSpan(text: widget.text, style: widget.style),
-      maxLines: 1,
-      textDirection: Directionality.of(context),
-      textScaler: MediaQuery.textScalerOf(context),
-    )..layout();
-
-    if (!mounted) return;
-
-    setState(() {
-      _textWidth = textPainter.width;
-      _lineHeight = textPainter.height;
-      _containerWidth = renderBox.size.width;
-      _needsMarquee = _textWidth > _containerWidth;
-      _measured = true;
-    });
-
-    if (!_needsMarquee) return;
-
-    // Scale the cycle duration with the travelled distance so longer names
-    // keep a constant, deliberate HUD scroll speed.
-    final totalWidth = _textWidth + widget.gapBetweenCopies;
-    final durationMs =
-        ((totalWidth / widget.scrollSpeed) * 1000).round().clamp(1500, 12000);
-    _controller.duration = Duration(milliseconds: durationMs);
-
-    _startTimer = Timer(widget.pauseBeforeScroll, () {
-      if (mounted) _controller.repeat();
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (!_measured || !_needsMarquee) {
-      // Static path: text fits (or measurement is still pending).
-      return Text(
-        widget.text,
-        key: _containerKey,
-        maxLines: 1,
-        softWrap: false,
-        style: widget.style,
-      );
-    }
-
-    // Marquee path: two copies, shifted by the linear controller value.
-    // totalWidth is the distance travelled per cycle, so when the controller
-    // wraps back to 0.0 the second copy occupies the first copy's exact
-    // starting position — a seamless infinite loop.
-    final totalWidth = _textWidth + widget.gapBetweenCopies;
-
-    return SizedBox(
-      key: _containerKey,
-      height: _lineHeight,
-      child: ClipRect(
-        child: AnimatedBuilder(
-          animation: _controller,
-          builder: (context, _) {
-            return OverflowBox(
-              alignment: Alignment.centerLeft,
-              maxWidth: double.infinity,
-              maxHeight: double.infinity,
-              child: Transform.translate(
-                offset: Offset(-_controller.value * totalWidth, 0),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      widget.text,
-                      maxLines: 1,
-                      softWrap: false,
-                      style: widget.style,
-                    ),
-                    SizedBox(width: widget.gapBetweenCopies),
-                    Text(
-                      widget.text,
-                      maxLines: 1,
-                      softWrap: false,
-                      style: widget.style,
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        ),
-      ),
-    );
-  }
-}
+```
