@@ -193,9 +193,16 @@ class _DashboardPageState extends State<DashboardPage> {
         /// Background Map
         Positioned.fill(
           child: FlutterMap(
-            options: const MapOptions(
+            options: MapOptions(
               initialCenter: LatLng(-2.5, 118.0),
               initialZoom: 4.3,
+              minZoom: 4.0,
+              cameraConstraint: CameraConstraint.contain(
+                bounds: LatLngBounds(
+                  LatLng(-11.0, 95.0),
+                  LatLng(6.0, 141.0),
+                ),
+              ),
             ),
             children: [
               TileLayer(
