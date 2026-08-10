@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:google_fonts/google_fonts.dart';
+
 /// Global theme definitions for SINDOMON.
 ///
 /// - [AppThemeData.light] — **"Clean Corporate"**: crisp white/slate surfaces,
@@ -59,10 +61,18 @@ abstract final class AppThemeData {
     required ColorScheme colorScheme,
     required Color dividerColor,
   }) {
+    final textTheme = GoogleFonts.barlowSemiCondensedTextTheme()
+        .apply(
+          bodyColor: colorScheme.onSurface,
+          displayColor: colorScheme.onSurface,
+          decorationColor: colorScheme.onSurfaceVariant,
+        );
+
     return ThemeData(
       useMaterial3: true,
       brightness: brightness,
       colorScheme: colorScheme,
+      textTheme: textTheme,
       // Transparent so AppBackground's gradient/grid renders behind content.
       scaffoldBackgroundColor: Colors.transparent,
       dividerTheme: DividerThemeData(
