@@ -6,6 +6,8 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../config/api_config.dart';
+import '../../utils/hud_loading.dart';
+import '../../widget/hud_loading_spinner.dart';
 
 /// Form for Satwa K9 & Turangga (add/edit).
 ///
@@ -246,45 +248,48 @@ class _FormInputanSatwaState extends State<FormInputanSatwa> {
       return;
     }
 
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString("token") ?? "";
-
-    // BUG FIX (Rule 4): ID goes in the URL path for edit mode — never in the body.
-    final Uri uri = _isEdit
-        ? Uri.parse(
-            "$apiBaseUrl/api/v1/logistik/satwa/${widget.initialData!['satwa_id']}")
-        : Uri.parse("$apiBaseUrl/api/v1/logistik/satwa");
-
-    // BUG FIX (Rule 1): PHP cannot parse multipart/form-data on PUT —
-    // ALWAYS send POST, for create AND edit.
-    final request = http.MultipartRequest("POST", uri);
-
-    request.headers["Authorization"] = token;
-    request.fields["nomor_registrasi"] = nomorRegistrasi.text.trim();
-    request.fields["jenis_satwa"] = selectedJenisSatwa!;
-    request.fields["nama_satwa"] = namaSatwa.text.trim();
-    request.fields["nama_handler"] = namaHandler.text.trim();
-    request.fields["kualifikasi"] = selectedKualifikasi!;
-    request.fields["jadwal_vaksin"] = _formatDate(_jadwalVaksin!);
-
-    // Only attach the file when a (new) image was picked.
-    if (_imageBytes != null) {
-      request.files.add(
-        http.MultipartFile.fromBytes(
-          "foto",
-          _imageBytes!,
-          filename: "satwa_${DateTime.now().millisecondsSinceEpoch}.webp",
-        ),
-      );
-    }
-
     try {
+      HudLoading.show(context, label: "MENYIMPAN...");
+
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString("token") ?? "";
+
+      // BUG FIX (Rule 4): ID goes in the URL path for edit mode — never in the body.
+      final Uri uri = _isEdit
+          ? Uri.parse(
+              "$apiBaseUrl/api/v1/logistik/satwa/${widget.initialData!['satwa_id']}")
+          : Uri.parse("$apiBaseUrl/api/v1/logistik/satwa");
+
+      // BUG FIX (Rule 1): PHP cannot parse multipart/form-data on PUT —
+      // ALWAYS send POST, for create AND edit.
+      final request = http.MultipartRequest("POST", uri);
+
+      request.headers["Authorization"] = token;
+      request.fields["nomor_registrasi"] = nomorRegistrasi.text.trim();
+      request.fields["jenis_satwa"] = selectedJenisSatwa!;
+      request.fields["nama_satwa"] = namaSatwa.text.trim();
+      request.fields["nama_handler"] = namaHandler.text.trim();
+      request.fields["kualifikasi"] = selectedKualifikasi!;
+      request.fields["jadwal_vaksin"] = _formatDate(_jadwalVaksin!);
+
+      // Only attach the file when a (new) image was picked.
+      if (_imageBytes != null) {
+        request.files.add(
+          http.MultipartFile.fromBytes(
+            "foto",
+            _imageBytes!,
+            filename: "satwa_${DateTime.now().millisecondsSinceEpoch}.webp",
+          ),
+        );
+      }
+
       final streamed = await request.send();
       final response = await http.Response.fromStream(streamed);
 
       debugPrint(response.body);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
+        HudLoading.hide(context);
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -298,6 +303,7 @@ class _FormInputanSatwaState extends State<FormInputanSatwa> {
         );
         Navigator.pop(context, true);
       } else {
+        HudLoading.hide(context);
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -307,6 +313,7 @@ class _FormInputanSatwaState extends State<FormInputanSatwa> {
         );
       }
     } catch (e) {
+      HudLoading.hide(context);
       debugPrint(e.toString());
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -596,7 +603,7 @@ class _FormInputanSatwaState extends State<FormInputanSatwa> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: _isCompressing
-                      ? const Center(child: CircularProgressIndicator())
+                      ? const Center(child: HudLoadingSpinner(size: 30))
                       : _imageBytes != null
                           ? ClipRRect(
                               borderRadius: BorderRadius.circular(8),

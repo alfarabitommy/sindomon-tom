@@ -6,6 +6,8 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/api_config.dart';
+import '../../utils/hud_loading.dart';
+import '../../widget/hud_loading_spinner.dart';
 
 class FormTambahSenjata extends StatefulWidget {
   final Map<String, dynamic>? initialData;
@@ -201,42 +203,45 @@ class _FormTambahSenjataState extends State<FormTambahSenjata> {
       return;
     }
 
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString("token") ?? "";
-
-    // BUG FIX: PHP cannot parse multipart/form-data on PUT — always send
-    // POST. ID goes in the URL path for edit mode — never in the body.
-    final Uri uri = _isEdit
-        ? Uri.parse(
-            "$apiBaseUrl/api/v1/logistik/senjata/${widget.initialData!["senjata_id"]}")
-        : Uri.parse("$apiBaseUrl/api/v1/logistik/senjata");
-
-    final request = http.MultipartRequest("POST", uri);
-    request.headers["Authorization"] = token;
-    request.fields["polda_id"] = selectedPoldaId.toString();
-    request.fields["nomor_seri"] = noSeri.text.trim();
-    request.fields["kategori_id"] = selectedKatId.toString();
-    request.fields["tahun_pengadaan"] = tahunPengadaan.text.trim();
-    request.fields["status_kelayakan"] = "Baik";
-
-    // Only attach the file when a (new) image was picked.
-    if (_imageBytes != null) {
-      request.files.add(
-        http.MultipartFile.fromBytes(
-          "foto",
-          _imageBytes!,
-          filename: "senjata_${DateTime.now().millisecondsSinceEpoch}.webp",
-        ),
-      );
-    }
-
     try {
+      HudLoading.show(context, label: "MENYIMPAN...");
+
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString("token") ?? "";
+
+      // BUG FIX: PHP cannot parse multipart/form-data on PUT — always send
+      // POST. ID goes in the URL path for edit mode — never in the body.
+      final Uri uri = _isEdit
+          ? Uri.parse(
+              "$apiBaseUrl/api/v1/logistik/senjata/${widget.initialData!["senjata_id"]}")
+          : Uri.parse("$apiBaseUrl/api/v1/logistik/senjata");
+
+      final request = http.MultipartRequest("POST", uri);
+      request.headers["Authorization"] = token;
+      request.fields["polda_id"] = selectedPoldaId.toString();
+      request.fields["nomor_seri"] = noSeri.text.trim();
+      request.fields["kategori_id"] = selectedKatId.toString();
+      request.fields["tahun_pengadaan"] = tahunPengadaan.text.trim();
+      request.fields["status_kelayakan"] = "Baik";
+
+      // Only attach the file when a (new) image was picked.
+      if (_imageBytes != null) {
+        request.files.add(
+          http.MultipartFile.fromBytes(
+            "foto",
+            _imageBytes!,
+            filename: "senjata_${DateTime.now().millisecondsSinceEpoch}.webp",
+          ),
+        );
+      }
+
       final streamed = await request.send();
       final response = await http.Response.fromStream(streamed);
 
       debugPrint(response.body);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
+        HudLoading.hide(context);
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -250,6 +255,7 @@ class _FormTambahSenjataState extends State<FormTambahSenjata> {
         );
         Navigator.pop(context, true);
       } else {
+        HudLoading.hide(context);
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -259,6 +265,7 @@ class _FormTambahSenjataState extends State<FormTambahSenjata> {
         );
       }
     } catch (e) {
+      HudLoading.hide(context);
       debugPrint(e.toString());
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -431,7 +438,7 @@ class _FormTambahSenjataState extends State<FormTambahSenjata> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: _isCompressing
-                      ? const Center(child: CircularProgressIndicator())
+                      ? const Center(child: HudLoadingSpinner(size: 30))
                       : _imageBytes != null
                           ? ClipRRect(
                               borderRadius: BorderRadius.circular(8),

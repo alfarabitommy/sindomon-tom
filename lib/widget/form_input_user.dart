@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/api_config.dart';
+import '../../utils/hud_loading.dart';
 
 class FormTambahUser extends StatefulWidget {
   final int? userId; // null = create mode, non-null = edit mode
@@ -23,7 +24,6 @@ class _FormTambahUserState extends State<FormTambahUser> {
   late String? selectedRoleId; // "1", "2", or "3" — matches API role_id
   late String? selectedPoldaId; // polda id from API, null = no polda
   List<Map<String, dynamic>> daftarPolda = [];
-  bool isSubmitting = false;
   bool isEditMode = false;
   final username = TextEditingController();
   final password = TextEditingController();
@@ -159,9 +159,9 @@ class _FormTambahUserState extends State<FormTambahUser> {
       return;
     }
 
-    setState(() => isSubmitting = true);
-
     try {
+      HudLoading.show(context, label: "MENYIMPAN...");
+
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString("token");
 
@@ -213,11 +213,11 @@ class _FormTambahUserState extends State<FormTambahUser> {
         );
       }
 
-      if (!mounted) return;
-
       final result = jsonDecode(response.body);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
+        HudLoading.hide(context);
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(result["message"] ??
@@ -230,6 +230,8 @@ class _FormTambahUserState extends State<FormTambahUser> {
         // Pop back to user list (the list page will refresh via .then() callback)
         Navigator.pop(context, true); // true = data changed, triggers refresh
       } else {
+        HudLoading.hide(context);
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(result["message"] ?? "Gagal menyimpan data"),
@@ -238,6 +240,7 @@ class _FormTambahUserState extends State<FormTambahUser> {
         );
       }
     } catch (e) {
+      HudLoading.hide(context);
       debugPrint("Error submit user: $e");
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -246,10 +249,6 @@ class _FormTambahUserState extends State<FormTambahUser> {
             backgroundColor: Colors.red,
           ),
         );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => isSubmitting = false);
       }
     }
   }
@@ -518,20 +517,11 @@ class _FormTambahUserState extends State<FormTambahUser> {
                     foregroundColor: const Color(0xFF23251D),
                     shape: const StadiumBorder(),
                   ),
-                  onPressed: isSubmitting ? null : submitUser,
-                  child: isSubmitting
-                      ? const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Color(0xFF23251D),
-                          ),
-                        )
-                      : Text(
-                          isEditMode ? "Update Akun" : "Simpan Akun",
-                          style: const TextStyle(fontSize: 18),
-                        ),
+                  onPressed: submitUser,
+                  child: Text(
+                    isEditMode ? "Update Akun" : "Simpan Akun",
+                    style: const TextStyle(fontSize: 18),
+                  ),
                 ),
               ),
 

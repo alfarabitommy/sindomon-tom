@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/api_config.dart';
+import '../../utils/hud_loading.dart';
 
 class FormTambahPersonel extends StatefulWidget {
   final String? personilId; // null = create mode, non-null = edit mode
@@ -20,7 +21,6 @@ class _FormTambahPersonelState extends State<FormTambahPersonel> {
   static const int _polresNone = 0;
 
   late bool isEditMode;
-  bool loading = false;
 
   final namaLengkap = TextEditingController();
   final nrp = TextEditingController();
@@ -205,11 +205,9 @@ class _FormTambahPersonelState extends State<FormTambahPersonel> {
       return;
     }
 
-    setState(() {
-      loading = true;
-    });
-
     try {
+      HudLoading.show(context, label: "MENYIMPAN...");
+
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString("token");
 
@@ -249,11 +247,11 @@ class _FormTambahPersonelState extends State<FormTambahPersonel> {
         );
       }
 
-      if (!mounted) return;
-
       final result = jsonDecode(response.body);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
+        HudLoading.hide(context);
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -270,6 +268,8 @@ class _FormTambahPersonelState extends State<FormTambahPersonel> {
       } else if (response.statusCode == 422) {
         // Business validation failure — e.g. NRP already registered.
         // Stay on the form so the user can fix the field.
+        HudLoading.hide(context);
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(result["message"] ?? "Validasi data gagal"),
@@ -277,6 +277,8 @@ class _FormTambahPersonelState extends State<FormTambahPersonel> {
           ),
         );
       } else {
+        HudLoading.hide(context);
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(result["message"] ?? "Gagal menyimpan data"),
@@ -285,6 +287,7 @@ class _FormTambahPersonelState extends State<FormTambahPersonel> {
         );
       }
     } catch (e) {
+      HudLoading.hide(context);
       debugPrint("Error simpan personel: $e");
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -293,12 +296,6 @@ class _FormTambahPersonelState extends State<FormTambahPersonel> {
             backgroundColor: Colors.red,
           ),
         );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          loading = false;
-        });
       }
     }
   }
@@ -582,26 +579,16 @@ class _FormTambahPersonelState extends State<FormTambahPersonel> {
               width: double.infinity,
               height: 50,
               child: ElevatedButton(
-                onPressed: loading ? null : submitPersonel,
+                onPressed: submitPersonel,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xffF6B300),
                   foregroundColor: const Color(0xFF23251D),
                   shape: const StadiumBorder(),
                 ),
-                child:
-                    loading
-                        ? const SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Color(0xFF23251D),
-                            ),
-                          )
-                        : Text(
-                            isEditMode ? "Update Personel" : "Simpan Data",
-                            style: const TextStyle(fontSize: 18),
-                          ),
+                child: Text(
+                  isEditMode ? "Update Personel" : "Simpan Data",
+                  style: const TextStyle(fontSize: 18),
+                ),
               ),
             ),
 

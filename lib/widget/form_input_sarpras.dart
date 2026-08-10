@@ -5,6 +5,8 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/api_config.dart';
+import '../../utils/hud_loading.dart';
+import '../../widget/hud_loading_spinner.dart';
 
 /// Form for Sarpras & Altmatsus (add/edit).
 ///
@@ -184,46 +186,49 @@ class _FormTambahSarprasState extends State<FormTambahSarpras> {
       return;
     }
 
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString("token") ?? "";
-
-    final Uri uri = _isEdit
-        ? Uri.parse(
-            "$apiBaseUrl/api/v1/logistik/sarpras/${widget.initialData!['sarpras_id']}")
-        : Uri.parse("$apiBaseUrl/api/v1/logistik/sarpras");
-
-    // PHP cannot parse multipart/form-data on PUT — always send POST.
-    // (CI3 routes.php maps POST /sarpras/(:any) to the update handler,
-    // so no Laravel _method spoofing is needed.)
-    final request = http.MultipartRequest("POST", uri);
-
-    // BUG FIX: ID in URL only — never in the body.
-    request.headers["Authorization"] = token;
-    request.fields["kode_barang"] = kodeBarang.text.trim();
-    request.fields["nama_barang"] = namaBarang.text.trim();
-    request.fields["kategori"] = selectedKategori!;
-    request.fields["kondisi"] = selectedKondisi!;
-    request.fields["tahun_pengadaan"] = _tahunPengadaan!.year.toString();
-
-    // Only attach the file when a (new) image was picked.
-    if (_imageBytes != null) {
-      request.files.add(
-        http.MultipartFile.fromBytes(
-          "foto",
-          _imageBytes!,
-          filename:
-              "sarpras_${DateTime.now().millisecondsSinceEpoch}.webp",
-        ),
-      );
-    }
-
     try {
+      HudLoading.show(context, label: "MENYIMPAN...");
+
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString("token") ?? "";
+
+      final Uri uri = _isEdit
+          ? Uri.parse(
+              "$apiBaseUrl/api/v1/logistik/sarpras/${widget.initialData!['sarpras_id']}")
+          : Uri.parse("$apiBaseUrl/api/v1/logistik/sarpras");
+
+      // PHP cannot parse multipart/form-data on PUT — always send POST.
+      // (CI3 routes.php maps POST /sarpras/(:any) to the update handler,
+      // so no Laravel _method spoofing is needed.)
+      final request = http.MultipartRequest("POST", uri);
+
+      // BUG FIX: ID in URL only — never in the body.
+      request.headers["Authorization"] = token;
+      request.fields["kode_barang"] = kodeBarang.text.trim();
+      request.fields["nama_barang"] = namaBarang.text.trim();
+      request.fields["kategori"] = selectedKategori!;
+      request.fields["kondisi"] = selectedKondisi!;
+      request.fields["tahun_pengadaan"] = _tahunPengadaan!.year.toString();
+
+      // Only attach the file when a (new) image was picked.
+      if (_imageBytes != null) {
+        request.files.add(
+          http.MultipartFile.fromBytes(
+            "foto",
+            _imageBytes!,
+            filename:
+                "sarpras_${DateTime.now().millisecondsSinceEpoch}.webp",
+          ),
+        );
+      }
+
       final streamed = await request.send();
       final response = await http.Response.fromStream(streamed);
 
       debugPrint(response.body);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
+        HudLoading.hide(context);
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -237,6 +242,7 @@ class _FormTambahSarprasState extends State<FormTambahSarpras> {
         );
         Navigator.pop(context, true);
       } else {
+        HudLoading.hide(context);
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -246,6 +252,7 @@ class _FormTambahSarprasState extends State<FormTambahSarpras> {
         );
       }
     } catch (e) {
+      HudLoading.hide(context);
       debugPrint(e.toString());
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -500,7 +507,7 @@ class _FormTambahSarprasState extends State<FormTambahSarpras> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: _isCompressing
-                      ? const Center(child: CircularProgressIndicator())
+                      ? const Center(child: HudLoadingSpinner(size: 30))
                       : _imageBytes != null
                           ? ClipRRect(
                               borderRadius: BorderRadius.circular(8),

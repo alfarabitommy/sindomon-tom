@@ -6,6 +6,7 @@ import '../models/dashboard_model.dart';
 import '../models/polda_model.dart';
 import '../pages/pangaturan.dart';
 import '../utils/session_util.dart';
+import '../widget/hud_loading_spinner.dart';
 import '../widget/app_scaffold.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -161,7 +162,10 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget _buildCommandCenterContent() {
     if (_isLoadingDashboard) {
       return const Center(
-        child: CircularProgressIndicator(color: Colors.cyanAccent),
+        child: HudLoadingSpinner(
+          size: 80,
+          label: "MEMUAT DATA NASIONAL...",
+        ),
       );
     }
 
@@ -897,20 +901,10 @@ class _HudDrilldownPanelState extends State<_HudDrilldownPanel> {
     return const SizedBox(
       height: 140,
       child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CircularProgressIndicator(color: Colors.cyanAccent),
-            SizedBox(height: 12),
-            Text(
-              "MEMUAT DATA...",
-              style: TextStyle(
-                color: Colors.cyanAccent,
-                fontSize: 12,
-                letterSpacing: 2,
-              ),
-            ),
-          ],
+        child: HudLoadingSpinner(
+          size: 60,
+          label: "MEMUAT DATA...",
+          labelSize: 12,
         ),
       ),
     );

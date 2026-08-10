@@ -11,6 +11,8 @@ import '../widget/app_pagination.dart';
 import '../widget/app_search_field.dart';
 import '../widget/action_buttons.dart';
 import '../widget/app_scaffold.dart';
+import '../widget/hud_loading_spinner.dart';
+import '../utils/hud_loading.dart';
 
 class SarprasPage extends StatefulWidget {
   const SarprasPage({super.key});
@@ -138,6 +140,8 @@ class _SarprasPageState extends State<SarprasPage> {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString("token");
 
+      HudLoading.show(context, label: "MENGHAPUS...");
+
       final response = await http.delete(
         Uri.parse("$apiBaseUrl/api/v1/logistik/sarpras/$id"),
         headers: {
@@ -146,6 +150,7 @@ class _SarprasPageState extends State<SarprasPage> {
       );
 
       if (response.statusCode == 200) {
+        HudLoading.hide(context);
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -155,6 +160,7 @@ class _SarprasPageState extends State<SarprasPage> {
         );
         getSarprasApi();
       } else {
+        HudLoading.hide(context);
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -165,6 +171,7 @@ class _SarprasPageState extends State<SarprasPage> {
         debugPrint("Error : ${response.body}");
       }
     } catch (e) {
+      HudLoading.hide(context);
       debugPrint(e.toString());
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -326,7 +333,7 @@ class _SarprasPageState extends State<SarprasPage> {
               Expanded(
                 child: isLoading
                     ? const Center(
-                        child: CircularProgressIndicator(),
+                        child: HudLoadingSpinner(size: 50),
                       )
                     : SingleChildScrollView(
                         child: Padding(

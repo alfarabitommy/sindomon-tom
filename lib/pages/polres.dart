@@ -10,6 +10,8 @@ import '../widget/app_pagination.dart';
 import '../widget/app_search_field.dart';
 import '../widget/action_buttons.dart';
 import '../widget/app_scaffold.dart';
+import '../widget/hud_loading_spinner.dart';
+import '../utils/hud_loading.dart';
 
 class PolresPage extends StatefulWidget {
   const PolresPage({super.key});
@@ -138,14 +140,16 @@ class _PolresPageState extends State<PolresPage> {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString("token");
 
+      HudLoading.show(context, label: "MENGHAPUS...");
+
       final response = await http.delete(
         Uri.parse("$apiBaseUrl/api/v1/master/polres/$id"),
         headers: {"Authorization": token.toString()},
       );
 
-      if (!mounted) return;
-
       if (response.statusCode == 200) {
+        HudLoading.hide(context);
+        if (!mounted) return;
         final result = jsonDecode(response.body);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -155,6 +159,8 @@ class _PolresPageState extends State<PolresPage> {
         );
         getPolresApi(); // refresh list
       } else {
+        HudLoading.hide(context);
+        if (!mounted) return;
         final result = jsonDecode(response.body);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -164,6 +170,7 @@ class _PolresPageState extends State<PolresPage> {
         );
       }
     } catch (e) {
+      HudLoading.hide(context);
       debugPrint("Error delete polres: $e");
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -187,9 +194,7 @@ class _PolresPageState extends State<PolresPage> {
       if (isLoading)
         const Expanded(
           child: Center(
-            child: CircularProgressIndicator(
-              color: Colors.amber,
-            ),
+            child: HudLoadingSpinner(size: 50),
           ),
         )
       else if (errorMessage.isNotEmpty)

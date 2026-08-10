@@ -6,6 +6,7 @@ import '../config/api_config.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import '../utils/hud_loading.dart';
 
 class LoginCard extends StatefulWidget {
   const LoginCard({super.key});
@@ -18,7 +19,6 @@ class _LoginCardState extends State<LoginCard> {
   final usernameController = TextEditingController();
   final passwordController = TextEditingController();
 
-  bool isLoading = false;
   bool usernameError = false;
   bool passwordError = false;
 
@@ -120,9 +120,8 @@ class _LoginCardState extends State<LoginCard> {
       return;
     }
 
-    setState(() {
-      isLoading = true;
-    });
+    // Block the UI with the HUD overlay while the request is in flight.
+    HudLoading.show(context, label: "MENGOTENTIKASI...");
 
     try {
       final response = await http.post(
@@ -155,12 +154,17 @@ class _LoginCardState extends State<LoginCard> {
         await prefs.setString("uuid_login", uuid);
         await prefs.setString("expired_login", expired);
         if (!context.mounted) return;
-        Navigator.pushReplacement(
+        // pushAndRemoveUntil removes BOTH the login page and the HUD dialog
+        // route, so the dashboard becomes the only route on the stack and the
+        // back button can never return to the login form.
+        Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (_) => const DashboardPage()),
+          (route) => false,
         );
       } else if (response.statusCode == 403) {
         if (!context.mounted) return;
+        HudLoading.hide(context);
         showDialog(
           context: context,
           builder: (ctx) => AlertDialog(
@@ -179,6 +183,7 @@ class _LoginCardState extends State<LoginCard> {
         );
       } else {
         if (!context.mounted) return;
+        HudLoading.hide(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(
@@ -203,6 +208,7 @@ class _LoginCardState extends State<LoginCard> {
     } catch (e, st) {
       debugPrint('Login error: $e\n$st');
       if (!context.mounted) return;
+      HudLoading.hide(context);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
@@ -223,12 +229,6 @@ class _LoginCardState extends State<LoginCard> {
           backgroundColor: const Color(0xFFEF4444),
         ),
       );
-    } finally {
-      if (mounted) {
-        setState(() {
-          isLoading = false;
-        });
-      }
     }
   }
 
@@ -301,7 +301,7 @@ class _LoginCardState extends State<LoginCard> {
             width: double.infinity,
             height: 45,
             child: ElevatedButton(
-              onPressed: isLoading ? null : login,
+              onPressed: login,
 
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xffF6B300),

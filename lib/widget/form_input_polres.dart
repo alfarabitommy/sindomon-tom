@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/api_config.dart';
+import '../../utils/hud_loading.dart';
 
 class FormTambahPolres extends StatefulWidget {
   final int? polresId; // null = create mode, non-null = edit mode
@@ -17,7 +18,6 @@ class FormTambahPolres extends StatefulWidget {
 class _FormTambahPolresState extends State<FormTambahPolres> {
   late bool isEditMode;
   int? selectedPoldaId;
-  bool loading = false;
   final namaPolres = TextEditingController();
   List<Map<String, dynamic>> daftarPolda = [];
 
@@ -55,11 +55,9 @@ class _FormTambahPolresState extends State<FormTambahPolres> {
       return;
     }
 
-    setState(() {
-      loading = true;
-    });
-
     try {
+      HudLoading.show(context, label: "MENYIMPAN...");
+
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString("token");
 
@@ -92,11 +90,11 @@ class _FormTambahPolresState extends State<FormTambahPolres> {
         );
       }
 
-      if (!mounted) return;
-
       final result = jsonDecode(response.body);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
+        HudLoading.hide(context);
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -111,6 +109,8 @@ class _FormTambahPolresState extends State<FormTambahPolres> {
         // Pop back to Polres list; list page refreshes via .then() callback
         Navigator.pop(context, true); // true = data changed, triggers refresh
       } else {
+        HudLoading.hide(context);
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(result["message"] ?? "Gagal menyimpan data"),
@@ -119,6 +119,7 @@ class _FormTambahPolresState extends State<FormTambahPolres> {
         );
       }
     } catch (e) {
+      HudLoading.hide(context);
       debugPrint("Error simpan polres: $e");
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -127,12 +128,6 @@ class _FormTambahPolresState extends State<FormTambahPolres> {
             backgroundColor: Colors.red,
           ),
         );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          loading = false;
-        });
       }
     }
   }
@@ -262,21 +257,11 @@ class _FormTambahPolresState extends State<FormTambahPolres> {
               foregroundColor: const Color(0xFF23251D),
               shape: const StadiumBorder(),
             ),
-            onPressed: loading ? null : simpanPolres,
-            child:
-                loading
-                    ? const SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Color(0xFF23251D),
-                      ),
-                    )
-                    : Text(
-                      isEditMode ? "Update Polres" : "Simpan Data",
-                      style: const TextStyle(fontSize: 18),
-                    ),
+            onPressed: simpanPolres,
+            child: Text(
+              isEditMode ? "Update Polres" : "Simpan Data",
+              style: const TextStyle(fontSize: 18),
+            ),
           ),
         ),
 

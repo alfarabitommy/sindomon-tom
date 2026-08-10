@@ -11,6 +11,8 @@ import '../widget/app_search_field.dart';
 import '../widget/action_buttons.dart';
 import '../models/polda_model.dart';
 import '../widget/app_scaffold.dart';
+import '../widget/hud_loading_spinner.dart';
+import '../utils/hud_loading.dart';
 
 class PoldaPage extends StatefulWidget {
   const PoldaPage({super.key});
@@ -141,14 +143,16 @@ class _PoldaPageState extends State<PoldaPage> {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString("token");
 
+      HudLoading.show(context, label: "MENGHAPUS...");
+
       final response = await http.delete(
         Uri.parse("$apiBaseUrl/api/v1/master/polda/$id"),
         headers: {"Authorization": token.toString()},
       );
 
-      if (!mounted) return;
-
       if (response.statusCode == 200) {
+        HudLoading.hide(context);
+        if (!mounted) return;
         final result = jsonDecode(response.body);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -158,6 +162,8 @@ class _PoldaPageState extends State<PoldaPage> {
         );
         getPoldaApi(); // refresh list
       } else {
+        HudLoading.hide(context);
+        if (!mounted) return;
         final result = jsonDecode(response.body);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -167,6 +173,7 @@ class _PoldaPageState extends State<PoldaPage> {
         );
       }
     } catch (e) {
+      HudLoading.hide(context);
       debugPrint("Error delete polda: $e");
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -190,9 +197,7 @@ class _PoldaPageState extends State<PoldaPage> {
       if (isLoading)
         const Expanded(
           child: Center(
-            child: CircularProgressIndicator(
-              color: Colors.amber,
-            ),
+            child: HudLoadingSpinner(size: 50),
           ),
         )
       else if (errorMessage.isNotEmpty)

@@ -10,6 +10,8 @@ import '../widget/app_pagination.dart';
 import '../widget/app_search_field.dart';
 import '../widget/action_buttons.dart';
 import '../widget/app_scaffold.dart';
+import '../widget/hud_loading_spinner.dart';
+import '../utils/hud_loading.dart';
 
 /// Master data untuk kategori senjata & kaliber (Screen 2.6).
 ///
@@ -358,13 +360,15 @@ class _MasterKategoriSenjataPageState extends State<MasterKategoriSenjataPage> {
         "kaliber": kaliber,
       });
 
+      HudLoading.show(context, label: "MENYIMPAN...");
+
       final http.Response response = isEdit
           ? await http.put(uri, headers: headers, body: body)
           : await http.post(uri, headers: headers, body: body);
 
-      if (!mounted) return;
-
       if (response.statusCode == 200 || response.statusCode == 201) {
+        HudLoading.hide(context);
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -377,6 +381,8 @@ class _MasterKategoriSenjataPageState extends State<MasterKategoriSenjataPage> {
         );
         getKategoriApi();
       } else {
+        HudLoading.hide(context);
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(_parseErrorMessage(response) ?? "Gagal menyimpan data"),
@@ -385,6 +391,7 @@ class _MasterKategoriSenjataPageState extends State<MasterKategoriSenjataPage> {
         );
       }
     } catch (e) {
+      HudLoading.hide(context);
       debugPrint(e.toString());
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -404,14 +411,16 @@ class _MasterKategoriSenjataPageState extends State<MasterKategoriSenjataPage> {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString("token");
 
+      HudLoading.show(context, label: "MENGHAPUS...");
+
       final response = await http.delete(
         Uri.parse("$apiBaseUrl/api/v1/master/kategori-senjata/$id"),
         headers: {"Authorization": token.toString()},
       );
 
-      if (!mounted) return;
-
       if (response.statusCode == 200) {
+        HudLoading.hide(context);
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text("Kategori berhasil dihapus"),
@@ -420,6 +429,8 @@ class _MasterKategoriSenjataPageState extends State<MasterKategoriSenjataPage> {
         );
         getKategoriApi();
       } else if (response.statusCode == 409) {
+        HudLoading.hide(context);
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
@@ -430,6 +441,8 @@ class _MasterKategoriSenjataPageState extends State<MasterKategoriSenjataPage> {
           ),
         );
       } else {
+        HudLoading.hide(context);
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -440,6 +453,7 @@ class _MasterKategoriSenjataPageState extends State<MasterKategoriSenjataPage> {
         );
       }
     } catch (e) {
+      HudLoading.hide(context);
       debugPrint("Error delete kategori: $e");
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -538,9 +552,7 @@ class _MasterKategoriSenjataPageState extends State<MasterKategoriSenjataPage> {
               Expanded(
                 child: isLoading
                     ? const Center(
-                        child: CircularProgressIndicator(
-                          color: Colors.amber,
-                        ),
+                        child: HudLoadingSpinner(size: 50),
                       )
                     : errorMessage.isNotEmpty
                         ? _buildErrorState()

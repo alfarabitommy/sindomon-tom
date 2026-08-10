@@ -11,6 +11,8 @@ import '../widget/app_search_field.dart';
 import '../widget/action_buttons.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../widget/app_scaffold.dart';
+import '../widget/hud_loading_spinner.dart';
+import '../utils/hud_loading.dart';
 
 class SenjataPage extends StatefulWidget {
   const SenjataPage({super.key});
@@ -203,6 +205,8 @@ class _SenjataPageState extends State<SenjataPage> {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString("token");
 
+      HudLoading.show(context, label: "MENGHAPUS...");
+
       final response = await http.delete(
         Uri.parse("$apiBaseUrl/api/v1/logistik/senjata/$id"),
         headers: {
@@ -211,6 +215,7 @@ class _SenjataPageState extends State<SenjataPage> {
       );
 
       if (response.statusCode == 200) {
+        HudLoading.hide(context);
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -220,6 +225,7 @@ class _SenjataPageState extends State<SenjataPage> {
         );
         getSenjataApi();
       } else {
+        HudLoading.hide(context);
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -230,6 +236,7 @@ class _SenjataPageState extends State<SenjataPage> {
         debugPrint("Error : ${response.body}");
       }
     } catch (e) {
+      HudLoading.hide(context);
       debugPrint(e.toString());
     }
   }
@@ -317,7 +324,9 @@ class _SenjataPageState extends State<SenjataPage> {
           child: Column(
             children: [
               Expanded(
-                child: SingleChildScrollView(
+                child: isLoading
+                    ? const Center(child: HudLoadingSpinner(size: 50))
+                    : SingleChildScrollView(
                   child: Padding(
                     padding: const EdgeInsets.all(20),
                     child: LayoutBuilder(

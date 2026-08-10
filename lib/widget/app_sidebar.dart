@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/menu_config.dart';
 import '../utils/session_util.dart' as session;
+import '../widget/hud_loading_spinner.dart';
 
 /// Collapsed width: icons only (Navigation Rail style).
 const double _collapsedWidth = 80.0;
@@ -201,7 +202,7 @@ class _AppSidebarState extends State<AppSidebar> {
                     children: _buildMenuItems(),
                   )
                 : const Center(
-                    child: CircularProgressIndicator(color: Colors.amber),
+                    child: HudLoadingSpinner(size: 40),
                   ),
           ),
           const SizedBox(height: 20),

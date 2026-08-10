@@ -11,6 +11,8 @@ import '../widget/app_pagination.dart';
 import '../widget/app_search_field.dart';
 import '../widget/action_buttons.dart';
 import '../widget/app_scaffold.dart';
+import '../widget/hud_loading_spinner.dart';
+import '../utils/hud_loading.dart';
 
 class AmunisiPage extends StatefulWidget {
   const AmunisiPage({super.key});
@@ -181,6 +183,8 @@ class _AmunisiPageState extends State<AmunisiPage> {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString("token");
 
+      HudLoading.show(context, label: "MENGHAPUS...");
+
       final response = await http.delete(
         Uri.parse("$apiBaseUrl/api/v1/logistik/amunisi/$id"),
         headers: {
@@ -189,6 +193,7 @@ class _AmunisiPageState extends State<AmunisiPage> {
       );
 
       if (response.statusCode == 200) {
+        HudLoading.hide(context);
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -198,6 +203,7 @@ class _AmunisiPageState extends State<AmunisiPage> {
         );
         getAmunisiApi();
       } else {
+        HudLoading.hide(context);
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -208,6 +214,7 @@ class _AmunisiPageState extends State<AmunisiPage> {
         debugPrint("Error : ${response.body}");
       }
     } catch (e) {
+      HudLoading.hide(context);
       debugPrint(e.toString());
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -299,7 +306,7 @@ class _AmunisiPageState extends State<AmunisiPage> {
               Expanded(
                 child: isLoading
                     ? const Center(
-                        child: CircularProgressIndicator(),
+                        child: HudLoadingSpinner(size: 50),
                       )
                     : SingleChildScrollView(
                         child: Padding(

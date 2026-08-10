@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/api_config.dart';
+import '../../utils/hud_loading.dart';
 
 class FormTambahPolda extends StatefulWidget {
   final int? poldaId; // null = create mode, non-null = edit mode
@@ -19,7 +20,6 @@ class _FormTambahPoldaState extends State<FormTambahPolda> {
   final namaPolda = TextEditingController();
   final lat = TextEditingController();
   final long = TextEditingController();
-  bool loading = false;
 
   @override
   void initState() {
@@ -46,11 +46,9 @@ class _FormTambahPoldaState extends State<FormTambahPolda> {
       return;
     }
 
-    setState(() {
-      loading = true;
-    });
-
     try {
+      HudLoading.show(context, label: "MENYIMPAN...");
+
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString("token");
 
@@ -84,11 +82,11 @@ class _FormTambahPoldaState extends State<FormTambahPolda> {
         );
       }
 
-      if (!mounted) return;
-
       final result = jsonDecode(response.body);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
+        HudLoading.hide(context);
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -103,6 +101,8 @@ class _FormTambahPoldaState extends State<FormTambahPolda> {
         // Pop back to Polda list; list page refreshes via .then() callback
         Navigator.pop(context, true); // true = data changed, triggers refresh
       } else {
+        HudLoading.hide(context);
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(result["message"] ?? "Gagal menyimpan data"),
@@ -111,6 +111,7 @@ class _FormTambahPoldaState extends State<FormTambahPolda> {
         );
       }
     } catch (e) {
+      HudLoading.hide(context);
       debugPrint("Error simpan polda: $e");
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -119,12 +120,6 @@ class _FormTambahPoldaState extends State<FormTambahPolda> {
             backgroundColor: Colors.red,
           ),
         );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          loading = false;
-        });
       }
     }
   }
@@ -224,21 +219,11 @@ class _FormTambahPoldaState extends State<FormTambahPolda> {
               foregroundColor: const Color(0xFF23251D),
               shape: const StadiumBorder(),
             ),
-            onPressed: loading ? null : simpanPolda,
-            child:
-                loading
-                    ? const SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Color(0xFF23251D),
-                      ),
-                    )
-                    : Text(
-                      isEditMode ? "Update Polda" : "Simpan Data",
-                      style: const TextStyle(fontSize: 18),
-                    ),
+            onPressed: simpanPolda,
+            child: Text(
+              isEditMode ? "Update Polda" : "Simpan Data",
+              style: const TextStyle(fontSize: 18),
+            ),
           ),
         ),
 
