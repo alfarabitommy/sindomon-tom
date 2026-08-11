@@ -1,31 +1,35 @@
 name: Build Windows EXE
 
 on:
-  push:
-    branches: [ "dev" ]
+  workflow_dispatch: # Ini akan memunculkan tombol 'Run' agar kita bisa menjalankannya manual kapan saja
 
 jobs:
   build:
-    name: Build for Windows
-    runs-on: windows-latest
+    name: Build Flutter Windows
+    runs-on: windows-latest # Kita meminjam komputer Windows milik GitHub
 
     steps:
-      - name: Tarik Kodingan
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Siapkan Flutter
+      - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
+          flutter-version: '3.29.3' # Menggunakan versi persis seperti di komputermu
 
-      - name: Ambil Package (Pub Get)
+      - name: Enable Windows Desktop
+        run: flutter config --enable-windows-desktop
+
+      - name: Install Dependencies
         run: flutter pub get
 
-      - name: Build File EXE (Windows)
-        run: flutter build windows
+      - name: Build Windows Release
+        run: flutter build windows --release
 
-      - name: Simpan Hasil Build
+      - name: Upload Artifact (Simpan Hasil)
         uses: actions/upload-artifact@v4
         with:
-          name: Aplikasi-SINDOMON-Windows
-          path: build\windows\x64\runner\Release
+          name: SINDOMON-Windows-EXE
+          # Ini adalah lokasi file .exe setelah berhasil di-compile
+          path: build\windows\x64\runner\Release\*
