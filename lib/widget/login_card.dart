@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/hud_loading.dart';
+import '../theme/theme_scope.dart';
 
 class LoginCard extends StatefulWidget {
   const LoginCard({super.key});
@@ -232,6 +233,32 @@ class _LoginCardState extends State<LoginCard> {
     }
   }
 
+  /// Theme toggle: identical to the sidebar's switcher, but compact so it
+  /// sits snugly in the login card's top-right corner.
+  Widget _buildThemeToggle() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final scheme = Theme.of(context).colorScheme;
+
+    return IconButton(
+      onPressed: () => ThemeScope.of(context).toggleTheme(),
+      tooltip: isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode',
+      icon: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        transitionBuilder: (child, animation) =>
+            RotationTransition(turns: animation, child: child),
+        child: Icon(
+          isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+          key: ValueKey(isDark),
+          color: scheme.onSurface,
+          size: 22,
+        ),
+      ),
+      style: IconButton.styleFrom(
+        visualDensity: VisualDensity.compact,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
@@ -251,92 +278,103 @@ class _LoginCardState extends State<LoginCard> {
               width: 1.0,
             ),
           ),
-          child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Image.asset("assets/images/polri-logo.png", height: 85, fit: BoxFit.contain),
+          child: Stack(
+            children: [
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Image.asset(
+                    "assets/images/polri-logo.png",
+                    height: 85,
+                    fit: BoxFit.contain,
+                  ),
 
-          const SizedBox(height: 12),
+                  const SizedBox(height: 12),
 
-          Text(
-            "SINDOMON - Portal Masuk",
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w800,
-              color: scheme.onSurface,
-            ),
-          ),
+                  Text(
+                    "SINDOMON - Portal Masuk",
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      color: scheme.onSurface,
+                    ),
+                  ),
 
-          const SizedBox(height: 25),
+                  const SizedBox(height: 25),
 
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              "Username / NRP",
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 14,
-                color: scheme.onSurface,
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "Username / NRP",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                        color: scheme.onSurface,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 6),
+
+                  AppTextField(
+                    hint: "Masukkan NRP atau Username",
+                    controller: usernameController,
+                    error: usernameError,
+                  ),
+
+                  const SizedBox(height: 15),
+
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "Kata Sandi",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                        color: scheme.onSurface,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 6),
+
+                  AppTextField(
+                    hint: "••••••••",
+                    controller: passwordController,
+                    obscure: true,
+                    error: passwordError,
+                  ),
+
+                  const SizedBox(height: 25),
+
+                  SizedBox(
+                    width: double.infinity,
+                    height: 45,
+                    child: ElevatedButton(
+                      onPressed: login,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xffF6B300),
+                        foregroundColor: Colors.black,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                      ),
+                      child: const Text(
+                        "Masuk ke Sistem",
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ),
-
-          const SizedBox(height: 6),
-
-          AppTextField(
-            hint: "Masukkan NRP atau Username",
-            controller: usernameController,
-            error: usernameError,
-          ),
-
-          const SizedBox(height: 15),
-
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              "Kata Sandi",
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 14,
-                color: scheme.onSurface,
+              Positioned(
+                top: 0,
+                right: 0,
+                child: _buildThemeToggle(),
               ),
-            ),
+            ],
           ),
-
-          const SizedBox(height: 6),
-
-          AppTextField(
-            hint: "••••••••",
-            controller: passwordController,
-            obscure: true,
-            error: passwordError,
-          ),
-
-          const SizedBox(height: 25),
-
-          SizedBox(
-            width: double.infinity,
-            height: 45,
-            child: ElevatedButton(
-              onPressed: login,
-
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xffF6B300),
-                foregroundColor: Colors.black,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-              ),
-
-              child: const Text(
-                "Masuk ke Sistem",
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ),
-          ),
-        ],
-      ),
-      ),
+        ),
       ),
     );
   }

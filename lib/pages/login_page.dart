@@ -13,7 +13,11 @@ class LoginPage extends StatelessWidget {
           child: Center(
             child: SingleChildScrollView(
               child: Column(
-                children: const [SizedBox(height: 40), LoginCard()],
+                children: [
+                  const SizedBox(height: 40),
+                  // LoginCard reads ThemeScope, so it can no longer be const.
+                  LoginCard(),
+                ],
               ),
             ),
           ),

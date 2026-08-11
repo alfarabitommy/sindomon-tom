@@ -75,6 +75,84 @@ class _AppSidebarState extends State<AppSidebar> {
 
   void _toggleExpanded() => setState(() => _isExpanded = !_isExpanded);
 
+  /// Theme toggle: J.A.R.V.I.S / Corporate switcher.
+  Widget _buildThemeToggle() {
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final colors = SidebarColors.fromBrightness(brightness);
+    return IconButton(
+      onPressed: () => widget.themeController.toggleTheme(),
+      tooltip: isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode',
+      icon: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        transitionBuilder: (child, animation) =>
+            RotationTransition(turns: animation, child: child),
+        child: Icon(
+          isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+          key: ValueKey(isDark),
+          color: colors.iconColor,
+        ),
+      ),
+      style: IconButton.styleFrom(hoverColor: colors.hoverColor),
+    );
+  }
+
+  /// Collapse/expand toggle, relocated to the bottom control cluster.
+  ///
+  /// Both icons live permanently in the tree; Offstage toggles visibility so
+  /// the IconButton's internal Tooltip/InkResponse (and their MouseRegions)
+  /// are never rebuilt or disposed.
+  Widget _buildCollapseToggle() {
+    final colors = SidebarColors.fromBrightness(Theme.of(context).brightness);
+    return IconButton(
+      icon: Stack(
+        alignment: Alignment.center,
+        children: [
+          Offstage(
+            offstage: _isExpanded,
+            child: Icon(
+              Icons.keyboard_double_arrow_right,
+              color: colors.iconColor,
+            ),
+          ),
+          Offstage(
+            offstage: !_isExpanded,
+            child: Icon(
+              Icons.keyboard_double_arrow_left,
+              color: colors.iconColor,
+            ),
+          ),
+        ],
+      ),
+      onPressed: _toggleExpanded,
+      tooltip: _isExpanded ? 'Collapse sidebar' : 'Expand sidebar',
+      style: IconButton.styleFrom(hoverColor: colors.hoverColor),
+    );
+  }
+
+  /// Bottom control cluster: theme toggle + collapse toggle.
+  ///
+  /// Expanded: side-by-side [Row] with [MainAxisAlignment.spaceBetween].
+  /// Collapsed: stacked [Column] centered in the 80px rail.
+  Widget _buildBottomControls() {
+    if (_isExpanded) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [_buildThemeToggle(), _buildCollapseToggle()],
+        ),
+      );
+    }
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [_buildThemeToggle(), _buildCollapseToggle()],
+      ),
+    );
+  }
+
   List<dynamic> _resolveMenu() {
     if (_roleId == null) return [];
     if (!roleMenus.containsKey(_roleId)) {
@@ -89,7 +167,6 @@ class _AppSidebarState extends State<AppSidebar> {
   @override
   Widget build(BuildContext context) {
     final brightness = Theme.of(context).brightness;
-    final isDark = brightness == Brightness.dark;
     final colors = SidebarColors.fromBrightness(brightness);
 
     return AnimatedContainer(
@@ -114,40 +191,6 @@ class _AppSidebarState extends State<AppSidebar> {
         // Menu stack snaps to the top regardless of sidebar width.
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          // ── Toggle button (hamburger) — rigidly locked geometry ──
-          // The SizedBox sandwich pins the icon's Y-position regardless of
-          // sidebar width, icon shape swap, or content shrinkage below.
-          const SizedBox(height: 12),
-          SizedBox(
-            height: 48,
-            width: double.infinity,
-            child: Align(
-              alignment: Alignment.center,
-              child: IconButton(
-                // Both icons live permanently in the tree; Offstage toggles
-                // visibility so the IconButton's internal Tooltip/InkResponse
-                // (and their MouseRegions) are never rebuilt or disposed.
-                icon: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    Offstage(
-                      offstage: _isExpanded,
-                      child: Icon(Icons.menu, color: colors.iconColor),
-                    ),
-                    Offstage(
-                      offstage: !_isExpanded,
-                      child: Icon(Icons.menu_open, color: colors.iconColor),
-                    ),
-                  ],
-                ),
-                onPressed: _toggleExpanded,
-                tooltip: _isExpanded ? 'Collapse sidebar' : 'Expand sidebar',
-                style: IconButton.styleFrom(hoverColor: colors.hoverColor),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-
           // ── Logo: always visible, scales down to fit the 80px rail ──
           AnimatedContainer(
             duration: _widthAnimationDuration,
@@ -216,7 +259,7 @@ class _AppSidebarState extends State<AppSidebar> {
                   ),
           ),
 
-          // ── Theme toggle: J.A.R.V.I.S / Corporate switcher ──
+          // ── Bottom controls: theme toggle + collapse toggle ──
           Divider(
             color: colors.hoverColor,
             height: 1,
@@ -224,26 +267,7 @@ class _AppSidebarState extends State<AppSidebar> {
             endIndent: 20,
           ),
           const SizedBox(height: 4),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            child: IconButton(
-              onPressed: () => widget.themeController.toggleTheme(),
-              tooltip: isDark
-                  ? 'Switch to Light Mode'
-                  : 'Switch to Dark Mode',
-              icon: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
-                transitionBuilder: (child, animation) =>
-                    RotationTransition(turns: animation, child: child),
-                child: Icon(
-                  isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
-                  key: ValueKey(isDark),
-                  color: colors.iconColor,
-                ),
-              ),
-              style: IconButton.styleFrom(hoverColor: colors.hoverColor),
-            ),
-          ),
+          _buildBottomControls(),
           const SizedBox(height: 20),
         ],
       ),
