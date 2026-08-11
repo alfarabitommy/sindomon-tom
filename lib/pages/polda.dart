@@ -65,7 +65,7 @@ class _PoldaPageState extends State<PoldaPage> {
         // Tolerates the legacy flat-list shape as a fallback.
         final List rawList = data is Map
             ? (data["items"] is List ? data["items"] as List : [])
-            : (data is List ? data as List : []);
+            : (data is List ? data : []);
         final Map<String, dynamic> pagination = data is Map &&
                 data["pagination"] is Map
             ? data["pagination"] as Map<String, dynamic>
@@ -144,6 +144,7 @@ class _PoldaPageState extends State<PoldaPage> {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString("token");
 
+      if (!mounted) return;
       HudLoading.show(context, label: "MENGHAPUS...");
 
       final response = await http.delete(
@@ -152,8 +153,8 @@ class _PoldaPageState extends State<PoldaPage> {
       );
 
       if (response.statusCode == 200) {
-        HudLoading.hide(context);
         if (!mounted) return;
+        HudLoading.hide(context);
         final result = jsonDecode(response.body);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -163,8 +164,8 @@ class _PoldaPageState extends State<PoldaPage> {
         );
         getPoldaApi(); // refresh list
       } else {
-        HudLoading.hide(context);
         if (!mounted) return;
+        HudLoading.hide(context);
         final result = jsonDecode(response.body);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

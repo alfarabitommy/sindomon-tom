@@ -219,8 +219,8 @@ class _FormTambahUserState extends State<FormTambahUser> {
       final result = jsonDecode(response.body);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        HudLoading.hide(context);
         if (!mounted) return;
+        HudLoading.hide(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(result["message"] ??
@@ -233,8 +233,8 @@ class _FormTambahUserState extends State<FormTambahUser> {
         // Pop back to user list (the list page will refresh via .then() callback)
         Navigator.pop(context, true); // true = data changed, triggers refresh
       } else {
-        HudLoading.hide(context);
         if (!mounted) return;
+        HudLoading.hide(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(result["message"] ?? "Gagal menyimpan data"),

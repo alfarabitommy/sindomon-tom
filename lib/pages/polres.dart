@@ -141,6 +141,7 @@ class _PolresPageState extends State<PolresPage> {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString("token");
 
+      if (!mounted) return;
       HudLoading.show(context, label: "MENGHAPUS...");
 
       final response = await http.delete(
@@ -149,8 +150,8 @@ class _PolresPageState extends State<PolresPage> {
       );
 
       if (response.statusCode == 200) {
-        HudLoading.hide(context);
         if (!mounted) return;
+        HudLoading.hide(context);
         final result = jsonDecode(response.body);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -160,8 +161,8 @@ class _PolresPageState extends State<PolresPage> {
         );
         getPolresApi(); // refresh list
       } else {
-        HudLoading.hide(context);
         if (!mounted) return;
+        HudLoading.hide(context);
         final result = jsonDecode(response.body);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

@@ -184,6 +184,7 @@ class _AmunisiPageState extends State<AmunisiPage> {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString("token");
 
+      if (!mounted) return;
       HudLoading.show(context, label: "MENGHAPUS...");
 
       final response = await http.delete(
@@ -194,8 +195,8 @@ class _AmunisiPageState extends State<AmunisiPage> {
       );
 
       if (response.statusCode == 200) {
-        HudLoading.hide(context);
         if (!mounted) return;
+        HudLoading.hide(context);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text("Data amunisi berhasil dihapus"),
@@ -204,8 +205,8 @@ class _AmunisiPageState extends State<AmunisiPage> {
         );
         getAmunisiApi();
       } else {
-        HudLoading.hide(context);
         if (!mounted) return;
+        HudLoading.hide(context);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text("Gagal menghapus data"),

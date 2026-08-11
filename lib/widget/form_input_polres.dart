@@ -93,8 +93,8 @@ class _FormTambahPolresState extends State<FormTambahPolres> {
       final result = jsonDecode(response.body);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        HudLoading.hide(context);
         if (!mounted) return;
+        HudLoading.hide(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -109,8 +109,8 @@ class _FormTambahPolresState extends State<FormTambahPolres> {
         // Pop back to Polres list; list page refreshes via .then() callback
         Navigator.pop(context, true); // true = data changed, triggers refresh
       } else {
-        HudLoading.hide(context);
         if (!mounted) return;
+        HudLoading.hide(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(result["message"] ?? "Gagal menyimpan data"),

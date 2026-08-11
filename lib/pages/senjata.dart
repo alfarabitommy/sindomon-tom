@@ -206,6 +206,7 @@ class _SenjataPageState extends State<SenjataPage> {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString("token");
 
+      if (!mounted) return;
       HudLoading.show(context, label: "MENGHAPUS...");
 
       final response = await http.delete(
@@ -216,8 +217,8 @@ class _SenjataPageState extends State<SenjataPage> {
       );
 
       if (response.statusCode == 200) {
-        HudLoading.hide(context);
         if (!mounted) return;
+        HudLoading.hide(context);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text("Data senjata berhasil dihapus"),
@@ -226,8 +227,8 @@ class _SenjataPageState extends State<SenjataPage> {
         );
         getSenjataApi();
       } else {
-        HudLoading.hide(context);
         if (!mounted) return;
+        HudLoading.hide(context);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text("Gagal menghapus data"),

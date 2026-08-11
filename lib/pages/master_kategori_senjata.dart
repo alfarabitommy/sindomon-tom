@@ -86,7 +86,7 @@ class _MasterKategoriSenjataPageState extends State<MasterKategoriSenjataPage> {
         // Tolerates the legacy flat-list shape as a fallback.
         final List<dynamic> rawList = data is Map
             ? (data["items"] is List ? data["items"] as List : [])
-            : (data is List ? data as List : []);
+            : (data is List ? data : []);
         final Map<String, dynamic> pagination = data is Map &&
                 data["pagination"] is Map
             ? data["pagination"] as Map<String, dynamic>
@@ -363,6 +363,7 @@ class _MasterKategoriSenjataPageState extends State<MasterKategoriSenjataPage> {
         "kaliber": kaliber,
       });
 
+      if (!mounted) return;
       HudLoading.show(context, label: "MENYIMPAN...");
 
       final http.Response response = isEdit
@@ -370,8 +371,8 @@ class _MasterKategoriSenjataPageState extends State<MasterKategoriSenjataPage> {
           : await http.post(uri, headers: headers, body: body);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        HudLoading.hide(context);
         if (!mounted) return;
+        HudLoading.hide(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -384,8 +385,8 @@ class _MasterKategoriSenjataPageState extends State<MasterKategoriSenjataPage> {
         );
         getKategoriApi();
       } else {
-        HudLoading.hide(context);
         if (!mounted) return;
+        HudLoading.hide(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(_parseErrorMessage(response) ?? "Gagal menyimpan data"),
@@ -414,6 +415,7 @@ class _MasterKategoriSenjataPageState extends State<MasterKategoriSenjataPage> {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString("token");
 
+      if (!mounted) return;
       HudLoading.show(context, label: "MENGHAPUS...");
 
       final response = await http.delete(
@@ -422,8 +424,8 @@ class _MasterKategoriSenjataPageState extends State<MasterKategoriSenjataPage> {
       );
 
       if (response.statusCode == 200) {
-        HudLoading.hide(context);
         if (!mounted) return;
+        HudLoading.hide(context);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text("Kategori berhasil dihapus"),
@@ -432,8 +434,8 @@ class _MasterKategoriSenjataPageState extends State<MasterKategoriSenjataPage> {
         );
         getKategoriApi();
       } else if (response.statusCode == 409) {
-        HudLoading.hide(context);
         if (!mounted) return;
+        HudLoading.hide(context);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
@@ -444,8 +446,8 @@ class _MasterKategoriSenjataPageState extends State<MasterKategoriSenjataPage> {
           ),
         );
       } else {
-        HudLoading.hide(context);
         if (!mounted) return;
+        HudLoading.hide(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(

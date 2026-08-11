@@ -141,6 +141,7 @@ class _SarprasPageState extends State<SarprasPage> {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString("token");
 
+      if (!mounted) return;
       HudLoading.show(context, label: "MENGHAPUS...");
 
       final response = await http.delete(
@@ -151,8 +152,8 @@ class _SarprasPageState extends State<SarprasPage> {
       );
 
       if (response.statusCode == 200) {
-        HudLoading.hide(context);
         if (!mounted) return;
+        HudLoading.hide(context);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text("Data sarpras berhasil dihapus"),
@@ -161,8 +162,8 @@ class _SarprasPageState extends State<SarprasPage> {
         );
         getSarprasApi();
       } else {
-        HudLoading.hide(context);
         if (!mounted) return;
+        HudLoading.hide(context);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text("Gagal menghapus data"),

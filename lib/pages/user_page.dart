@@ -62,7 +62,7 @@ class _UserPageState extends State<UserPage> {
         // Tolerates the legacy flat-list shape as a fallback.
         final List rawList = data is Map
             ? (data["items"] is List ? data["items"] as List : [])
-            : (data is List ? data as List : []);
+            : (data is List ? data : []);
         final Map<String, dynamic> pagination = data is Map &&
                 data["pagination"] is Map
             ? data["pagination"] as Map<String, dynamic>

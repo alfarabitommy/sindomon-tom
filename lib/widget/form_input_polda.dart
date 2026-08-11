@@ -85,8 +85,8 @@ class _FormTambahPoldaState extends State<FormTambahPolda> {
       final result = jsonDecode(response.body);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        HudLoading.hide(context);
         if (!mounted) return;
+        HudLoading.hide(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -101,8 +101,8 @@ class _FormTambahPoldaState extends State<FormTambahPolda> {
         // Pop back to Polda list; list page refreshes via .then() callback
         Navigator.pop(context, true); // true = data changed, triggers refresh
       } else {
-        HudLoading.hide(context);
         if (!mounted) return;
+        HudLoading.hide(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(result["message"] ?? "Gagal menyimpan data"),

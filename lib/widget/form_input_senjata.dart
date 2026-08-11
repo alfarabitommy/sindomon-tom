@@ -241,8 +241,8 @@ class _FormTambahSenjataState extends State<FormTambahSenjata> {
       debugPrint(response.body);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        HudLoading.hide(context);
         if (!mounted) return;
+        HudLoading.hide(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -255,8 +255,8 @@ class _FormTambahSenjataState extends State<FormTambahSenjata> {
         );
         Navigator.pop(context, true);
       } else {
-        HudLoading.hide(context);
         if (!mounted) return;
+        HudLoading.hide(context);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text("Gagal menyimpan data"),

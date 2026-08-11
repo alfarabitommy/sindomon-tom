@@ -250,8 +250,8 @@ class _FormTambahPersonelState extends State<FormTambahPersonel> {
       final result = jsonDecode(response.body);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        HudLoading.hide(context);
         if (!mounted) return;
+        HudLoading.hide(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -268,8 +268,8 @@ class _FormTambahPersonelState extends State<FormTambahPersonel> {
       } else if (response.statusCode == 422) {
         // Business validation failure — e.g. NRP already registered.
         // Stay on the form so the user can fix the field.
-        HudLoading.hide(context);
         if (!mounted) return;
+        HudLoading.hide(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(result["message"] ?? "Validasi data gagal"),
@@ -277,8 +277,8 @@ class _FormTambahPersonelState extends State<FormTambahPersonel> {
           ),
         );
       } else {
-        HudLoading.hide(context);
         if (!mounted) return;
+        HudLoading.hide(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(result["message"] ?? "Gagal menyimpan data"),

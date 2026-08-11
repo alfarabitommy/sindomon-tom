@@ -1066,7 +1066,7 @@ class _HudDivider extends StatelessWidget {
 /// HUD auto-scrolling text (native marquee, zero external packages).
 ///
 /// Renders [text] statically when it fits the available width. When the text
-/// overflows, it waits [pauseBeforeScroll], then runs a seamless, infinitely
+/// overflows, it waits 1500 ms, then runs a seamless, infinitely
 /// looping scroll using only core Flutter primitives: a [TextPainter] width
 /// measurement, an [AnimationController] with a linear curve, and a
 /// [Transform.translate] shifting two side-by-side copies of the text inside
@@ -1077,21 +1077,9 @@ class _HudMarqueeText extends StatefulWidget {
   final String text;
   final TextStyle style;
 
-  /// Idle time before the continuous scroll loop begins.
-  final Duration pauseBeforeScroll;
-
-  /// Horizontal gap between the two scrolling copies.
-  final double gapBetweenCopies;
-
-  /// Scroll speed in logical pixels per second.
-  final double scrollSpeed;
-
   const _HudMarqueeText({
     required this.text,
     required this.style,
-    this.pauseBeforeScroll = const Duration(milliseconds: 1500),
-    this.gapBetweenCopies = 40,
-    this.scrollSpeed = 30,
   });
 
   @override
@@ -1182,12 +1170,12 @@ class _HudMarqueeTextState extends State<_HudMarqueeText>
 
     // Scale the cycle duration with the travelled distance so longer names
     // keep a constant, deliberate HUD scroll speed.
-    final totalWidth = _textWidth + widget.gapBetweenCopies;
+    final totalWidth = _textWidth + 40;
     final durationMs =
-        ((totalWidth / widget.scrollSpeed) * 1000).round().clamp(1500, 12000);
+        ((totalWidth / 30) * 1000).round().clamp(1500, 12000);
     _controller.duration = Duration(milliseconds: durationMs);
 
-    _startTimer = Timer(widget.pauseBeforeScroll, () {
+    _startTimer = Timer(const Duration(milliseconds: 1500), () {
       if (mounted) _controller.repeat();
     });
   }
@@ -1209,7 +1197,7 @@ class _HudMarqueeTextState extends State<_HudMarqueeText>
     // totalWidth is the distance travelled per cycle, so when the controller
     // wraps back to 0.0 the second copy occupies the first copy's exact
     // starting position — a seamless infinite loop.
-    final totalWidth = _textWidth + widget.gapBetweenCopies;
+    final totalWidth = _textWidth + 40;
 
     return SizedBox(
       key: _containerKey,
@@ -1233,7 +1221,7 @@ class _HudMarqueeTextState extends State<_HudMarqueeText>
                       softWrap: false,
                       style: widget.style,
                     ),
-                    SizedBox(width: widget.gapBetweenCopies),
+                    SizedBox(width: 40),
                     Text(
                       widget.text,
                       maxLines: 1,

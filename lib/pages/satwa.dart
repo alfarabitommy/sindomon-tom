@@ -140,6 +140,7 @@ class _SatwaPageState extends State<SatwaPage> {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString("token");
 
+      if (!mounted) return;
       HudLoading.show(context, label: "MENGHAPUS...");
 
       final response = await http.delete(
@@ -150,8 +151,8 @@ class _SatwaPageState extends State<SatwaPage> {
       );
 
       if (response.statusCode == 200) {
-        HudLoading.hide(context);
         if (!mounted) return;
+        HudLoading.hide(context);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text("Data satwa berhasil dihapus"),
@@ -160,8 +161,8 @@ class _SatwaPageState extends State<SatwaPage> {
         );
         getSatwaApi();
       } else {
-        HudLoading.hide(context);
         if (!mounted) return;
+        HudLoading.hide(context);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text("Gagal menghapus data"),

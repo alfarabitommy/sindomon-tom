@@ -154,7 +154,7 @@ class _LoginCardState extends State<LoginCard> {
         await prefs.setString("roleid_login", roleID);
         await prefs.setString("uuid_login", uuid);
         await prefs.setString("expired_login", expired);
-        if (!context.mounted) return;
+        if (!mounted) return;
         // pushAndRemoveUntil removes BOTH the login page and the HUD dialog
         // route, so the dashboard becomes the only route on the stack and the
         // back button can never return to the login form.
@@ -164,7 +164,7 @@ class _LoginCardState extends State<LoginCard> {
           (route) => false,
         );
       } else if (response.statusCode == 403) {
-        if (!context.mounted) return;
+        if (!mounted) return;
         HudLoading.hide(context);
         showDialog(
           context: context,
@@ -183,7 +183,7 @@ class _LoginCardState extends State<LoginCard> {
           ),
         );
       } else {
-        if (!context.mounted) return;
+        if (!mounted) return;
         HudLoading.hide(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -208,7 +208,7 @@ class _LoginCardState extends State<LoginCard> {
       }
     } catch (e, st) {
       debugPrint('Login error: $e\n$st');
-      if (!context.mounted) return;
+      if (!mounted) return;
       HudLoading.hide(context);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
