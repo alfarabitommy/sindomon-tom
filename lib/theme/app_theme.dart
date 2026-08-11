@@ -89,11 +89,20 @@ abstract final class AppThemeData {
       ),
       tooltipTheme: TooltipThemeData(
         decoration: BoxDecoration(
-          color: brightness == Brightness.dark
-              ? const Color(0xFF1A1E38)
-              : const Color(0xFF1E293B),
-          borderRadius: BorderRadius.circular(8),
+          color: const Color(0xFF0F172A),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.15),
+            width: 1,
+          ),
+          borderRadius: BorderRadius.circular(6),
         ),
+        textStyle: GoogleFonts.barlowSemiCondensed(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: Colors.white,
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        waitDuration: const Duration(milliseconds: 300),
       ),
     );
   }

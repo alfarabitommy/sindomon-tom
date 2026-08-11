@@ -284,8 +284,8 @@ class _LoginCardState extends State<LoginCard> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Image.asset(
-                    "assets/images/polri-logo.png",
-                    height: 85,
+                    "assets/images/logo-korsabhara.png",
+                    height: 95,
                     fit: BoxFit.contain,
                   ),
 

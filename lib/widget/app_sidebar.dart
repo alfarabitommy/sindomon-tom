@@ -191,13 +191,15 @@ class _AppSidebarState extends State<AppSidebar> {
         // Menu stack snaps to the top regardless of sidebar width.
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
+          const SizedBox(height: 32),
+
           // ── Logo: always visible, scales down to fit the 80px rail ──
           AnimatedContainer(
             duration: _widthAnimationDuration,
             curve: Curves.easeOutCubic,
-            height: _isExpanded ? 65 : 40,
+            height: _isExpanded ? 90 : 55,
             child: Image.asset(
-              "assets/images/polri-logo.png",
+              "assets/images/logo-korsabhara.png",
               fit: BoxFit.contain,
             ),
           ),
