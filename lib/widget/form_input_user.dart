@@ -337,7 +337,7 @@ class _FormTambahUserState extends State<FormTambahUser> {
                       child: formField(
                         label: "Role *",
                         child: DropdownButtonFormField<String>(
-                          value: selectedRoleId,
+                          initialValue: selectedRoleId,
                           decoration: _inputDecoration(scheme),
                           items: const [
                             DropdownMenuItem(
@@ -390,7 +390,7 @@ class _FormTambahUserState extends State<FormTambahUser> {
                 formField(
                   label: "Role *",
                   child: DropdownButtonFormField<String>(
-                    value: selectedRoleId,
+                    initialValue: selectedRoleId,
                     decoration: _inputDecoration(scheme),
                     items: const [
                       DropdownMenuItem(
@@ -449,7 +449,7 @@ class _FormTambahUserState extends State<FormTambahUser> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               DropdownButtonFormField<String>(
-                                value: selectedPoldaId,
+                                initialValue: selectedPoldaId,
                                 decoration: _inputDecoration(scheme),
                                 hint: const Text("Pilih Polda"),
                                 items: daftarPolda.map((p) {
@@ -485,7 +485,7 @@ class _FormTambahUserState extends State<FormTambahUser> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         DropdownButtonFormField<String>(
-                          value: selectedPoldaId,
+                          initialValue: selectedPoldaId,
                           decoration: _inputDecoration(scheme),
                           hint: const Text("Pilih Polda"),
                           items: daftarPolda.map((p) {

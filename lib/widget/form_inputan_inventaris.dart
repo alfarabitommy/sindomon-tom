@@ -118,7 +118,7 @@ class _FormTambahInventarisState extends State<FormTambahInventaris> {
           const SizedBox(height: 8),
 
           DropdownButtonFormField<String>(
-            value: kategori,
+            initialValue: kategori,
             decoration: _inputDecoration(scheme),
             hint: Text("Pilih Pangkat"),
             items: const [

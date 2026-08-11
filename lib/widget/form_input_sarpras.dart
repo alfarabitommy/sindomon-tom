@@ -395,7 +395,7 @@ class _FormTambahSarprasState extends State<FormTambahSarpras> {
                     formField(
                       label: "Kategori *",
                       child: DropdownButtonFormField<String>(
-                        value: _kategoriItems.contains(selectedKategori)
+                        initialValue: _kategoriItems.contains(selectedKategori)
                             ? selectedKategori
                             : null,
                         decoration: _inputDecoration(scheme).copyWith(
@@ -471,7 +471,7 @@ class _FormTambahSarprasState extends State<FormTambahSarpras> {
                     formField(
                       label: "Kondisi *",
                       child: DropdownButtonFormField<String>(
-                        value: _kondisiItems.contains(selectedKondisi)
+                        initialValue: _kondisiItems.contains(selectedKondisi)
                             ? selectedKondisi
                             : null,
                         decoration: _inputDecoration(scheme).copyWith(

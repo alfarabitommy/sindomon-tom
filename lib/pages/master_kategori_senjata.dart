@@ -239,7 +239,7 @@ class _MasterKategoriSenjataPageState extends State<MasterKategoriSenjataPage> {
                 ),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<String>(
-                  value: selectedTipe,
+                  initialValue: selectedTipe,
                   isExpanded: true,
                   decoration: _dialogInputDecoration(scheme).copyWith(
                     hintText: "Pilih Tipe Laras",

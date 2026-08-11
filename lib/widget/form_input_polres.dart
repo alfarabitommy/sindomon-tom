@@ -218,7 +218,7 @@ class _FormTambahPolresState extends State<FormTambahPolres> {
         const SizedBox(height: 8),
 
         DropdownButtonFormField<int>(
-          value: selectedPoldaId,
+          initialValue: selectedPoldaId,
           decoration: _inputDecoration(scheme).copyWith(hintText: "Pilih Polda"),
           items:
               daftarPolda.map((polda) {

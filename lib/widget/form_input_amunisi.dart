@@ -338,7 +338,7 @@ class _FormTambahAmunisiState extends State<FormTambahAmunisi> {
                       label: "Polda *",
                       child: DropdownButtonFormField<int>(
                         key: _poldaFieldKey,
-                        value: daftarPolda.isEmpty ? null : selectedPoldaId,
+                        initialValue: daftarPolda.isEmpty ? null : selectedPoldaId,
                         decoration: _inputDecoration(scheme).copyWith(hintText: "Pilih Polda"),
                         items:
                             daftarPolda.map((polda) {
@@ -384,7 +384,7 @@ class _FormTambahAmunisiState extends State<FormTambahAmunisi> {
                     formField(
                       label: "Kategori Senjata *",
                       child: DropdownButtonFormField<int>(
-                        value: daftarKategori.isEmpty ? null : selectedKatId,
+                        initialValue: daftarKategori.isEmpty ? null : selectedKatId,
                         decoration: _inputDecoration(scheme).copyWith(hintText: "Pilih Kategori"),
                         items:
                             daftarKategori.map((cat) {

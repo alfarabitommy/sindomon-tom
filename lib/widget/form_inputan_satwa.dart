@@ -479,7 +479,7 @@ class _FormInputanSatwaState extends State<FormInputanSatwa> {
                     formField(
                       label: "Jenis Satwa *",
                       child: DropdownButtonFormField<String>(
-                        value: _jenisItems.contains(selectedJenisSatwa)
+                        initialValue: _jenisItems.contains(selectedJenisSatwa)
                             ? selectedJenisSatwa
                             : null,
                         decoration: _inputDecoration(scheme).copyWith(
@@ -539,7 +539,7 @@ class _FormInputanSatwaState extends State<FormInputanSatwa> {
                     formField(
                       label: "Kualifikasi *",
                       child: DropdownButtonFormField<String>(
-                        value: _kualifikasiItems.contains(selectedKualifikasi)
+                        initialValue: _kualifikasiItems.contains(selectedKualifikasi)
                             ? selectedKualifikasi
                             : null,
                         decoration: _inputDecoration(scheme).copyWith(

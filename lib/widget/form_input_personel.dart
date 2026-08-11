@@ -426,7 +426,7 @@ class _FormTambahPersonelState extends State<FormTambahPersonel> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         DropdownButtonFormField<int>(
-                          value: selectedPoldaId,
+                          initialValue: selectedPoldaId,
                           // onChanged: null is Flutter's built-in disabled
                           // state — the field greys out and ignores taps.
                           // Operator Polda cannot change their assigned Polda.
@@ -499,7 +499,7 @@ class _FormTambahPersonelState extends State<FormTambahPersonel> {
                     // No longer required — "Tidak Ada / Mako Polda" option exists
                     label: "Polres",
                     child: DropdownButtonFormField<int>(
-                      value: selectedPolresId,
+                      initialValue: selectedPolresId,
                       decoration: _inputDecoration(scheme),
                       hint: Text("Pilih Polres"),
                       items: [
@@ -533,7 +533,7 @@ class _FormTambahPersonelState extends State<FormTambahPersonel> {
                   child: formField(
                     label: "Pangkat *",
                     child: DropdownButtonFormField<int>(
-                      value: selectedPangkatId,
+                      initialValue: selectedPangkatId,
                       decoration: _inputDecoration(scheme),
                       hint: Text("Pilih Pangkat"),
                       items:
@@ -557,7 +557,7 @@ class _FormTambahPersonelState extends State<FormTambahPersonel> {
                   child: formField(
                     label: "Jabatan *",
                     child: DropdownButtonFormField<int>(
-                      value: selectedJabatanId,
+                      initialValue: selectedJabatanId,
                       decoration: _inputDecoration(scheme),
                       hint: Text("Pilih Jabatan"),
                       items:
