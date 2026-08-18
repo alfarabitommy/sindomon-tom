@@ -22,7 +22,7 @@ jobs:
         run: flutter pub get
 
       - name: Build File EXE (Windows)
-        run: flutter build windows
+        run: flutter build windows --dart-define=API_BASE_URL=https://sindomon.cml-indonesia.com
 
       - name: Simpan Hasil Build
         uses: actions/upload-artifact@v4

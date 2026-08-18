@@ -1,10 +1,21 @@
 import 'package:flutter/material.dart';
 import 'pages/login_page.dart';
+import 'config/api_config.dart';
 import 'theme/app_theme.dart';
 import 'theme/theme_controller.dart';
 import 'theme/theme_scope.dart';
 
 void main() {
+  // Fail closed: credentials and JWTs are sent to apiBaseUrl, so a
+  // misconfigured --dart-define=API_BASE_URL must never downgrade to http://.
+  // (The default constant is https; this guards build-time overrides only.)
+  final scheme = Uri.parse(apiBaseUrl).scheme.toLowerCase();
+  if (scheme != 'https') {
+    throw StateError(
+      'apiBaseUrl must use https:// (got "$apiBaseUrl"). '
+      'Fix the API_BASE_URL dart-define or api_config.dart.',
+    );
+  }
   runApp(const MyApp());
 }
 

@@ -1,0 +1,5 @@
+[permissions]
+allow = []
+
+[sandbox]
+allow_write = ["${HOME}/.config/FlyEnv/app/flutter/3.44.9/bin/cache", "${HOME}/.dartServer", "${HOME}/.pub-cache", "${HOME}/.config/flutter", "${HOME}/.config/FlyEnv/app/flutter/3.44.9/.pub-preload-cache", "${HOME}/.config/FlyEnv/app/flutter/3.44.9/packages/flutter_tools/.dart_tool", "${HOME}/.dart-tool"]
