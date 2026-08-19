@@ -258,16 +258,17 @@ class _LoginCardState extends State<LoginCard> {
       if (!mounted) return;
       HudLoading.hide(context);
       final text = e.toString();
-      
       if (text.contains('Handshake') ||
           text.contains('CERTIFICATE') ||
           text.contains('TLS')) {
-        // TRACER: Tampilkan error asli dari dart:io (BoringSSL) ke layar
-        _showError("TRACE: $text");
+        _showError(
+          "Koneksi aman (TLS) ke server gagal. Periksa pengaturan sertifikat atau koneksi Anda.",
+        );
       } else {
         _showError("Terjadi kesalahan tidak terduga. Silahkan coba lagi.");
       }
     }
+  }
 
   /// Theme toggle: identical to the sidebar's switcher, but compact so it
   /// sits snugly in the login card's top-right corner.
