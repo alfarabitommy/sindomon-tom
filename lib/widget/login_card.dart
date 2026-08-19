@@ -262,7 +262,7 @@ class _LoginCardState extends State<LoginCard> {
           text.contains('CERTIFICATE') ||
           text.contains('TLS')) {
         _showError(
-          "Koneksi aman (TLS) ke server gagal. Periksa pengaturan sertifikat atau koneksi Anda.",
+          "TRACE: $text",
         );
       } else {
         _showError("Terjadi kesalahan tidak terduga. Silahkan coba lagi.");
