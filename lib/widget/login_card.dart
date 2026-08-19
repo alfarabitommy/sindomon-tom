@@ -261,12 +261,13 @@ class _LoginCardState extends State<LoginCard> {
       if (text.contains('Handshake') ||
           text.contains('CERTIFICATE') ||
           text.contains('TLS')) {
-        _showError(
-          "Koneksi aman (TLS) ke server gagal. Periksa pengaturan sertifikat atau koneksi Anda.",
-        );
-      } else {
-        _showError("Terjadi kesalahan tidak terduga. Silahkan coba lagi.");
-      }
+        _showError("TRACE: $text");
+        // _showError(
+        //   "Koneksi aman (TLS) ke server gagal. Periksa pengaturan sertifikat atau koneksi Anda.",
+        // );
+      // } else {
+      //   _showError("Terjadi kesalahan tidak terduga. Silahkan coba lagi.");
+      // }
     }
   }
 
